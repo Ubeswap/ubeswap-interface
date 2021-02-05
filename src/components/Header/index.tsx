@@ -8,7 +8,7 @@ import { Text } from 'rebass'
 import styled from 'styled-components'
 import { CountUp } from 'use-count-up'
 import LogoWithTextDark from '../../assets/svg/logo-with-text-dark.svg'
-import Logo from '../../assets/svg/logo.svg'
+import LogoWithText from '../../assets/svg/logo-with-text.svg'
 import { useActiveWeb3React } from '../../hooks'
 import usePrevious from '../../hooks/usePrevious'
 import { useShowClaimPopup, useToggleSelfClaimModal } from '../../state/application/hooks'
@@ -321,7 +321,7 @@ export default function Header() {
       <HeaderRow>
         <Title href=".">
           <UniIcon>
-            <img width={'140px'} src={darkMode ? LogoWithTextDark : Logo} alt="logo" />
+            <img width={'140px'} src={darkMode ? LogoWithTextDark : LogoWithText} alt="logo" />
           </UniIcon>
         </Title>
         <HeaderLinks>
