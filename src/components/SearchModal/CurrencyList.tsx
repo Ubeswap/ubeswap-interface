@@ -1,22 +1,22 @@
 import { Currency, CurrencyAmount, currencyEquals, ETHER, Token } from '@uniswap/sdk'
-import React, { CSSProperties, MutableRefObject, useCallback, useMemo } from 'react'
+import React, { CSSProperties, MutableRefObject, useCallback } from 'react'
 import { FixedSizeList } from 'react-window'
 import { Text } from 'rebass'
 import styled from 'styled-components'
+import { wrappedCurrency } from 'utils/wrappedCurrency'
 import { useActiveWeb3React } from '../../hooks'
-import { WrappedTokenInfo, useCombinedActiveList } from '../../state/lists/hooks'
+import { useAllInactiveTokens, useIsUserAddedToken } from '../../hooks/Tokens'
+import { useCombinedActiveList, WrappedTokenInfo } from '../../state/lists/hooks'
 import { useCurrencyBalance } from '../../state/wallet/hooks'
 import { TYPE } from '../../theme'
-import { useIsUserAddedToken, useAllInactiveTokens } from '../../hooks/Tokens'
-import Column from '../Column'
-import { RowFixed } from '../Row'
-import CurrencyLogo from '../CurrencyLogo'
-import { MouseoverTooltip } from '../Tooltip'
-import { MenuItem } from './styleds'
-import Loader from '../Loader'
 import { isTokenOnList } from '../../utils'
+import Column from '../Column'
+import CurrencyLogo from '../CurrencyLogo'
+import Loader from '../Loader'
+import { RowFixed } from '../Row'
+import { MouseoverTooltip } from '../Tooltip'
 import ImportRow from './ImportRow'
-import { wrappedCurrency } from 'utils/wrappedCurrency'
+import { MenuItem } from './styleds'
 
 function currencyKey(currency: Currency): string {
   return currency instanceof Token ? currency.address : currency === ETHER ? 'ETHER' : ''
@@ -148,7 +148,7 @@ export default function CurrencyList({
   showImportView: () => void
   setImportToken: (token: Token) => void
 }) {
-  const itemData = useMemo(() => (showETH ? [Currency.ETHER, ...currencies] : currencies), [currencies, showETH])
+  const itemData = currencies
 
   const { chainId } = useActiveWeb3React()
 

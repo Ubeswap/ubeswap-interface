@@ -37,7 +37,7 @@ export class MockV1Pair extends Pair {
 function useMockV1Pair(inputCurrency?: Currency): MockV1Pair | undefined {
   const token = inputCurrency instanceof Token ? inputCurrency : undefined
 
-  const isWETH = Boolean(token && token.equals(WETH[token.chainId]))
+  const isWETH = false
   const v1PairAddress = useV1ExchangeAddress(isWETH ? undefined : token?.address)
   const tokenBalance = useTokenBalance(v1PairAddress, token)
   const ETHBalance = useETHBalances([v1PairAddress])[v1PairAddress ?? '']

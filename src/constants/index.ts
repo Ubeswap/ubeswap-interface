@@ -1,6 +1,6 @@
 import { ChainId, JSBI, Percent, Token, WETH } from '@uniswap/sdk'
 import { AbstractConnector } from '@web3-react/abstract-connector'
-
+import { CeloChainId, CGLD, CUSD } from 'utils/currencies'
 import { fortmatic, injected, portis, walletconnect, walletlink } from '../connectors'
 
 export const ROUTER_ADDRESS = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
@@ -11,7 +11,7 @@ export { PRELOADED_PROPOSALS } from './proposals'
 
 // a list of tokens by chain
 type ChainTokenList = {
-  readonly [chainId in ChainId]: Token[]
+  readonly [chainId in ChainId | CeloChainId]: Token[]
 }
 
 export const DAI = new Token(ChainId.MAINNET, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'Dai Stablecoin')
@@ -56,13 +56,15 @@ const WETH_ONLY: ChainTokenList = {
   [ChainId.ROPSTEN]: [WETH[ChainId.ROPSTEN]],
   [ChainId.RINKEBY]: [WETH[ChainId.RINKEBY]],
   [ChainId.GÖRLI]: [WETH[ChainId.GÖRLI]],
-  [ChainId.KOVAN]: [WETH[ChainId.KOVAN]]
+  [ChainId.KOVAN]: [WETH[ChainId.KOVAN]],
+  [CeloChainId.mainnet]: [CUSD]
 }
 
 // used to construct intermediary pairs for trading
 export const BASES_TO_CHECK_TRADES_AGAINST: ChainTokenList = {
   ...WETH_ONLY,
-  [ChainId.MAINNET]: [...WETH_ONLY[ChainId.MAINNET], DAI, USDC, USDT, COMP, MKR, WBTC]
+  [ChainId.MAINNET]: [...WETH_ONLY[ChainId.MAINNET], DAI, USDC, USDT, COMP, MKR, WBTC],
+  [CeloChainId.mainnet]: [CUSD, CGLD]
 }
 
 /**

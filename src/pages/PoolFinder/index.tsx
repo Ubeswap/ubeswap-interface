@@ -1,9 +1,10 @@
-import { Currency, ETHER, JSBI, TokenAmount } from '@uniswap/sdk'
+import { Currency, JSBI, TokenAmount } from '@uniswap/sdk'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Plus } from 'react-feather'
 import { Text } from 'rebass'
+import { CUSD } from 'utils/currencies'
 import { ButtonDropdownLight } from '../../components/Button'
-import { LightCard } from '../../components/Card'
+import { BlueCard, LightCard } from '../../components/Card'
 import { AutoColumn, ColumnCenter } from '../../components/Column'
 import CurrencyLogo from '../../components/CurrencyLogo'
 import { FindPoolTabs } from '../../components/NavigationTabs'
@@ -14,12 +15,10 @@ import { PairState, usePair } from '../../data/Reserves'
 import { useActiveWeb3React } from '../../hooks'
 import { usePairAdder } from '../../state/user/hooks'
 import { useTokenBalance } from '../../state/wallet/hooks'
-import { StyledInternalLink } from '../../theme'
+import { StyledInternalLink, TYPE } from '../../theme'
 import { currencyId } from '../../utils/currencyId'
 import AppBody from '../AppBody'
 import { Dots } from '../Pool/styleds'
-import { BlueCard } from '../../components/Card'
-import { TYPE } from '../../theme'
 
 enum Fields {
   TOKEN0 = 0,
@@ -32,7 +31,7 @@ export default function PoolFinder() {
   const [showSearch, setShowSearch] = useState<boolean>(false)
   const [activeField, setActiveField] = useState<number>(Fields.TOKEN1)
 
-  const [currency0, setCurrency0] = useState<Currency | null>(ETHER)
+  const [currency0, setCurrency0] = useState<Currency | null>(CUSD)
   const [currency1, setCurrency1] = useState<Currency | null>(null)
 
   const [pairState, pair] = usePair(currency0 ?? undefined, currency1 ?? undefined)

@@ -1,4 +1,4 @@
-import { ChainId, TokenAmount } from '@uniswap/sdk'
+import { ChainId } from '@uniswap/sdk'
 import { darken } from 'polished'
 import React, { useState } from 'react'
 import { Moon, Sun } from 'react-feather'
@@ -6,16 +6,14 @@ import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router-dom'
 import { Text } from 'rebass'
 import styled from 'styled-components'
-import { CountUp } from 'use-count-up'
 import LogoWithTextDark from '../../assets/svg/logo-with-text-dark.svg'
 import LogoWithText from '../../assets/svg/logo-with-text.svg'
 import { useActiveWeb3React } from '../../hooks'
-import usePrevious from '../../hooks/usePrevious'
 import { useShowClaimPopup, useToggleSelfClaimModal } from '../../state/application/hooks'
 import { useUserHasAvailableClaim } from '../../state/claim/hooks'
 import { useUserHasSubmittedClaim } from '../../state/transactions/hooks'
 import { useDarkModeManager } from '../../state/user/hooks'
-import { useAggregateUniBalance, useETHBalances } from '../../state/wallet/hooks'
+import { useETHBalances } from '../../state/wallet/hooks'
 import { ExternalLink, TYPE } from '../../theme'
 import { YellowCard } from '../Card'
 import ClaimModal from '../claim/ClaimModal'
@@ -26,7 +24,6 @@ import Row, { RowFixed } from '../Row'
 import { Dots } from '../swap/styleds'
 import Web3Status from '../Web3Status'
 import UniBalanceContent from './UniBalanceContent'
-
 const HeaderFrame = styled.div`
   display: grid;
   grid-template-columns: 1fr 120px;
@@ -304,13 +301,8 @@ export default function Header() {
 
   const { claimTxn } = useUserHasSubmittedClaim(account ?? undefined)
 
-  const aggregateBalance: TokenAmount | undefined = useAggregateUniBalance()
-
   const [showUniBalanceModal, setShowUniBalanceModal] = useState(false)
   const showClaimPopup = useShowClaimPopup()
-
-  const countUpValue = aggregateBalance?.toFixed(0) ?? '0'
-  const countUpValuePrevious = usePrevious(countUpValue) ?? '0'
 
   return (
     <HeaderFrame>
@@ -365,32 +357,6 @@ export default function Header() {
                 <TYPE.white padding="0 2px">
                   {claimTxn && !claimTxn?.receipt ? <Dots>Claiming UNI</Dots> : 'Claim UNI'}
                 </TYPE.white>
-              </UNIAmount>
-              <CardNoise />
-            </UNIWrapper>
-          )}
-          {!availableClaim && aggregateBalance && (
-            <UNIWrapper onClick={() => setShowUniBalanceModal(true)}>
-              <UNIAmount active={!!account && !availableClaim} style={{ pointerEvents: 'auto' }}>
-                {account && (
-                  <HideSmall>
-                    <TYPE.white
-                      style={{
-                        paddingRight: '.4rem'
-                      }}
-                    >
-                      <CountUp
-                        key={countUpValue}
-                        isCounting
-                        start={parseFloat(countUpValuePrevious)}
-                        end={parseFloat(countUpValue)}
-                        thousandsSeparator={','}
-                        duration={1}
-                      />
-                    </TYPE.white>
-                  </HideSmall>
-                )}
-                UNI
               </UNIAmount>
               <CardNoise />
             </UNIWrapper>

@@ -1,7 +1,7 @@
 import { Currency, ETHER, Token } from '@uniswap/sdk'
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
-
+import { CGLD, CUSD } from 'utils/currencies'
 import EthereumLogo from '../../assets/images/ethereum-logo.png'
 import useHttpLocations from '../../hooks/useHttpLocations'
 import { WrappedTokenInfo } from '../../state/lists/hooks'
@@ -38,6 +38,8 @@ export default function CurrencyLogo({
 
   const srcs: string[] = useMemo(() => {
     if (currency === ETHER) return []
+    if (currency === CUSD) return ['https://raw.githubusercontent.com/koroswap/token-list/master/assets/asset_cUSD.png']
+    if (currency === CGLD) return ['https://raw.githubusercontent.com/koroswap/token-list/master/assets/asset_cGLD.png']
 
     if (currency instanceof Token) {
       if (currency instanceof WrappedTokenInfo) {
