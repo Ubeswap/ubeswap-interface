@@ -1,35 +1,31 @@
 import { ChainId, TokenAmount } from '@uniswap/sdk'
-import React, { useState } from 'react'
-import { Text } from 'rebass'
-import { NavLink } from 'react-router-dom'
 import { darken } from 'polished'
-import { useTranslation } from 'react-i18next'
-
-import styled from 'styled-components'
-
-import Logo from '../../assets/svg/logo.svg'
-import LogoDark from '../../assets/svg/logo_white.svg'
-import { useActiveWeb3React } from '../../hooks'
-import { useDarkModeManager } from '../../state/user/hooks'
-import { useETHBalances, useAggregateUniBalance } from '../../state/wallet/hooks'
-import { CardNoise } from '../earn/styled'
-import { CountUp } from 'use-count-up'
-import { TYPE, ExternalLink } from '../../theme'
-
-import { YellowCard } from '../Card'
+import React, { useState } from 'react'
 import { Moon, Sun } from 'react-feather'
-import Menu from '../Menu'
-
-import Row, { RowFixed } from '../Row'
-import Web3Status from '../Web3Status'
-import ClaimModal from '../claim/ClaimModal'
-import { useToggleSelfClaimModal, useShowClaimPopup } from '../../state/application/hooks'
+import { useTranslation } from 'react-i18next'
+import { NavLink } from 'react-router-dom'
+import { Text } from 'rebass'
+import styled from 'styled-components'
+import { CountUp } from 'use-count-up'
+import LogoWithTextDark from '../../assets/svg/logo-with-text-dark.svg'
+import Logo from '../../assets/svg/logo.svg'
+import { useActiveWeb3React } from '../../hooks'
+import usePrevious from '../../hooks/usePrevious'
+import { useShowClaimPopup, useToggleSelfClaimModal } from '../../state/application/hooks'
 import { useUserHasAvailableClaim } from '../../state/claim/hooks'
 import { useUserHasSubmittedClaim } from '../../state/transactions/hooks'
-import { Dots } from '../swap/styleds'
+import { useDarkModeManager } from '../../state/user/hooks'
+import { useAggregateUniBalance, useETHBalances } from '../../state/wallet/hooks'
+import { ExternalLink, TYPE } from '../../theme'
+import { YellowCard } from '../Card'
+import ClaimModal from '../claim/ClaimModal'
+import { CardNoise } from '../earn/styled'
+import Menu from '../Menu'
 import Modal from '../Modal'
+import Row, { RowFixed } from '../Row'
+import { Dots } from '../swap/styleds'
+import Web3Status from '../Web3Status'
 import UniBalanceContent from './UniBalanceContent'
-import usePrevious from '../../hooks/usePrevious'
 
 const HeaderFrame = styled.div`
   display: grid;
@@ -325,7 +321,7 @@ export default function Header() {
       <HeaderRow>
         <Title href=".">
           <UniIcon>
-            <img width={'24px'} src={darkMode ? LogoDark : Logo} alt="logo" />
+            <img width={'140px'} src={darkMode ? LogoWithTextDark : Logo} alt="logo" />
           </UniIcon>
         </Title>
         <HeaderLinks>
@@ -345,12 +341,12 @@ export default function Header() {
           >
             {t('pool')}
           </StyledNavLink>
-          <StyledNavLink id={`stake-nav-link`} to={'/uni'}>
+          {/* <StyledNavLink id={`stake-nav-link`} to={'/uni'}>
             UNI
           </StyledNavLink>
           <StyledNavLink id={`stake-nav-link`} to={'/vote'}>
             Vote
-          </StyledNavLink>
+          </StyledNavLink> */}
           <StyledExternalLink id={`stake-nav-link`} href={'https://uniswap.info'}>
             Charts <span style={{ fontSize: '11px' }}>↗</span>
           </StyledExternalLink>
