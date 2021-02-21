@@ -1,5 +1,4 @@
-import { ChainId } from '@ubeswap/sdk'
-import { CUSD } from 'constants/tokens'
+import { ChainId, cUSD } from '@ubeswap/sdk'
 import { darken } from 'polished'
 import React from 'react'
 import { isMobile } from 'react-device-detect'
@@ -260,7 +259,7 @@ export default function Header() {
   const { account, chainId } = useActiveWeb3React()
   const { t } = useTranslation()
 
-  const userCusdBalance = useTokenBalance(account ?? undefined, CUSD[chainId])
+  const userCusdBalance = useTokenBalance(account ?? undefined, cUSD[chainId])
   const [darkMode, toggleDarkMode] = useDarkModeManager()
 
   return (
