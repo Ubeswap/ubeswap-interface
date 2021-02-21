@@ -6,7 +6,7 @@ import { IValoraAccount, parseDappkitResponse } from './valoraUtils'
 
 export class ValoraConnector extends NetworkConnector {
   private account: string | null = null
-  private valoraAccount: IValoraAccount | null = null
+  public valoraAccount: IValoraAccount | null = null
 
   private mainProvider: MiniRpcProvider | null = null
 
