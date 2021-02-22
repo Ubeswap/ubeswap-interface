@@ -1,7 +1,7 @@
 import { CELO, ChainId, cUSD, JSBI, Percent, Token } from '@ubeswap/sdk'
 import { AbstractConnector } from '@web3-react/abstract-connector'
+import { injected, ledger, valora } from '../connectors'
 import { UBE } from './tokens'
-import { injected, valora, ledger } from '../connectors'
 
 export const ROUTER_ADDRESS = '0xE3D8bd6Aed4F159bc8000a9cD47CffDb95F96121'
 
@@ -73,10 +73,10 @@ export const SUPPORTED_WALLETS: { [key: string]: WalletInfo } = {
   LEDGER: {
     connector: ledger,
     name: 'Ledger',
-    iconName: 'metamask.png',
+    iconName: 'ledger.svg',
     description: 'Connect to Ledger device',
     href: null,
-    color: '#E8831D'
+    color: '#fff'
   },
   VALORA_LINK: {
     connector: valora,
