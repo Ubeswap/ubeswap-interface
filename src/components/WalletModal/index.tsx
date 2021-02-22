@@ -133,6 +133,7 @@ export default function WalletModal({
   const [pendingWallet, setPendingWallet] = useState<AbstractConnector | undefined>()
 
   const [pendingError, setPendingError] = useState<boolean>()
+  const [activateError, setActivateError] = useState<string | null>(null)
   const { setValoraAccount } = useValoraAccount()
 
   const walletModalOpen = useModalOpen(ApplicationModal.WALLET)
@@ -203,6 +204,7 @@ export default function WalletModal({
         if (error instanceof UnsupportedChainIdError) {
           activate(connector) // a little janky...can't use setError because the connector isn't set
         } else {
+          setActivateError(error.message)
           setPendingError(true)
         }
       }))
@@ -296,7 +298,9 @@ export default function WalletModal({
           <CloseIcon onClick={toggleWalletModal}>
             <CloseColor />
           </CloseIcon>
-          <HeaderRow>{error instanceof UnsupportedChainIdError ? 'Wrong Network' : 'Error connecting'}</HeaderRow>
+          <HeaderRow>
+            {error instanceof UnsupportedChainIdError ? 'Wrong Network' : activateError ?? 'Error connecting'}
+          </HeaderRow>
           <ContentWrapper>
             {error instanceof UnsupportedChainIdError ? (
               <h5>Please connect to the appropriate Celo network.</h5>
@@ -345,6 +349,7 @@ export default function WalletModal({
               connector={pendingWallet}
               error={pendingError}
               setPendingError={setPendingError}
+              activateError={activateError}
               tryActivation={tryActivation}
             />
           ) : (
