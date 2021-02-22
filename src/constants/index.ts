@@ -62,14 +62,14 @@ export const SUPPORTED_WALLETS: { [key: string]: WalletInfo } = {
     color: '#010101',
     primary: true
   },
-  METAMASK: {
-    connector: injected,
-    name: 'MetaMask',
-    iconName: 'metamask.png',
-    description: 'Easy-to-use browser extension.',
-    href: null,
-    color: '#E8831D'
-  },
+  // METAMASK: {
+  //   connector: injected,
+  //   name: 'MetaMask',
+  //   iconName: 'metamask.png',
+  //   description: 'Easy-to-use browser extension.',
+  //   href: null,
+  //   color: '#E8831D'
+  // },
   LEDGER: {
     connector: ledger,
     name: 'Ledger',
