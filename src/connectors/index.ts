@@ -1,9 +1,9 @@
 import { Web3Provider } from '@ethersproject/providers'
-import { ChainId, parseNetwork, CHAIN_INFO } from '@ubeswap/sdk'
+import { ChainId, parseNetwork } from '@ubeswap/sdk'
 import { InjectedConnector } from '@web3-react/injected-connector'
+import { LedgerConnector } from './ledger/LedgerConnector'
 import { NetworkConnector } from './NetworkConnector'
 import { ValoraConnector } from './valora/ValoraConnector'
-import { LedgerConnector } from './ledger/LedgerConnector'
 
 const networkChainIDFromHostname: ChainId = window.location.hostname.includes('alfajores')
   ? ChainId.ALFAJORES
@@ -30,10 +30,7 @@ export const injected = new InjectedConnector({
   supportedChainIds: [ChainId.ALFAJORES, ChainId.BAKLAVA, ChainId.MAINNET]
 })
 
-export const ledger = new LedgerConnector({
-  chainId: ChainId.MAINNET,
-  url: CHAIN_INFO[ChainId.MAINNET].fornoURL
-})
+export const ledger = new LedgerConnector()
 
 export const valora = new ValoraConnector({
   defaultChainId: NETWORK_CHAIN_ID
