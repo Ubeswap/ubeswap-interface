@@ -24,8 +24,6 @@ declare module 'multihashes' {
   declare function toB58String(hash: Uint8Array): string
 }
 
-declare module 'web3-provider-engine/subproviders/cache.js';
-declare module 'ethereumjs-tx';
 // declare module 'ethereumjs-utils': {
 //   declare function stripHexPrefix(): string
 // };
