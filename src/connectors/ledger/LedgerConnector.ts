@@ -1,3 +1,6 @@
+// Largely based off of CeloVote
+// https://github.com/zviadm/celovote-app/blob/main/src/ledger.ts
+
 import { ContractKit, newKit } from '@celo/contractkit'
 import { AddressValidation, LedgerWallet, newLedgerWalletWithSetup } from '@celo/wallet-ledger'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
