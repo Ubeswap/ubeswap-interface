@@ -1,4 +1,4 @@
-import { Interface, FunctionFragment } from '@ethersproject/abi'
+import { FunctionFragment, Interface } from '@ethersproject/abi'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
 import { useEffect, useMemo } from 'react'
@@ -9,10 +9,10 @@ import { AppDispatch, AppState } from '../index'
 import {
   addMulticallListeners,
   Call,
-  removeMulticallListeners,
+  ListenerOptions,
   parseCallKey,
-  toCallKey,
-  ListenerOptions
+  removeMulticallListeners,
+  toCallKey
 } from './actions'
 
 export interface Result extends ReadonlyArray<any> {
@@ -184,7 +184,6 @@ export function useSingleContractMultipleData(
   const latestBlockNumber = useBlockNumber()
 
   return useMemo(() => {
-    // @ts-ignore
     return results.map(result => toCallState(result, contract?.interface, fragment, latestBlockNumber))
   }, [fragment, contract, results, latestBlockNumber])
 }
@@ -252,7 +251,6 @@ export function useSingleCallResult(
   const latestBlockNumber = useBlockNumber()
 
   return useMemo(() => {
-    // @ts-ignore
     return toCallState(result, contract?.interface, fragment, latestBlockNumber)
   }, [result, contract, fragment, latestBlockNumber])
 }
