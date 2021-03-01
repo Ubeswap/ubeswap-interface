@@ -244,7 +244,7 @@ export default function WalletModal({
               <Option
                 id={`connect-${key}`}
                 key={key}
-                color={'#35D07F'}
+                color="#35D07F"
                 header={'Install Celo Extension Wallet'}
                 subheader={null}
                 link={

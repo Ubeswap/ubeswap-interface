@@ -228,7 +228,9 @@ export default function AccountDetails({
     const isCEW = !!celo
     const name = Object.keys(SUPPORTED_WALLETS)
       .filter(
-        k => SUPPORTED_WALLETS[k].connector === connector && (connector !== injected || isCEW === (k === 'METAMASK'))
+        k =>
+          SUPPORTED_WALLETS[k].connector === connector &&
+          (connector !== injected || isCEW === (k === 'CELO_EXTENSION_WALLET'))
       )
       .map(k => SUPPORTED_WALLETS[k].name)[0]
     return <WalletName>Connected with {name}</WalletName>
