@@ -26,18 +26,17 @@ if (!!window.celo) {
   window.celo.autoRefreshOnNetworkChange = false
 }
 
-
 // Close window if search params from Valora redirect are present (handles Valora connection issue)
-const localStorageKey = 'valoraRedirect';
+const localStorageKey = 'valoraRedirect'
 if (typeof window !== 'undefined') {
   const url = window.location.href
   const whereQuery = url.indexOf('?')
   if (whereQuery !== -1) {
     const query = url.slice(whereQuery)
-    const params = new URLSearchParams(query);
+    const params = new URLSearchParams(query)
     if (params.get('type') && params.get('requestId')) {
-      localStorage.setItem(localStorageKey, window.location.href);
-      window.close();
+      localStorage.setItem(localStorageKey, window.location.href)
+      window.close()
     }
   }
 }

@@ -15,14 +15,14 @@ import { parse } from 'url'
 
 // Gets the url redirected from Valora that is used to update the page
 async function waitForValoraResponse() {
-  const localStorageKey = 'valoraRedirect';
+  const localStorageKey = 'valoraRedirect'
   while (true) {
-    const value = localStorage.getItem(localStorageKey);
+    const value = localStorage.getItem(localStorageKey)
     if (value) {
-      localStorage.removeItem(localStorageKey);
-      return value;
+      localStorage.removeItem(localStorageKey)
+      return value
     }
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 100))
   }
 }
 
@@ -110,7 +110,7 @@ export const requestValoraAuth = async (): Promise<AccountAuthResponseSuccess> =
       callback
     })
   )
-  window.location.href = await waitForValoraResponse();
+  window.location.href = await waitForValoraResponse()
   return await awaitDappkitResponse<AccountAuthResponseSuccess>()
 }
 
@@ -128,7 +128,7 @@ export const requestValoraTransaction = async (txs: TxToSignParam[]): Promise<Si
       callback
     })
   )
-  window.location.href = await waitForValoraResponse();
+  window.location.href = await waitForValoraResponse()
   return await awaitDappkitResponse<SignTxResponseSuccess>()
 }
 
