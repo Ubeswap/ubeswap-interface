@@ -13,6 +13,19 @@ import { identity, mapValues } from 'lodash'
 import * as querystring from 'querystring'
 import { parse } from 'url'
 
+// Gets the url redirected from Valora that is used to update the page
+async function waitForValoraResponse() {
+  const localStorageKey = 'valoraRedirect';
+  while (true) {
+    const value = localStorage.getItem(localStorageKey);
+    if (value) {
+      localStorage.removeItem(localStorageKey);
+      return value;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+
 /**
  * Parses the response from Dappkit.
  * @param url
@@ -97,6 +110,8 @@ export const requestValoraAuth = async (): Promise<AccountAuthResponseSuccess> =
       callback
     })
   )
+
+  window.location.href = await waitForValoraResponse();
   return await awaitDappkitResponse<AccountAuthResponseSuccess>()
 }
 
