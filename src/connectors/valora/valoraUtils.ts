@@ -110,7 +110,6 @@ export const requestValoraAuth = async (): Promise<AccountAuthResponseSuccess> =
       callback
     })
   )
-
   window.location.href = await waitForValoraResponse();
   return await awaitDappkitResponse<AccountAuthResponseSuccess>()
 }
@@ -129,6 +128,7 @@ export const requestValoraTransaction = async (txs: TxToSignParam[]): Promise<Si
       callback
     })
   )
+  window.location.href = await waitForValoraResponse();
   return await awaitDappkitResponse<SignTxResponseSuccess>()
 }
 
