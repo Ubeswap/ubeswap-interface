@@ -1,7 +1,7 @@
+import { DappKitResponseStatus } from '@celo/utils'
 import React, { Suspense } from 'react'
 import { Route, Switch } from 'react-router-dom'
 import styled from 'styled-components'
-import { DappKitResponseStatus } from '@celo/utils'
 import GoogleAnalyticsReporter from '../components/analytics/GoogleAnalyticsReporter'
 import Header from '../components/Header'
 import Polling from '../components/Header/Polling'
@@ -88,6 +88,12 @@ export default function App() {
         <BodyWrapper>
           <Popups />
           <Polling />
+          {window.web3 && window.celo && (
+            <div>
+              <p>It looks like you have both MetaMask and the Celo Extension Wallet enabled.</p>
+              <p>Please disable MetaMask in order to use this app.</p>
+            </div>
+          )}
           <Web3ReactManager>
             <Switch>
               <Route exact strict path="/swap" component={Swap} />
