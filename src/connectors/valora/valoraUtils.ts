@@ -89,7 +89,12 @@ export const removeQueryParams = (url: string, keys: string[]): string => {
     delete newQs[key]
   })
   const { protocol, host, hash } = parse(url)
-  return `${protocol}//${host}/${hash?.slice(0, hash.indexOf('?'))}?${querystring.stringify(newQs)}`
+  const queryParams = `${querystring.stringify(newQs)}`
+  const resultUrl = `${protocol}//${host}/${hash?.slice(0, hash.indexOf('?'))}`
+  if (queryParams) {
+    return `${resultUrl}?${queryParams}`
+  }
+  return resultUrl
 }
 
 const cleanCallbackUrl = (url: string): string => {
