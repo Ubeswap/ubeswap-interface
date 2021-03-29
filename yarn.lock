@@ -13491,12 +13491,24 @@ react-app-polyfill@^2.0.0:
     regenerator-runtime "^0.13.7"
     whatwg-fetch "^3.4.1"
 
+react-circular-progressbar@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/react-circular-progressbar/-/react-circular-progressbar-2.0.4.tgz#5b04a9cf6be8c522c180e4e99ec6db63677335b0"
+  integrity sha512-OfX0ThSxRYEVGaQSt0DlXfyl5w4DbXHsXetyeivmoQrh9xA9bzVPHNf8aAhOIiwiaxX2WYWpLDB3gcpsDJ9oww==
+
 react-clientside-effect@^1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/react-clientside-effect/-/react-clientside-effect-1.2.2.tgz#6212fb0e07b204e714581dd51992603d1accc837"
   integrity sha512-nRmoyxeok5PBO6ytPvSjKp9xwXg9xagoTK1mMjwnQxqM9Hd7MNPl+LS1bOSOe+CV2+4fnEquc7H/S8QD3q697A==
   dependencies:
     "@babel/runtime" "^7.0.0"
+
+react-countdown@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/react-countdown/-/react-countdown-2.3.1.tgz#6914538705075c74ac8f97fd8c31b29eadf44cbd"
+  integrity sha512-h66prF+Wwj3Ru4tDeqvXsW8iqaCyC54pjwTAlUUmUQ11EUqIO34xV4pO4q8MGT6917ep47ntKmBW99ZVN1ozdQ==
+  dependencies:
+    prop-types "^15.7.2"
 
 react-dev-utils@^11.0.3:
   version "11.0.4"
@@ -16279,6 +16291,18 @@ use-callback-ref@^1.2.1, use-callback-ref@^1.2.3:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/use-callback-ref/-/use-callback-ref-1.2.4.tgz#d86d1577bfd0b955b6e04aaf5971025f406bea3c"
   integrity sha512-rXpsyvOnqdScyied4Uglsp14qzag1JIemLeTWGKbwpotWht57hbP78aNT+Q4wdFKQfQibbUX4fb6Qb4y11aVOQ==
+
+use-count-up@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/use-count-up/-/use-count-up-2.3.1.tgz#e6045f07b47d99ebcc626dd0aa50d475f2e7f48e"
+  integrity sha512-nFXUiweeHDYovM0boDk0/CTa/VW7Gzh9G/l8NVNPleqmDJbDuDO3j8qSODTbyFQrKKHN7XJd2f9hy8FUgocIvw==
+  dependencies:
+    use-elapsed-time "^2.1.6"
+
+use-elapsed-time@^2.1.6:
+  version "2.1.7"
+  resolved "https://registry.yarnpkg.com/use-elapsed-time/-/use-elapsed-time-2.1.7.tgz#65f2bd1b6f6cb7fd06f302eb820c22b96ff09311"
+  integrity sha512-Kz0lzfiCzL36Uro5vBfhW9FzCMJ6UWNleYFjKPQaZ/hvtYShTcKD7EFyGGgcIsuX9/KVe25fgTTlEaGWf6EzNA==
 
 use-sidecar@^1.0.1:
   version "1.0.2"
