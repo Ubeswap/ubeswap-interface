@@ -4,6 +4,7 @@ import { ERC20_ABI } from 'constants/abis/erc20'
 import useENS from 'hooks/useENS'
 import React, { useCallback } from 'react'
 import { Text } from 'rebass'
+import { useTransactionAdder } from 'state/transactions/hooks'
 import { getContract } from 'utils'
 import AddressInputPanel from '../../components/AddressInputPanel'
 import { ButtonLight, ButtonPrimary } from '../../components/Button'
@@ -30,14 +31,22 @@ export default function Send() {
   const { address: recipientAddress } = useENS(recipient)
   const { currencyBalances, parsedAmount, currencies } = useDerivedSwapInfo()
 
-  const isValid = recipientAddress && parsedAmount && account
+  const maxAmountInput: TokenAmount | undefined = maxAmountSpend(currencyBalances[Field.INPUT])
+
+  const notEnoughFunds = parsedAmount && maxAmountInput && !parsedAmount.lessThan(maxAmountInput)
+  const isValid = recipientAddress && parsedAmount && account && !notEnoughFunds
+  const addTransaction = useTransactionAdder()
   const handleSend = useCallback(async () => {
     if (!isValid || !parsedAmount || !library || !account) {
       return
     }
     const token = getContract(parsedAmount.token.address, ERC20_ABI, library, account)
-    await token.transfer(recipientAddress, parsedAmount.raw.toString())
-  }, [isValid, library, parsedAmount, recipientAddress, account])
+    const response = await token.transfer(recipientAddress, parsedAmount.raw.toString())
+
+    addTransaction(response, {
+      summary: `Send ${parsedAmount.toSignificant(3)} ${parsedAmount.currency.symbol} to ${recipient}`
+    })
+  }, [isValid, library, parsedAmount, recipientAddress, account, addTransaction, recipient])
 
   const { onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
 
@@ -48,7 +57,6 @@ export default function Send() {
     [onUserInput]
   )
 
-  const maxAmountInput: TokenAmount | undefined = maxAmountSpend(currencyBalances[Field.INPUT])
   const atMaxAmountInput = Boolean(maxAmountInput && parsedAmount?.equalTo(maxAmountInput))
 
   const handleInputSelect = useCallback(
@@ -93,7 +101,7 @@ export default function Send() {
                 disabled={!isValid}
               >
                 <Text fontSize={20} fontWeight={500}>
-                  Send
+                  {notEnoughFunds ? 'Not enough funds' : 'Send'}
                 </Text>
               </ButtonPrimary>
             )}
