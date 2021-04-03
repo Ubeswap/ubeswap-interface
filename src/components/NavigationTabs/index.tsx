@@ -55,7 +55,7 @@ const StyledArrowLeft = styled(ArrowLeft)`
   color: ${({ theme }) => theme.text1};
 `
 
-export function SwapPoolTabs({ active }: { active: 'swap' | 'pool' }) {
+export function SwapPoolTabs({ active }: { active: 'swap' | 'pool' | 'send' }) {
   const { t } = useTranslation()
   return (
     <Tabs style={{ marginBottom: '20px', display: 'none' }}>
