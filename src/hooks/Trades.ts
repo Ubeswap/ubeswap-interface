@@ -1,4 +1,6 @@
 import { Pair, Token, TokenAmount, Trade } from '@ubeswap/sdk'
+import { MoolaTrade } from 'components/swap/moola/MoolaTrade'
+import { useMoolaRoute } from 'components/swap/moola/useMoolaRoute'
 import flatMap from 'lodash.flatmap'
 import { useMemo } from 'react'
 import { useUserSingleHopOnly } from 'state/user/hooks'
@@ -69,8 +71,13 @@ export function useTradeExactIn(currencyAmountIn?: TokenAmount, currencyOut?: To
   const allowedPairs = useAllCommonPairs(currencyAmountIn?.currency, currencyOut)
 
   const [singleHopOnly] = useUserSingleHopOnly()
+  const moolaRoute = useMoolaRoute(currencyAmountIn?.currency, currencyOut)
 
   return useMemo(() => {
+    if (moolaRoute && currencyAmountIn) {
+      return MoolaTrade.fromIn(moolaRoute, currencyAmountIn)
+    }
+
     if (currencyAmountIn && currencyOut && allowedPairs.length > 0) {
       if (singleHopOnly) {
         return (
@@ -93,7 +100,7 @@ export function useTradeExactIn(currencyAmountIn?: TokenAmount, currencyOut?: To
     }
 
     return null
-  }, [allowedPairs, currencyAmountIn, currencyOut, singleHopOnly])
+  }, [allowedPairs, currencyAmountIn, currencyOut, singleHopOnly, moolaRoute])
 }
 
 /**
