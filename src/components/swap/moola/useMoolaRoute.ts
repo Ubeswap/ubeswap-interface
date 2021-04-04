@@ -3,6 +3,8 @@ import { ChainId, currencyEquals, JSBI, Pair, Route, Token, TokenAmount } from '
 import { useActiveWeb3React } from 'hooks'
 import { moolaLendingPools } from './useMoola'
 
+const BIG_NUMBER = JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(255))
+
 export const useMoolaRoute = (
   inputCurrency: Token | null | undefined,
   outputCurrency: Token | null | undefined
@@ -42,7 +44,7 @@ export const useMoolaRoute = (
   }
 
   return new Route(
-    [new Pair(new TokenAmount(inputCurrency, JSBI.BigInt(1)), new TokenAmount(outputCurrency, JSBI.BigInt(1)))],
+    [new Pair(new TokenAmount(inputCurrency, BIG_NUMBER), new TokenAmount(outputCurrency, BIG_NUMBER))],
     inputCurrency,
     outputCurrency
   )

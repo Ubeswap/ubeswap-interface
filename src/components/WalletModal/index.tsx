@@ -215,6 +215,10 @@ export default function WalletModal({
     const isCEW = window.celo && window.celo
     return Object.keys(SUPPORTED_WALLETS).map(key => {
       const option = SUPPORTED_WALLETS[key]
+
+      // eslint-disable-next-line
+      const icon = require('../../assets/images/' + option.iconName)
+      const iconStr = typeof icon === 'string' ? icon : icon.default
       // check for mobile options
       if (isMobile) {
         if (!window.web3 && !window.celo && option.mobile) {
@@ -230,7 +234,7 @@ export default function WalletModal({
               link={option.href}
               header={option.name}
               subheader={null}
-              icon={require('../../assets/images/' + option.iconName)}
+              icon={iconStr}
             />
           )
         }
@@ -291,7 +295,7 @@ export default function WalletModal({
             link={option.href}
             header={option.name}
             subheader={null} //use option.descriptio to bring back multi-line
-            icon={require('../../assets/images/' + option.iconName)}
+            icon={iconStr}
           />
         )
       )
