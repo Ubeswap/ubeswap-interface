@@ -22,10 +22,8 @@ export class MoolaTrade extends Trade {
    */
   priceImpact: Percent
 
-  get isWithdrawal(): boolean {
-    const symbol =
-      this.tradeType === TradeType.EXACT_INPUT ? this.outputAmount.currency.symbol : this.inputAmount.currency.symbol
-    return symbol?.startsWith('m') ?? false
+  isWithdrawal(): boolean {
+    return this.inputAmount.currency.symbol?.startsWith('m') ?? false
   }
 
   constructor(route: Route, inputAmount: TokenAmount, outputAmount: TokenAmount, tradeType: TradeType) {

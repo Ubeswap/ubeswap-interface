@@ -255,7 +255,7 @@ export default function Swap() {
 
   const swapIsUnsupported = useIsTransactionUnsupported(currencies?.INPUT, currencies?.OUTPUT)
 
-  const { label, isEstimate } = describeTrade(trade)
+  const { isEstimate, makeLabel } = describeTrade(trade)
 
   return (
     <>
@@ -266,7 +266,7 @@ export default function Swap() {
       />
       <SwapPoolTabs active={'swap'} />
       <AppBody>
-        <SwapHeader title={label} />
+        <SwapHeader title={makeLabel(independentField !== Field.INPUT)} />
         <Wrapper id="swap-page">
           <ConfirmSwapModal
             isOpen={showConfirm}
