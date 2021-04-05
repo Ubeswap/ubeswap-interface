@@ -1,8 +1,8 @@
 import { CeloContract } from '@celo/contractkit'
 import { currencyEquals, Token } from '@ubeswap/sdk'
-import { LendingPool__factory } from 'generated'
 import { AToken__factory } from 'generated/factories/AToken__factory'
 import { TradeExecutor } from '..'
+import { LendingPool__factory } from '../../../../generated'
 import { MoolaTrade } from './MoolaTrade'
 import { moolaLendingPools } from './useMoola'
 
