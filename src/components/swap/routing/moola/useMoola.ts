@@ -1,5 +1,5 @@
 import { CeloContract } from '@celo/contractkit'
-import { CELO, ChainId, cUSD, Token, TokenAmount } from '@ubeswap/sdk'
+import { CELO, ChainId, cUSD, Token } from '@ubeswap/sdk'
 import { useActiveWeb3React } from 'hooks'
 import { useMemo } from 'react'
 import { LendingPool, LendingPool__factory } from '../../../../generated'
@@ -26,21 +26,6 @@ export const moolaLendingPools = {
 export type IMoolaChain = keyof typeof moolaLendingPools
 
 export type MoolaConfig = typeof moolaLendingPools[IMoolaChain]
-
-interface UseMoolaConvert {
-  /**
-   * Amount allowed to convert
-   */
-  allowance: TokenAmount | undefined
-  /**
-   * Approves a token to swap.
-   */
-  approve: () => Promise<void>
-  /**
-   * Converts the tokens.
-   */
-  convert: () => Promise<TokenAmount>
-}
 
 export const useMoolaConfig = () => {
   const { chainId } = useActiveWeb3React()
