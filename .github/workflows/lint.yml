@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  pull_request_target:
+  pull_request:
     branches:
       - main
 
@@ -16,9 +16,9 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v2
-
-      - name: Set up node
-        uses: actions/setup-node@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
 
       - name: Set output of cache
         id: yarn-cache
@@ -33,7 +33,7 @@ jobs:
             yarn-
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       - name: Run linters
         uses: wearerequired/lint-action@v1
