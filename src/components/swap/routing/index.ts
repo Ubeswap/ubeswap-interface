@@ -1,5 +1,5 @@
 import { ChainId, Trade } from '@ubeswap/sdk'
-import { BigNumber, CallOverrides, Contract, ContractTransaction, PayableOverrides, Signer } from 'ethers'
+import { BigNumber, BigNumberish, CallOverrides, Contract, ContractTransaction, PayableOverrides, Signer } from 'ethers'
 import { useActiveWeb3React } from 'hooks'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { calculateGasMargin } from 'utils'
@@ -39,18 +39,18 @@ type ContractCall = {
   contract: Contract
   methodName: string
   args: unknown[]
-  overrides?: PayableOverrides | CallOverrides
+  value?: BigNumberish | Promise<BigNumberish>
 }
 
 const estimateGas = async (call: ContractCall): Promise<BigNumber> => {
-  const { contract, methodName, args, overrides } = call
+  const { contract, methodName, args, value } = call
+  const fullArgs = value ? [...args, { value }] : args
   try {
-    console.log([...args, overrides])
-    return await contract.estimateGas[methodName](...args)
+    return await contract.estimateGas[methodName](...fullArgs)
   } catch (gasError) {
     console.debug('Gas estimate failed, trying eth_call to extract error', call)
     try {
-      const result = await contract.callStatic[methodName](...args)
+      const result = await contract.callStatic[methodName](...fullArgs)
       console.debug('Unexpected successful call after failed estimate gas', call, gasError, result)
       throw new Error('Unexpected issue with estimating the gas. Please try again.')
     } catch (callError) {
@@ -83,6 +83,7 @@ export const useDoTransaction = (): DoTransactionFn => {
     }
     const call = { contract, methodName, args: args.args, value: args.overrides?.value }
     const gasEstimate = await estimateGas(call)
+
     try {
       const response: ContractTransaction = await contract[methodName](...args.args, {
         gasLimit: calculateGasMargin(gasEstimate),

@@ -23,6 +23,7 @@ export const executeMoolaTrade: TradeExecutor<MoolaTrade> = async ({ trade, sign
   const token = inputAmount.token
 
   const convert = async (): Promise<string> => {
+    const CELO = chainCfg[CeloContract.GoldToken]
     const symbol = currencyEquals(token, chainCfg[CeloContract.StableToken])
       ? 'cUSD'
       : currencyEquals(token, chainCfg[CeloContract.GoldToken])
@@ -38,6 +39,15 @@ export const executeMoolaTrade: TradeExecutor<MoolaTrade> = async ({ trade, sign
       return await doTransaction(aToken, 'redeem', {
         args: [inputAmount.raw.toString()],
         summary: `Withdraw ${inputAmount.toSignificant(2)} ${symbol} from Moola`
+      })
+    }
+    if (currencyEquals(token, CELO)) {
+      return await doTransaction(pool, 'deposit', {
+        args: ['0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', inputAmount.raw.toString(), 420],
+        overrides: {
+          value: inputAmount.raw.toString()
+        },
+        summary: `Deposit ${inputAmount.toSignificant(2)} ${symbol} into Moola`
       })
     }
     if (symbol) {
