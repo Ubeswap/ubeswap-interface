@@ -2,7 +2,7 @@ import { CeloContract } from '@celo/contractkit'
 import { CELO, ChainId, cUSD, Token } from '@ubeswap/sdk'
 import { useActiveWeb3React } from 'hooks'
 import { useMemo } from 'react'
-import { LendingPool, LendingPool__factory } from '../../../generated'
+import { LendingPool, LendingPool__factory } from '../../../../generated'
 
 export const moolaLendingPools = {
   // Addresses from: https://github.com/moolamarket/moola
