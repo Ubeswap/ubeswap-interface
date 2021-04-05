@@ -19,7 +19,7 @@ export const executeMoolaTrade: TradeExecutor<MoolaTrade> = async ({ trade, sign
 
   const pool = LendingPool__factory.connect(chainCfg.lendingPool, signer)
 
-  const { inputAmount, outputAmount } = trade
+  const { inputAmount } = trade
   const token = inputAmount.token
 
   const convert = async (): Promise<string> => {
@@ -34,7 +34,7 @@ export const executeMoolaTrade: TradeExecutor<MoolaTrade> = async ({ trade, sign
       : null
 
     if (symbol?.startsWith('m')) {
-      const aToken = AToken__factory.connect(outputAmount.token.address, signer)
+      const aToken = AToken__factory.connect(inputAmount.token.address, signer)
       return await doTransaction(aToken, 'redeem', {
         args: [inputAmount.raw.toString()],
         summary: `Withdraw ${inputAmount.toSignificant(2)} ${symbol} from Moola`
