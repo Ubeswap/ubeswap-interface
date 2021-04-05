@@ -2,7 +2,7 @@ import { currencyEquals, Trade } from '@ubeswap/sdk'
 import React, { useCallback, useMemo } from 'react'
 import TransactionConfirmationModal, {
   ConfirmationModalContent,
-  TransactionErrorContent
+  TransactionErrorContent,
 } from '../TransactionConfirmationModal'
 import { describeTrade } from './routing/describeTrade'
 import SwapModalFooter from './SwapModalFooter'
@@ -34,7 +34,7 @@ export default function ConfirmSwapModal({
   swapErrorMessage,
   isOpen,
   attemptingTxn,
-  txHash
+  txHash,
 }: {
   isOpen: boolean
   trade: Trade | undefined

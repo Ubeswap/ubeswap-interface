@@ -24,7 +24,7 @@ export class ValoraProvider extends MiniRpcProvider {
         const gasEstimate = await this.kit.connection.estimateGas({
           feeCurrency: stableAddress,
           nonce: baseNonce,
-          ...txData
+          ...txData,
         })
         return '0x' + gasEstimate.toString(16)
       } catch (e) {
@@ -48,7 +48,7 @@ export class ValoraProvider extends MiniRpcProvider {
               feeCurrency: stableAddress,
               from,
               to,
-              data
+              data,
             })
             return {
               txData: data,
@@ -57,7 +57,7 @@ export class ValoraProvider extends MiniRpcProvider {
               to,
               nonce: baseNonce + i,
               feeCurrencyAddress: stableAddress,
-              value: '0'
+              value: '0',
             }
           })
         )

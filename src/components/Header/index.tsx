@@ -163,7 +163,7 @@ const UniIcon = styled.div`
 const activeClassName = 'ACTIVE'
 
 const StyledNavLink = styled(NavLink).attrs({
-  activeClassName
+  activeClassName,
 })`
   ${({ theme }) => theme.flexRowNoWrap}
   align-items: left;
@@ -251,7 +251,7 @@ export const StyledMenuButton = styled.button`
 
 const NETWORK_LABELS: { [chainId in ChainId]?: string } = {
   [ChainId.ALFAJORES]: 'Alfajores',
-  [ChainId.BAKLAVA]: 'Baklava'
+  [ChainId.BAKLAVA]: 'Baklava',
 }
 
 export default function Header() {

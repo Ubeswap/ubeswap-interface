@@ -30,7 +30,7 @@ export const useMoolaRoute = (
 
   const routes = [
     [chainCfg[CeloContract.StableToken], mcUSD],
-    [chainCfg[CeloContract.GoldToken], mCELO]
+    [chainCfg[CeloContract.GoldToken], mCELO],
     // TODO(igm): allow withdrawals
     // [mcUSD, chainCfg[CeloContract.StableToken]],
     // [mCELO, chainCfg[CeloContract.StableToken]]

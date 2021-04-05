@@ -12,7 +12,7 @@ export const moolaLendingPools = {
     [CeloContract.GoldToken]: CELO[ChainId.ALFAJORES],
     [CeloContract.StableToken]: cUSD[ChainId.ALFAJORES],
     mcUSD: '0x71DB38719f9113A36e14F409bAD4F07B58b4730b',
-    mCELO: '0x86f61EB83e10e914fc6F321F5dD3c2dD4860a003'
+    mCELO: '0x86f61EB83e10e914fc6F321F5dD3c2dD4860a003',
   },
   [ChainId.MAINNET]: {
     lendingPool: '0xc1548F5AA1D76CDcAB7385FA6B5cEA70f941e535',
@@ -20,8 +20,8 @@ export const moolaLendingPools = {
     [CeloContract.GoldToken]: CELO[ChainId.MAINNET],
     [CeloContract.StableToken]: cUSD[ChainId.MAINNET],
     mcUSD: '0x64dEFa3544c695db8c535D289d843a189aa26b98',
-    mCELO: '0x7037F7296B2fc7908de7b57a89efaa8319f0C500'
-  }
+    mCELO: '0x7037F7296B2fc7908de7b57a89efaa8319f0C500',
+  },
 }
 export type IMoolaChain = keyof typeof moolaLendingPools
 

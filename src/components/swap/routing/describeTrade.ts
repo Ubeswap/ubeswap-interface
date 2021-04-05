@@ -3,7 +3,7 @@ import { MoolaTrade } from './moola/MoolaTrade'
 
 export enum RoutingMethod {
   UBESWAP = 0,
-  MOOLA = 1
+  MOOLA = 1,
 }
 
 export const describeTrade = (
@@ -17,13 +17,13 @@ export const describeTrade = (
   if (trade instanceof MoolaTrade) {
     return {
       label: trade.isWithdrawal() ? 'Withdraw' : 'Deposit',
-      makeLabel: isInverted => {
+      makeLabel: (isInverted) => {
         const result = trade.isWithdrawal()
         const resultInverted = isInverted ? !result : result
         return resultInverted ? 'Withdraw' : 'Deposit'
       },
       routingMethod: RoutingMethod.MOOLA,
-      isEstimate: false
+      isEstimate: false,
     }
   } else {
     return { label: 'Swap', routingMethod: RoutingMethod.UBESWAP, isEstimate: true, makeLabel: () => 'Swap' }

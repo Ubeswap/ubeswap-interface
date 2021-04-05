@@ -4,8 +4,8 @@ import { useActiveWeb3React } from 'hooks'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { calculateGasMargin } from 'utils'
 
-type Head<T extends any[]> = Required<T> extends [...(infer H), any] ? H : never
-type Last<T extends Array<unknown>> = Required<T> extends [...(infer A), infer L] ? L : never
+type Head<T extends any[]> = Required<T> extends [...infer H, any] ? H : never
+type Last<T extends Array<unknown>> = Required<T> extends [...infer A, infer L] ? L : never
 type MethodArgs<C extends Contract, M extends keyof C['estimateGas']> = Head<Parameters<C['estimateGas'][M]>>
 
 type DoTransactionFn = <
@@ -87,12 +87,12 @@ export const useDoTransaction = (): DoTransactionFn => {
     try {
       const response: ContractTransaction = await contract[methodName](...args.args, {
         gasLimit: calculateGasMargin(gasEstimate),
-        ...args.overrides
+        ...args.overrides,
       })
       addTransaction(response, {
         summary: args.summary,
         approval: args.approval,
-        claim: args.claim
+        claim: args.claim,
       })
       return response.hash
     } catch (error) {
