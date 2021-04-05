@@ -1,10 +1,8 @@
 import { CeloContract } from '@celo/contractkit'
-import { CELO, ChainId, currencyEquals, cUSD, Token, TokenAmount } from '@ubeswap/sdk'
-import { useTokenAllowance } from 'data/Allowances'
-import { ethers } from 'ethers'
-import { Erc20__factory, LendingPool__factory } from 'generated'
+import { CELO, ChainId, cUSD, Token, TokenAmount } from '@ubeswap/sdk'
+import { LendingPool, LendingPool__factory } from 'generated'
 import { useActiveWeb3React } from 'hooks'
-import { useTransactionAdder } from 'state/transactions/hooks'
+import { useMemo } from 'react'
 
 export const moolaLendingPools = {
   // Addresses from: https://github.com/moolamarket/moola
@@ -45,13 +43,8 @@ interface UseMoolaConvert {
 }
 
 export const useMoolaConfig = () => {
-  const { library, chainId, account } = useActiveWeb3React()
-
+  const { chainId } = useActiveWeb3React()
   if (chainId === ChainId.BAKLAVA) {
-    return null
-  }
-
-  if (!library || !account) {
     return null
   }
 
@@ -64,65 +57,11 @@ export const useMoolaConfig = () => {
   return { lendingPoolCore, mcUSD, mCELO, lendingPool }
 }
 
-export const useMoola = (input: TokenAmount): UseMoolaConvert => {
-  const { library, chainId, account } = useActiveWeb3React()
-
-  if (chainId === ChainId.BAKLAVA) {
-    throw new Error('invalid chain id')
+export const useLendingPool = (): LendingPool => {
+  const cfg = useMoolaConfig()
+  if (!cfg) {
+    throw new Error('no cfg')
   }
-
-  if (!library || !account) {
-    throw new Error('not connected')
-  }
-
-  const chainCfg = moolaLendingPools[chainId]
-  const { lendingPool, lendingPoolCore } = chainCfg
-
-  const mcUSD = new Token(chainId, chainCfg.mcUSD, 18, 'mcUSD', 'Moola cUSD')
-  const mCELO = new Token(chainId, chainCfg.mCELO, 18, 'mCELO', 'Moola CELO')
-
-  const allowance = useTokenAllowance(input.token, account, lendingPoolCore)
-
-  const pool = LendingPool__factory.connect(lendingPool, library.getSigner())
-
-  const addTransaction = useTransactionAdder()
-
-  const approve: UseMoolaConvert['approve'] = async () => {
-    const contract = Erc20__factory.connect(input.token.address, library.getSigner())
-    addTransaction(await contract.approve(lendingPoolCore, ethers.constants.MaxUint256), {
-      summary: 'Approve ' + input.token.symbol,
-      approval: { tokenAddress: input.token.address, spender: lendingPoolCore }
-    })
-  }
-
-  const convert = async (): Promise<TokenAmount> => {
-    const token = input.token
-    if (currencyEquals(token, chainCfg[CeloContract.StableToken])) {
-      addTransaction(await pool.deposit(input.token.address, input.raw.toString(), 420), {
-        summary: `Deposit cUSD into Moola`
-      })
-      return new TokenAmount(mcUSD, input.raw)
-    }
-    if (currencyEquals(token, chainCfg[CeloContract.GoldToken])) {
-      addTransaction(await pool.deposit(input.token.address, input.raw.toString(), 420), {
-        summary: `Deposit CELO into Moola`
-      })
-      return new TokenAmount(mCELO, input.raw)
-    }
-    if (currencyEquals(token, mcUSD)) {
-      addTransaction(await pool.withdraw(input.token.address, input.raw.toString(), 420), {
-        summary: `Withdraw cUSD from Moola`
-      })
-      return new TokenAmount(chainCfg[CeloContract.StableToken], input.raw)
-    }
-    if (currencyEquals(token, mCELO)) {
-      addTransaction(await pool.withdraw(input.token.address, input.raw.toString(), 420), {
-        summary: `Withdraw CELO from Moola`
-      })
-      return new TokenAmount(chainCfg[CeloContract.GoldToken], input.raw)
-    }
-    throw new Error(`unknown currency: ${token.address}`)
-  }
-
-  return { approve, convert, allowance }
+  const { library } = useActiveWeb3React()
+  return useMemo(() => LendingPool__factory.connect(cfg.lendingPool, library as any), [cfg.lendingPool, library])
 }

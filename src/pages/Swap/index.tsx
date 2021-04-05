@@ -136,8 +136,6 @@ export default function Swap() {
   const route = trade?.route
   const noRoute = !route
 
-  const { label: actionLabel } = describeTrade(trade)
-
   // check whether the user has approved the router on the input token
   const [approval, approveCallback] = useApproveCallbackFromTrade(trade, allowedSlippage)
 
@@ -256,6 +254,7 @@ export default function Swap() {
   const swapIsUnsupported = useIsTransactionUnsupported(currencies?.INPUT, currencies?.OUTPUT)
 
   const { isEstimate, makeLabel } = describeTrade(trade)
+  const actionLabel = makeLabel(independentField !== Field.INPUT)
 
   return (
     <>
@@ -266,7 +265,7 @@ export default function Swap() {
       />
       <SwapPoolTabs active={'swap'} />
       <AppBody>
-        <SwapHeader title={makeLabel(independentField !== Field.INPUT)} />
+        <SwapHeader title={actionLabel} />
         <Wrapper id="swap-page">
           <ConfirmSwapModal
             isOpen={showConfirm}
