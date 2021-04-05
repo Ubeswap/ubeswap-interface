@@ -19,10 +19,6 @@ jobs:
 
       - name: Set up node
         uses: actions/setup-node@v1
-        with:
-          node-version: 12
-          always-auth: true
-          registry-url: https://registry.npmjs.org
 
       - name: Set output of cache
         id: yarn-cache
