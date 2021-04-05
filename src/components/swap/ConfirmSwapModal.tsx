@@ -4,6 +4,7 @@ import TransactionConfirmationModal, {
   ConfirmationModalContent,
   TransactionErrorContent
 } from '../TransactionConfirmationModal'
+import { describeTrade } from './routing/describeTrade'
 import SwapModalFooter from './SwapModalFooter'
 import SwapModalHeader from './SwapModalHeader'
 
@@ -51,6 +52,7 @@ export default function ConfirmSwapModal({
     () => Boolean(trade && originalTrade && tradeMeaningfullyDiffers(trade, originalTrade)),
     [originalTrade, trade]
   )
+  const { label } = describeTrade(trade)
 
   const modalHeader = useCallback(() => {
     return trade ? (
@@ -87,7 +89,7 @@ export default function ConfirmSwapModal({
         <TransactionErrorContent onDismiss={onDismiss} message={swapErrorMessage} />
       ) : (
         <ConfirmationModalContent
-          title="Confirm Swap"
+          title={`Confirm ${label}`}
           onDismiss={onDismiss}
           topContent={modalHeader}
           bottomContent={modalBottom}

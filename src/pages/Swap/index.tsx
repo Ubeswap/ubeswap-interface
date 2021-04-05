@@ -1,4 +1,5 @@
 import { JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
+import { describeTrade } from 'components/swap/routing/describeTrade'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -135,6 +136,8 @@ export default function Swap() {
   const route = trade?.route
   const noRoute = !route
 
+  const { label: actionLabel } = describeTrade(trade)
+
   // check whether the user has approved the router on the input token
   const [approval, approveCallback] = useApproveCallbackFromTrade(trade, allowedSlippage)
 
@@ -252,6 +255,8 @@ export default function Swap() {
 
   const swapIsUnsupported = useIsTransactionUnsupported(currencies?.INPUT, currencies?.OUTPUT)
 
+  const { label, isEstimate } = describeTrade(trade)
+
   return (
     <>
       <TokenWarningModal
@@ -261,7 +266,7 @@ export default function Swap() {
       />
       <SwapPoolTabs active={'swap'} />
       <AppBody>
-        <SwapHeader />
+        <SwapHeader title={label} />
         <Wrapper id="swap-page">
           <ConfirmSwapModal
             isOpen={showConfirm}
@@ -279,7 +284,7 @@ export default function Swap() {
 
           <AutoColumn gap={'md'}>
             <CurrencyInputPanel
-              label={independentField === Field.OUTPUT && trade ? 'From (estimated)' : 'From'}
+              label={independentField === Field.OUTPUT && trade ? `From${isEstimate ? ' (estimated)' : ''}` : 'From'}
               value={formattedAmounts[Field.INPUT]}
               showMaxButton={!atMaxAmountInput}
               currency={currencies[Field.INPUT]}
@@ -311,7 +316,7 @@ export default function Swap() {
             <CurrencyInputPanel
               value={formattedAmounts[Field.OUTPUT]}
               onUserInput={handleTypeOutput}
-              label={independentField === Field.INPUT && trade ? 'To (estimated)' : 'To'}
+              label={independentField === Field.INPUT && trade ? `To${isEstimate ? ' (estimated)' : ''}` : 'To'}
               showMaxButton={false}
               currency={currencies[Field.OUTPUT]}
               onCurrencySelect={handleOutputSelect}
@@ -414,7 +419,7 @@ export default function Swap() {
                   <Text fontSize={16} fontWeight={500}>
                     {priceImpactSeverity > 3 && !isExpertMode
                       ? `Price Impact High`
-                      : `Swap${priceImpactSeverity > 2 ? ' Anyway' : ''}`}
+                      : `${actionLabel}${priceImpactSeverity > 2 ? ' Anyway' : ''}`}
                   </Text>
                 </ButtonError>
               </RowBetween>
@@ -442,7 +447,7 @@ export default function Swap() {
                     ? swapInputError
                     : priceImpactSeverity > 3 && !isExpertMode
                     ? `Price Impact Too High`
-                    : `Swap${priceImpactSeverity > 2 ? ' Anyway' : ''}`}
+                    : `${actionLabel}${priceImpactSeverity > 2 ? ' Anyway' : ''}`}
                 </Text>
               </ButtonError>
             )}

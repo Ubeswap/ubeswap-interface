@@ -1,6 +1,8 @@
 import { MaxUint256 } from '@ethersproject/constants'
 import { TransactionResponse } from '@ethersproject/providers'
 import { TokenAmount, Trade } from '@ubeswap/sdk'
+import { MoolaTrade } from 'components/swap/routing/moola/MoolaTrade'
+import { useMoolaConfig } from 'components/swap/routing/moola/useMoola'
 import { useCallback, useMemo } from 'react'
 import { ROUTER_ADDRESS } from '../constants'
 import { useTokenAllowance } from '../data/Allowances'
@@ -102,5 +104,6 @@ export function useApproveCallbackFromTrade(trade?: Trade, allowedSlippage = 0) 
     () => (trade ? computeSlippageAdjustedAmounts(trade, allowedSlippage)[Field.INPUT] : undefined),
     [trade, allowedSlippage]
   )
-  return useApproveCallback(amountToApprove, ROUTER_ADDRESS)
+  const moola = useMoolaConfig()
+  return useApproveCallback(amountToApprove, trade instanceof MoolaTrade ? moola?.lendingPoolCore : ROUTER_ADDRESS)
 }

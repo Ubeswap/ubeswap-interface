@@ -27,6 +27,8 @@ export const moolaLendingPools = {
 }
 export type IMoolaChain = keyof typeof moolaLendingPools
 
+export type MoolaConfig = typeof moolaLendingPools[IMoolaChain]
+
 interface UseMoolaConvert {
   /**
    * Amount allowed to convert
@@ -40,6 +42,26 @@ interface UseMoolaConvert {
    * Converts the tokens.
    */
   convert: () => Promise<TokenAmount>
+}
+
+export const useMoolaConfig = () => {
+  const { library, chainId, account } = useActiveWeb3React()
+
+  if (chainId === ChainId.BAKLAVA) {
+    return null
+  }
+
+  if (!library || !account) {
+    return null
+  }
+
+  const chainCfg = moolaLendingPools[chainId]
+  const { lendingPool, lendingPoolCore } = chainCfg
+
+  const mcUSD = new Token(chainId, chainCfg.mcUSD, 18, 'mcUSD', 'Moola cUSD')
+  const mCELO = new Token(chainId, chainCfg.mCELO, 18, 'mCELO', 'Moola CELO')
+
+  return { lendingPoolCore, mcUSD, mCELO, lendingPool }
 }
 
 export const useMoola = (input: TokenAmount): UseMoolaConvert => {

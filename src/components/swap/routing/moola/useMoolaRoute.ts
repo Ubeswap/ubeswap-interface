@@ -9,13 +9,13 @@ export const useMoolaRoute = (
   inputCurrency: Token | null | undefined,
   outputCurrency: Token | null | undefined
 ): Route | null => {
-  const { library, chainId, account } = useActiveWeb3React()
+  const { library, chainId } = useActiveWeb3React()
 
   if (chainId === ChainId.BAKLAVA) {
     return null
   }
 
-  if (!library || !account) {
+  if (!library) {
     return null
   }
 
