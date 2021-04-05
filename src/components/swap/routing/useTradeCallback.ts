@@ -19,7 +19,7 @@ export const useTradeCallback = (
   allowedSlippage: number = INITIAL_ALLOWED_SLIPPAGE, // in bips
   recipientAddressOrName: string | null // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
 ): { state: SwapCallbackState; callback: null | (() => Promise<string>); error: string | null } => {
-  const { library, chainId } = useActiveWeb3React()
+  const { library, chainId, account } = useActiveWeb3React()
   const doTransaction = useDoTransaction()
 
   const { state: swapState, callback: swapCallback, error } = useSwapCallback(
@@ -29,7 +29,7 @@ export const useTradeCallback = (
   )
 
   const tradeCallback = useCallback(async () => {
-    if (!library || !trade) {
+    if (!library || !trade || !account) {
       throw new Error('not loaded')
     }
 
@@ -37,7 +37,7 @@ export const useTradeCallback = (
       throw new Error('Baklava is not supported')
     }
 
-    const signer = library.getSigner()
+    const signer = library.getSigner(account)
     const env = { signer, chainId, doTransaction }
     if (trade instanceof MoolaTrade) {
       return (await executeMoolaTrade({ ...env, trade })).hash
@@ -46,7 +46,7 @@ export const useTradeCallback = (
     } else {
       throw new Error('not loaded')
     }
-  }, [swapCallback, library, chainId, doTransaction, trade])
+  }, [swapCallback, library, chainId, doTransaction, trade, account])
 
   return { state: swapState, callback: tradeCallback, error }
 }

@@ -45,11 +45,12 @@ type ContractCall = {
 const estimateGas = async (call: ContractCall): Promise<BigNumber> => {
   const { contract, methodName, args, overrides } = call
   try {
-    return await contract.estimateGas[methodName](...args, overrides)
+    console.log([...args, overrides])
+    return await contract.estimateGas[methodName](...args)
   } catch (gasError) {
     console.debug('Gas estimate failed, trying eth_call to extract error', call)
     try {
-      const result = await contract.callStatic[methodName](...args, overrides)
+      const result = await contract.callStatic[methodName](...args)
       console.debug('Unexpected successful call after failed estimate gas', call, gasError, result)
       throw new Error('Unexpected issue with estimating the gas. Please try again.')
     } catch (callError) {
@@ -75,12 +76,11 @@ const estimateGas = async (call: ContractCall): Promise<BigNumber> => {
  */
 export const useDoTransaction = (): DoTransactionFn => {
   const addTransaction = useTransactionAdder()
-  const { library, chainId } = useActiveWeb3React()
-  if (chainId === ChainId.BAKLAVA) {
-    throw new Error('baklava not supported')
-  }
-
+  const { chainId } = useActiveWeb3React()
   return async (contract, methodName, args): Promise<string> => {
+    if (chainId === ChainId.BAKLAVA) {
+      throw new Error('baklava not supported')
+    }
     const call = { contract, methodName, args: args.args, value: args.overrides?.value }
     const gasEstimate = await estimateGas(call)
     try {

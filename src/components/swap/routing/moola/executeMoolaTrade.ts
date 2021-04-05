@@ -37,13 +37,13 @@ export const executeMoolaTrade: TradeExecutor<MoolaTrade> = async ({ trade, sign
       const aToken = AToken__factory.connect(outputAmount.token.address, signer)
       return await doTransaction(aToken, 'redeem', {
         args: [inputAmount.raw.toString()],
-        summary: `Withdraw ${symbol} from Moola`
+        summary: `Withdraw ${inputAmount.toSignificant(2)} ${symbol} from Moola`
       })
     }
     if (symbol) {
       return await doTransaction(pool, 'deposit', {
         args: [inputAmount.token.address, inputAmount.raw.toString(), 420],
-        summary: `Deposit ${symbol} into Moola`
+        summary: `Deposit ${inputAmount.toSignificant(2)} ${symbol} into Moola`
       })
     }
     throw new Error(`unknown currency: ${token.address}`)
