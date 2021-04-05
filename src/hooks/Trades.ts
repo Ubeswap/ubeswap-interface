@@ -13,7 +13,7 @@ import { useUnsupportedTokens } from './Tokens'
 function useAllCommonPairs(currencyA?: Token, currencyB?: Token): Pair[] {
   const { chainId } = useActiveWeb3React()
 
-  const bases: Token[] = chainId ? BASES_TO_CHECK_TRADES_AGAINST[chainId] : []
+  const bases: Token[] = useMemo(() => (chainId ? BASES_TO_CHECK_TRADES_AGAINST[chainId] : []), [chainId])
   const [tokenA, tokenB] = [currencyA, currencyB]
 
   const basePairs: [Token, Token][] = useMemo(

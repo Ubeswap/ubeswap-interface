@@ -5,7 +5,7 @@ import { useTransactionAdder } from 'state/transactions/hooks'
 import { calculateGasMargin } from 'utils'
 
 type Head<T extends any[]> = Required<T> extends [...infer H, any] ? H : never
-type Last<T extends Array<unknown>> = Required<T> extends [...infer A, infer L] ? L : never
+type Last<T extends Array<unknown>> = Required<T> extends [...unknown[], infer L] ? L : never
 type MethodArgs<C extends Contract, M extends keyof C['estimateGas']> = Head<Parameters<C['estimateGas'][M]>>
 
 type DoTransactionFn = <

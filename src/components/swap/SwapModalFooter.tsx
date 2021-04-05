@@ -3,12 +3,7 @@ import React, { useContext, useMemo, useState } from 'react'
 import { Repeat } from 'react-feather'
 import { Text } from 'rebass'
 import { ThemeContext } from 'styled-components'
-import {
-  computeSlippageAdjustedAmounts,
-  computeTradePriceBreakdown,
-  formatExecutionPrice,
-  warningSeverity,
-} from '../../utils/prices'
+import { computeTradePriceBreakdown, formatExecutionPrice, warningSeverity } from '../../utils/prices'
 import { ButtonError } from '../Button'
 import { AutoColumn } from '../Column'
 import { AutoRow, RowBetween } from '../Row'
@@ -32,11 +27,7 @@ export default function SwapModalFooter({
   const { label, routingMethod } = describeTrade(trade)
   const [showInverted, setShowInverted] = useState<boolean>(false)
   const theme = useContext(ThemeContext)
-  const slippageAdjustedAmounts = useMemo(() => computeSlippageAdjustedAmounts(trade, allowedSlippage), [
-    allowedSlippage,
-    trade,
-  ])
-  const { priceImpactWithoutFee, realizedLPFee } = useMemo(() => computeTradePriceBreakdown(trade), [trade])
+  const { priceImpactWithoutFee } = useMemo(() => computeTradePriceBreakdown(trade), [trade])
   const severity = warningSeverity(priceImpactWithoutFee)
 
   let info: React.ReactNode = null
