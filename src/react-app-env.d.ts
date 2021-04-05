@@ -10,7 +10,7 @@ interface Window {
     removeListener?: (...args: any[]) => void
     autoRefreshOnNetworkChange?: boolean
   }
-  web3?: {}
+  web3?: unknown
 }
 
 declare module 'content-hash' {
