@@ -1,3 +1,4 @@
+import { CeloToken } from '@celo/contractkit'
 import { Pair, Token } from '@ubeswap/sdk'
 import { IValoraAccount } from 'connectors/valora/valoraUtils'
 import flatMap from 'lodash.flatmap'
@@ -20,6 +21,7 @@ import {
   updateUserDarkMode,
   updateUserDeadline,
   updateUserExpertMode,
+  updateUserFeeCurrency,
   updateUserSingleHopOnly,
   updateUserSlippageTolerance,
 } from './actions'
@@ -127,6 +129,25 @@ export function useUserSingleHopOnly(): [boolean, (newSingleHopOnly: boolean) =>
   )
 
   return [singleHopOnly, setSingleHopOnly]
+}
+
+export function useUserFeeCurrency(): [CeloToken, (newFeeCurrency: CeloToken) => void] {
+  const dispatch = useDispatch<AppDispatch>()
+
+  const feeCurrency = useSelector<AppState, AppState['user']['userFeeCurrency']>((state) => state.user.userFeeCurrency)
+
+  const setFeeCurrency = useCallback(
+    (newFeeCurrency: CeloToken) => {
+      ReactGA.event({
+        category: 'Routing',
+        action: `fees in ${newFeeCurrency}`,
+      })
+      dispatch(updateUserFeeCurrency({ userFeeCurrency: newFeeCurrency }))
+    },
+    [dispatch]
+  )
+
+  return [feeCurrency, setFeeCurrency]
 }
 
 export function useUserSlippageTolerance(): [number, (slippage: number) => void] {

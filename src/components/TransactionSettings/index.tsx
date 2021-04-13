@@ -1,12 +1,13 @@
-import React, { useState, useRef, useContext } from 'react'
+import { CeloContract } from '@celo/contractkit'
+import Toggle from 'components/Toggle'
+import { darken } from 'polished'
+import React, { useContext, useRef, useState } from 'react'
+import { useUserFeeCurrency } from 'state/user/hooks'
 import styled, { ThemeContext } from 'styled-components'
-
-import QuestionHelper from '../QuestionHelper'
 import { TYPE } from '../../theme'
 import { AutoColumn } from '../Column'
+import QuestionHelper from '../QuestionHelper'
 import { RowBetween, RowFixed } from '../Row'
-
-import { darken } from 'polished'
 
 enum SlippageError {
   InvalidInput = 'InvalidInput',
@@ -99,6 +100,7 @@ export default function SlippageTabs({ rawSlippage, setRawSlippage, deadline, se
 
   const [slippageInput, setSlippageInput] = useState('')
   const [deadlineInput, setDeadlineInput] = useState('')
+  const [feeCurrency, setFeeCurrency] = useUserFeeCurrency()
 
   const slippageInputIsValid =
     slippageInput === '' || (rawSlippage / 100).toFixed(2) === Number.parseFloat(slippageInput).toFixed(2)
@@ -246,6 +248,24 @@ export default function SlippageTabs({ rawSlippage, setRawSlippage, deadline, se
             minutes
           </TYPE.body>
         </RowFixed>
+      </AutoColumn>
+
+      <AutoColumn gap="sm">
+        <RowFixed>
+          <TYPE.black fontSize={14} fontWeight={400} color={theme.text2}>
+            Use Celo as fee currency
+          </TYPE.black>
+          <QuestionHelper text="If enabled, Celo will be used as the fee currency instead of cUSD." />
+        </RowFixed>
+        <Toggle
+          id="toggle-fee-currency"
+          isActive={feeCurrency === CeloContract.StableToken}
+          toggle={
+            feeCurrency === CeloContract.StableToken
+              ? () => setFeeCurrency(CeloContract.GoldToken)
+              : () => setFeeCurrency(CeloContract.StableToken)
+          }
+        />
       </AutoColumn>
     </AutoColumn>
   )
