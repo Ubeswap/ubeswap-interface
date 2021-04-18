@@ -7,6 +7,8 @@ import { AutoColumn } from '../Column'
 import { RowBetween, RowFixed } from '../Row'
 
 import { darken } from 'polished'
+import Toggle from 'components/Toggle'
+import { useUserAllowMoolaWithdrawal, useUserMinApprove, useUserDisableSmartRouting } from 'state/user/hooks'
 
 enum SlippageError {
   InvalidInput = 'InvalidInput',
@@ -99,6 +101,9 @@ export default function SlippageTabs({ rawSlippage, setRawSlippage, deadline, se
 
   const [slippageInput, setSlippageInput] = useState('')
   const [deadlineInput, setDeadlineInput] = useState('')
+  const [minApprove, setMinApprove] = useUserMinApprove()
+  const [allowMoolaWithdrawal, setAllowMoolaWithdrawal] = useUserAllowMoolaWithdrawal()
+  const [disableSmartRouting, setDisableSmartRouting] = useUserDisableSmartRouting()
 
   const slippageInputIsValid =
     slippageInput === '' || (rawSlippage / 100).toFixed(2) === Number.parseFloat(slippageInput).toFixed(2)
@@ -246,6 +251,33 @@ export default function SlippageTabs({ rawSlippage, setRawSlippage, deadline, se
             minutes
           </TYPE.body>
         </RowFixed>
+        <RowBetween>
+          <RowFixed>
+            <TYPE.black fontWeight={400} fontSize={14} color={theme.text2}>
+              Use minimum approval
+            </TYPE.black>
+            <QuestionHelper text="Ensures that each individual trade requires approving the router for the transfer." />
+          </RowFixed>
+          <Toggle isActive={minApprove} toggle={() => (minApprove ? setMinApprove(false) : setMinApprove(true))} />
+        </RowBetween>
+        <RowBetween>
+          <RowFixed>
+            <TYPE.black fontWeight={400} fontSize={14} color={theme.text2}>
+              Disable smart routing
+            </TYPE.black>
+            <QuestionHelper text="Disable using advanced routing techniques to optimize your trade execution price." />
+          </RowFixed>
+          <Toggle isActive={disableSmartRouting} toggle={() => setDisableSmartRouting(!disableSmartRouting)} />
+        </RowBetween>
+        <RowBetween>
+          <RowFixed>
+            <TYPE.black fontWeight={400} fontSize={14} color={theme.text2}>
+              Allow Moola withdrawal
+            </TYPE.black>
+            <QuestionHelper text="Enables withdrawing collateral from Moola. This can cause you to get liquidated-- be careful!" />
+          </RowFixed>
+          <Toggle isActive={allowMoolaWithdrawal} toggle={() => setAllowMoolaWithdrawal(!allowMoolaWithdrawal)} />
+        </RowBetween>
       </AutoColumn>
     </AutoColumn>
   )
