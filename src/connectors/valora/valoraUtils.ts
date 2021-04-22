@@ -14,9 +14,22 @@ import {
 import { identity, mapValues } from 'lodash'
 import * as querystring from 'querystring'
 
+// much code stolen from here: https://github.com/celo-tools/use-contractkit/blob/429fca00a0521e3a69f64b497b91a092b30e31c4/packages/use-contractkit/src/dappkit-wallet/dappkit.ts
+
+const localStorageKey = 'ubeswap/valora-cache'
+// hack to get around deeplinking issue where new tabs are opened
+// and the url hash state is not respected (Note this implementation
+// of dappkit doesn't use URL hashes to always force the newtab experience).
+if (typeof window !== 'undefined') {
+  const params = new URL(window.location.href).searchParams
+  if (params.get('type') && params.get('requestId')) {
+    localStorage.setItem(localStorageKey, window.location.href)
+    window.close()
+  }
+}
+
 // Gets the url redirected from Valora that is used to update the page
 async function waitForValoraResponse() {
-  const localStorageKey = 'valoraRedirect'
   while (true) {
     const value = localStorage.getItem(localStorageKey)
     if (value) {
@@ -31,61 +44,35 @@ async function waitForValoraResponse() {
  * Parses the response from Dappkit.
  * @param url
  */
-export const parseDappkitResponse = (
+export const parseDappkitResponse = <T extends DappKitResponse>(
   url: string
 ):
-  | (DappKitResponse & {
+  | (T & {
       requestId: string
     })
   | null => {
-  const whereQuery = url.indexOf('?')
+  const whereQuery = url.lastIndexOf('?')
   if (whereQuery === -1) {
     return null
   }
-  const searchNonDeduped = url.slice(whereQuery + 1)
-  const allSearch = searchNonDeduped.split('?')
-  const newQs = allSearch.filter(identity).reduce((acc, qs) => ({ ...acc, ...querystring.parse(qs) }), {})
+  const newQs = querystring.parse(url.slice(whereQuery + 1))
   const realQs = querystring.stringify(newQs)
   const { protocol, host } = new URL(url)
   const result = parseDappkitResponseDeeplink(`${protocol}//${host}/?${realQs}`)
   if (!result.requestId) {
     return null
   }
-  return result
-}
-
-export const awaitDappkitResponse = async <T extends DappKitResponse>(): Promise<T> => {
-  return await new Promise((resolve, reject) => {
-    const timer = setInterval(() => {
-      console.log('awaiting')
-      const url = window.location.href
-      try {
-        const response = parseDappkitResponse(url)
-        if (!response) {
-          return
-        }
-        if (response.status === DappKitResponseStatus.UNAUTHORIZED) {
-          reject(new Error('Unauthorized'))
-        } else {
-          resolve((response as unknown) as T)
-        }
-        clearInterval(timer)
-      } catch (e) {}
-    }, 200)
-  })
+  return result as T & {
+    requestId: string
+  }
 }
 
 export const removeQueryParams = (url: string, keys: string[]): string => {
-  const whereQuery = url.indexOf('?')
+  const whereQuery = url.lastIndexOf('?')
   if (whereQuery === -1) {
     return url
   }
-  const searchNonDeduped = url.slice(whereQuery + 1)
-  const allSearch = searchNonDeduped.split('?')
-  const newQs: Record<string, string> = allSearch.reduce(
-    (acc, qs) => ({ ...acc, ...mapValues(querystring.parse(qs), (v) => v?.toString() ?? null) }),
-    {}
-  )
+  const newQs = querystring.parse(url.slice(whereQuery + 1))
   keys.forEach((key) => {
     delete newQs[key]
   })
@@ -117,8 +104,8 @@ export const requestValoraAuth = async (): Promise<AccountAuthResponseSuccess> =
     })
   )
   window.location.href = await waitForValoraResponse()
-  const resp = await awaitDappkitResponse<AccountAuthResponse>()
-  if (resp.status === DappKitResponseStatus.SUCCESS) {
+  const resp = parseDappkitResponse<AccountAuthResponse>(window.location.href)
+  if (resp?.status === DappKitResponseStatus.SUCCESS) {
     return resp
   }
   throw new Error('could not connect account')
@@ -139,8 +126,8 @@ export const requestValoraTransaction = async (txs: TxToSignParam[]): Promise<Si
     })
   )
   window.location.href = await waitForValoraResponse()
-  const resp = await awaitDappkitResponse<SignTxResponse>()
-  if (resp.status === DappKitResponseStatus.SUCCESS) {
+  const resp = parseDappkitResponse<SignTxResponse>(window.location.href)
+  if (resp?.status === DappKitResponseStatus.SUCCESS) {
     return resp
   }
   throw new Error('could not perform transaction')
