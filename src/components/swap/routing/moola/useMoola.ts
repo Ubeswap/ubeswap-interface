@@ -50,18 +50,12 @@ export type MoolaConfig = typeof moolaLendingPools[IMoolaChain]
 
 export const useMoolaConfig = () => {
   const { chainId } = useActiveWeb3React()
-
   // TODO(igm): this breaks on baklava
   const chainCfg = moolaLendingPools[chainId as IMoolaChain]
   const { lendingPool, lendingPoolCore } = chainCfg
-
-  const { mcUSD, mCELO } = chainCfg
-
   return {
     lendingPoolCore,
     lendingPool,
-    mcUSD,
-    mCELO,
   }
 }
 
