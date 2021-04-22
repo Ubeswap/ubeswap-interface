@@ -119,13 +119,15 @@ export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) 
               : '-'}
           </TYPE.white>
         </RowBetween>
-        <RowBetween>
-          <RowFixed>
-            <TYPE.white>APR</TYPE.white>
-            <LightQuestionHelper text="The annualized, non-compounding rate of rewards based on the current value of UBE relative to the tokens in this pool." />
-          </RowFixed>
-          <TYPE.white>{apy ? `${apy.toFixed(0, { groupSeparator: ',' })}%` : '-'}</TYPE.white>
-        </RowBetween>
+        {apy && apy.greaterThan('0') && (
+          <RowBetween>
+            <RowFixed>
+              <TYPE.white>APR</TYPE.white>
+              <LightQuestionHelper text="The annualized, non-compounding rate of rewards based on the current value of UBE relative to the tokens in this pool." />
+            </RowFixed>
+            <TYPE.white>{apy ? `${apy.toFixed(0, { groupSeparator: ',' })}%` : '-'}</TYPE.white>
+          </RowBetween>
+        )}
 
         {!stakingInfo.active && (
           <RowBetween>

@@ -191,7 +191,18 @@ export function useStakingInfo(pairToFilterBy?: Pair | null): readonly StakingIn
       },
       []
     )
-  }, [balances, chainId, currentBlockTimestamp, earnedAmounts, info, periodFinishes, rewardRates, totalSupplies, ube])
+  }, [
+    balances,
+    chainId,
+    currentBlockTimestamp,
+    earnedAmounts,
+    info,
+    periodFinishes,
+    rewardRates,
+    totalSupplies,
+    ube,
+    ubePrice,
+  ])
 }
 
 interface IStakingPool {
