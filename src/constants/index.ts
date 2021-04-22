@@ -55,9 +55,37 @@ export const MCELO = {
   ),
 }
 
+export const MCEUR = {
+  [ChainId.MAINNET]: new Token(
+    ChainId.MAINNET,
+    '0xa8d0E6799FF3Fd19c6459bf02689aE09c4d78Ba7',
+    18,
+    'mCELO',
+    'Moola CELO'
+  ),
+  [ChainId.ALFAJORES]: new Token(
+    ChainId.ALFAJORES,
+    '0x32974C7335e649932b5766c5aE15595aFC269160',
+    18,
+    'mCELO',
+    'Moola CELO'
+  ),
+}
+
+export const CEUR = {
+  [ChainId.ALFAJORES]: new Token(
+    ChainId.ALFAJORES,
+    '0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F',
+    18,
+    'cEUR',
+    'Celo Euro'
+  ),
+  [ChainId.MAINNET]: new Token(ChainId.MAINNET, '0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73', 18, 'cEUR', 'Celo Euro'),
+}
+
 // used to construct intermediary pairs for trading
 export const BASES_TO_CHECK_TRADES_AGAINST: ChainTokenList = {
-  [ChainId.MAINNET]: [MCUSD, MCELO, cUSD, CELO].map((el) => el[ChainId.MAINNET]),
+  [ChainId.MAINNET]: [MCUSD, MCELO, cUSD, CELO, CEUR].map((el) => el[ChainId.MAINNET]),
   [ChainId.ALFAJORES]: [MCUSD, MCELO, cUSD, CELO].map((el) => el[ChainId.ALFAJORES]),
   [ChainId.BAKLAVA]: [cUSD, CELO].map((el) => el[ChainId.BAKLAVA]),
 }
