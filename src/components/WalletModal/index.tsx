@@ -195,7 +195,7 @@ export default function WalletModal({
       })
 
       // clear dappkit response from href
-      window.location.href = removeQueryParams(window.location.href, [...Object.keys(resp), 'account'])
+      window.location.href = removeQueryParams(window.location.href, [...Object.keys(valoraAccount), 'account'])
       return
     }
 
