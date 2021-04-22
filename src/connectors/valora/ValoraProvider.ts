@@ -1,7 +1,14 @@
-import { CeloContract } from '@celo/contractkit'
+import { CeloContract, ContractKit } from '@celo/contractkit'
 import { DappKitRequestTypes, DappKitResponseStatus } from '@celo/utils'
 import { MiniRpcProvider } from 'connectors/NetworkConnector'
 import { requestValoraTransaction } from './valoraUtils'
+
+const getFeeCurrencyAddress = async (kit: ContractKit, from: string) => {
+  const stableAddress = await kit.registry.addressFor(CeloContract.StableToken)
+  const goldToken = await kit.contracts.getGoldToken()
+  const goldBalance = await goldToken.balanceOf(from)
+  return goldBalance.isZero() ? stableAddress : goldToken.address
+}
 
 /**
  * Subprovider for interfacing with a user's Valora wallet.
@@ -18,10 +25,9 @@ export class ValoraProvider extends MiniRpcProvider {
     if (method === 'eth_estimateGas' && params) {
       try {
         const txData = (params as unknown[])[0] as { from: string; to: string; data: string }
-        const stableAddress = await this.kit.registry.addressFor(CeloContract.StableToken)
         // estimate gas for the transaction
         const gasEstimate = await this.kit.connection.estimateGas({
-          feeCurrency: stableAddress,
+          feeCurrency: await getFeeCurrencyAddress(this.kit, txData.from),
           ...txData,
         })
         return '0x' + gasEstimate.toString(16)
@@ -35,18 +41,14 @@ export class ValoraProvider extends MiniRpcProvider {
       if (!firstTx) {
         throw new Error('No tx found')
       }
-      const stableAddress = await this.kit.registry.addressFor(CeloContract.StableToken)
-      const goldToken = await this.kit.contracts.getGoldToken()
-      const goldBalance = await goldToken.balanceOf(firstTx.from)
-      const feeCurrencyAddress = goldBalance.isZero() ? stableAddress : goldToken.address
-
+      const feeCurrencyAddress = await getFeeCurrencyAddress(this.kit, firstTx.from)
       const baseNonce = await this.kit.connection.nonce(firstTx.from)
 
       try {
         const txs = await Promise.all(
           txParams.map(async ({ from, to, data }, i) => {
             const gasEstimate = await this.kit.connection.estimateGas({
-              feeCurrency: stableAddress,
+              feeCurrency: feeCurrencyAddress,
               from,
               to,
               data,
