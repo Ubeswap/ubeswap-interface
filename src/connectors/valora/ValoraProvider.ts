@@ -1,13 +1,14 @@
 import { CeloContract, ContractKit } from '@celo/contractkit'
 import { DappKitRequestTypes, DappKitResponseStatus } from '@celo/utils'
 import { MiniRpcProvider } from 'connectors/NetworkConnector'
+import { getAddress } from 'ethers/lib/utils'
 import { requestValoraTransaction } from './valoraUtils'
 
 const getFeeCurrencyAddress = async (kit: ContractKit, from: string) => {
   const stableAddress = await kit.registry.addressFor(CeloContract.StableToken)
   const goldToken = await kit.contracts.getGoldToken()
   const goldBalance = await goldToken.balanceOf(from)
-  return goldBalance.isZero() ? stableAddress : goldToken.address
+  return goldBalance.isZero() ? stableAddress : getAddress(goldToken.address)
 }
 
 /**
