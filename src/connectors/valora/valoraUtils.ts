@@ -11,7 +11,6 @@ import {
   SignTxResponseSuccess,
   TxToSignParam,
 } from '@celo/utils'
-import { identity, mapValues } from 'lodash'
 import * as querystring from 'querystring'
 
 // much code stolen from here: https://github.com/celo-tools/use-contractkit/blob/429fca00a0521e3a69f64b497b91a092b30e31c4/packages/use-contractkit/src/dappkit-wallet/dappkit.ts
