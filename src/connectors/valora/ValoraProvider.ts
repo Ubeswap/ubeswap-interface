@@ -1,24 +1,20 @@
 import { CeloContract, ContractKit } from '@celo/contractkit'
 import { DappKitRequestTypes, DappKitResponseStatus } from '@celo/utils'
 import { MiniRpcProvider } from 'connectors/NetworkConnector'
-import { getAddress } from 'ethers/lib/utils'
 import { requestValoraTransaction } from './valoraUtils'
 
 const getFeeCurrencyAddress = async (kit: ContractKit, from: string) => {
   const stableAddress = await kit.registry.addressFor(CeloContract.StableToken)
+  const goldAddress = await kit.registry.addressFor(CeloContract.GoldToken)
   const goldToken = await kit.contracts.getGoldToken()
   const goldBalance = await goldToken.balanceOf(from)
-  return goldBalance.isZero() ? stableAddress : getAddress(goldToken.address)
+  return goldBalance.isZero() ? stableAddress : goldAddress
 }
 
 /**
  * Subprovider for interfacing with a user's Valora wallet.
  */
 export class ValoraProvider extends MiniRpcProvider {
-  // constructor(chainId: number, url: string, batchWaitTimeMs?: number) {
-  //   super(chainId, url, batchWaitTimeMs)
-  // }
-
   _networkRequest = this.request
 
   _request = async (method: string, params?: unknown[] | Record<string, unknown>): Promise<unknown> => {
