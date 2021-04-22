@@ -18,12 +18,10 @@ export class ValoraProvider extends MiniRpcProvider {
     if (method === 'eth_estimateGas' && params) {
       try {
         const txData = (params as unknown[])[0] as { from: string; to: string; data: string }
-        const baseNonce = await this.kit.connection.nonce(txData.from)
         const stableAddress = await this.kit.registry.addressFor(CeloContract.StableToken)
         // estimate gas for the transaction
         const gasEstimate = await this.kit.connection.estimateGas({
           feeCurrency: stableAddress,
-          nonce: baseNonce,
           ...txData,
         })
         return '0x' + gasEstimate.toString(16)
@@ -55,7 +53,7 @@ export class ValoraProvider extends MiniRpcProvider {
               estimatedGas: gasEstimate,
               from,
               to,
-              nonce: baseNonce + i,
+              nonce: baseNonce + i + 1,
               feeCurrencyAddress: stableAddress,
               value: '0',
             }
