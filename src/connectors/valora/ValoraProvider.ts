@@ -3,12 +3,14 @@ import { DappKitRequestTypes, DappKitResponseStatus } from '@celo/utils'
 import { MiniRpcProvider } from 'connectors/NetworkConnector'
 import { requestValoraTransaction } from './valoraUtils'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getFeeCurrencyAddress = async (kit: ContractKit, from: string) => {
   const stableAddress = await kit.registry.addressFor(CeloContract.StableToken)
-  const goldAddress = await kit.registry.addressFor(CeloContract.GoldToken)
-  const goldToken = await kit.contracts.getGoldToken()
-  const goldBalance = await goldToken.balanceOf(from)
-  return goldBalance.isZero() ? stableAddress : goldAddress
+  // const goldAddress = await kit.registry.addressFor(CeloContract.GoldToken)
+  // const goldToken = await kit.contracts.getGoldToken()
+  // const goldBalance = await goldToken.balanceOf(from)
+  // return goldBalance.isZero() ? stableAddress : goldAddress
+  return stableAddress
 }
 
 /**
