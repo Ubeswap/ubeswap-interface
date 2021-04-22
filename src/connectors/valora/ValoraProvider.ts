@@ -53,7 +53,7 @@ export class ValoraProvider extends MiniRpcProvider {
               estimatedGas: gasEstimate,
               from,
               to,
-              nonce: baseNonce + i + 1,
+              nonce: baseNonce + i,
               feeCurrencyAddress: stableAddress,
               value: '0',
             }
