@@ -186,8 +186,9 @@ export default function WalletModal({
 
     if (connector instanceof ValoraConnector) {
       // valora should connect by deep linking
-      const resp = await requestValoraAuth()
-      setValoraAccount(resp)
+      const valoraAccount = await requestValoraAuth()
+      setValoraAccount(valoraAccount)
+      connector.setSavedValoraAccount(valoraAccount)
 
       await activate(connector, undefined, true).catch(() => {
         setPendingError(true)
