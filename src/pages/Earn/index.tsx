@@ -42,26 +42,16 @@ export default function Earn() {
   // staking info for connected account
   const stakingInfos = useStakingInfo()
 
-  /**
-   * Sort staking info by highest rewards
-   */
-  const sortedStakingInfos = useMemo(
-    () =>
-      stakingInfos?.slice().sort((a: StakingInfo, b: StakingInfo) => {
-        if (b.dollarRewardPerYear && a.dollarRewardPerYear) {
-          return JSBI.toNumber(JSBI.subtract(b.dollarRewardPerYear?.raw, a.dollarRewardPerYear?.raw))
-        }
-        return JSBI.toNumber(JSBI.subtract(b.rewardRate.raw, a.rewardRate.raw))
-      }),
-    [stakingInfos]
-  )
-
   // toggle copy if rewards are inactive
   const stakingRewardsExist = true
 
-  const [stakedPools, unstakedPools] = partition(sortedStakingInfos, (pool) =>
-    JSBI.greaterThan(pool.stakedAmount.raw, BIG_INT_ZERO)
-  )
+  const [stakedPools, unstakedPools] = useMemo(() => {
+    // Sort staking info by highest rewards
+    const sortedStakingInfos = stakingInfos?.slice().sort((a: StakingInfo, b: StakingInfo) => {
+      return JSBI.toNumber(JSBI.subtract(b.rewardRate.raw, a.rewardRate.raw))
+    })
+    return partition(sortedStakingInfos, (pool) => JSBI.greaterThan(pool.stakedAmount.raw, BIG_INT_ZERO))
+  }, [stakingInfos])
 
   const isGenesisOver = COUNTDOWN_END < new Date().getTime()
 
@@ -97,7 +87,7 @@ export default function Earn() {
 
       {!isGenesisOver && <LaunchCountdown />}
 
-      {stakedPools && (
+      {stakedPools.length > 0 && (
         <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
           <DataRow style={{ alignItems: 'baseline' }}>
             <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>My Pools</TYPE.mediumHeader>
@@ -128,7 +118,7 @@ export default function Earn() {
           {/* TODO(igm): show TVL here */}
         </DataRow>
         <PoolSection>
-          {stakingRewardsExist && sortedStakingInfos?.length === 0 ? (
+          {stakingRewardsExist && stakingInfos?.length === 0 ? (
             <Loader style={{ margin: 'auto' }} />
           ) : (
             unstakedPools?.map((pool) => <PoolCard key={pool.stakingRewardAddress} stakingInfo={pool} />)
