@@ -182,7 +182,7 @@ export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) 
                 </TYPE.black>
 
                 <RowFixed>
-                  <TYPE.black style={{ textAlign: 'right', alignItems: 'center' }} color={'white'} fontWeight={500}>
+                  <TYPE.black style={{ textAlign: 'right' }} color={'white'} fontWeight={500}>
                     ${userValueCUSD.toFixed(0, { groupSeparator: ',' })}
                   </TYPE.black>
                   <QuestionHelper

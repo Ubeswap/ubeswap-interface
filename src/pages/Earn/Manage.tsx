@@ -249,7 +249,7 @@ export default function Manage({
                   <RowBetween>
                     <RowFixed>
                       <TYPE.white>
-                        Estimated value:{' '}
+                        Current value:{' '}
                         {userValueCUSD
                           ? `$${userValueCUSD.toFixed(2, {
                               separator: ',',
