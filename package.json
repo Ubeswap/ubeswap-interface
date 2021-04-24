@@ -127,7 +127,7 @@
     "@ledgerhq/hw-transport-webusb": "^5.43.0",
     "@ubeswap/default-token-list": "^2.1.0",
     "@ubeswap/moola": "^0.2.0",
-    "@ubeswap/sdk": "^2.0.0",
+    "@ubeswap/sdk": "^2.1.0",
     "ethers": "^5.1.0",
     "lodash": "^4.17.21",
     "react-circular-progressbar": "^2.0.4",
