@@ -21,7 +21,7 @@ import usePrevious from '../../hooks/usePrevious'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { StakingInfo, usePairStakingInfo, useStakingInfo } from '../../state/stake/hooks'
 import { useTokenBalance } from '../../state/wallet/hooks'
-import { TYPE } from '../../theme'
+import { ExternalLinkIcon, TYPE } from '../../theme'
 import { currencyId } from '../../utils/currencyId'
 import { useStakingPoolValue } from './useStakingPoolValue'
 
@@ -241,9 +241,16 @@ export default function Manage({
                   <TYPE.white fontSize={36} fontWeight={600}>
                     {stakingInfo?.stakedAmount?.toSignificant(6) ?? '-'}
                   </TYPE.white>
-                  <TYPE.white>
-                    UBE-LP {tokenA?.symbol}-{tokenB?.symbol}
-                  </TYPE.white>
+                  <RowFixed>
+                    <TYPE.white>
+                      UBE-LP {tokenA?.symbol}-{tokenB?.symbol}
+                    </TYPE.white>
+                    {stakingInfo && (
+                      <PairLinkIcon
+                        href={`https://info.ubeswap.org/pair/${stakingInfo.stakingToken.address.toLowerCase()}`}
+                      />
+                    )}
+                  </RowFixed>
                 </RowBetween>
                 {stakingInfo?.stakedAmount && stakingInfo.stakedAmount.greaterThan('0') && (
                   <RowBetween>
@@ -353,3 +360,9 @@ export default function Manage({
     </PageWrapper>
   )
 }
+
+const PairLinkIcon = styled(ExternalLinkIcon)`
+  svg {
+    stroke: ${(props) => props.theme.primary1};
+  }
+`
