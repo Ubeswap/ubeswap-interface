@@ -75,8 +75,6 @@ export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) 
   // get the USD value of staked WETH
   const {
     valueCUSD: valueOfTotalStakedAmountInCUSD,
-    amountTokenA,
-    amountTokenB,
     userValueCUSD,
     userAmountTokenA,
     userAmountTokenB,
