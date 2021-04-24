@@ -50,7 +50,10 @@ export default function Earn() {
     const sortedStakingInfos = stakingInfos?.slice().sort((a: StakingInfo, b: StakingInfo) => {
       return JSBI.toNumber(JSBI.subtract(b.rewardRate.raw, a.rewardRate.raw))
     })
-    return partition(sortedStakingInfos, (pool) => JSBI.greaterThan(pool.stakedAmount.raw, BIG_INT_ZERO))
+    return partition(
+      sortedStakingInfos,
+      (pool) => pool.stakedAmount && JSBI.greaterThan(pool.stakedAmount.raw, BIG_INT_ZERO)
+    )
   }, [stakingInfos])
 
   const isGenesisOver = COUNTDOWN_END < new Date().getTime()
@@ -90,7 +93,7 @@ export default function Earn() {
       {stakedPools.length > 0 && (
         <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
           <DataRow style={{ alignItems: 'baseline' }}>
-            <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>My Pools</TYPE.mediumHeader>
+            <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>Your Pools</TYPE.mediumHeader>
             <div>{/* TODO(igm): show TVL here */}</div>
           </DataRow>
 

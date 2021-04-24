@@ -1,4 +1,5 @@
 import { cUSD, JSBI } from '@ubeswap/sdk'
+import QuestionHelper from 'components/QuestionHelper'
 import React, { useCallback, useState } from 'react'
 import { Link, RouteComponentProps } from 'react-router-dom'
 import styled from 'styled-components'
@@ -10,7 +11,7 @@ import ClaimRewardModal from '../../components/earn/ClaimRewardModal'
 import StakingModal from '../../components/earn/StakingModal'
 import { CardBGImage, CardNoise, CardSection, DataCard } from '../../components/earn/styled'
 import UnstakingModal from '../../components/earn/UnstakingModal'
-import { RowBetween } from '../../components/Row'
+import { RowBetween, RowFixed } from '../../components/Row'
 import { BIG_INT_SECONDS_IN_WEEK, BIG_INT_ZERO } from '../../constants'
 import { usePair } from '../../data/Reserves'
 import { useActiveWeb3React } from '../../hooks'
@@ -18,7 +19,7 @@ import { useCurrency } from '../../hooks/Tokens'
 import { useColor } from '../../hooks/useColor'
 import usePrevious from '../../hooks/usePrevious'
 import { useWalletModalToggle } from '../../state/application/hooks'
-import { useStakingInfo } from '../../state/stake/hooks'
+import { StakingInfo, usePairStakingInfo, useStakingInfo } from '../../state/stake/hooks'
 import { useTokenBalance } from '../../state/wallet/hooks'
 import { TYPE } from '../../theme'
 import { currencyId } from '../../utils/currencyId'
@@ -95,7 +96,7 @@ export default function Manage({
   const [tokenA, tokenB] = [useCurrency(currencyIdA) ?? undefined, useCurrency(currencyIdB) ?? undefined]
 
   const [, stakingTokenPair] = usePair(tokenA, tokenB)
-  const stakingInfo = useStakingInfo(stakingTokenPair)?.[0]
+  const stakingInfo = usePairStakingInfo(stakingTokenPair)
 
   // detect existing unstaked LP position to show add button if none found
   const userLiquidityUnstaked = useTokenBalance(account ?? undefined, stakingInfo?.stakedAmount?.token)
@@ -113,7 +114,12 @@ export default function Manage({
   const backgroundColor = useColor(token ?? undefined)
 
   // get CUSD value of staked LP tokens
-  const { valueCUSD: valueOfTotalStakedAmountInCUSD } = useStakingPoolValue(stakingInfo)
+  const {
+    valueCUSD: valueOfTotalStakedAmountInCUSD,
+    userValueCUSD,
+    userAmountTokenA,
+    userAmountTokenB,
+  } = useStakingPoolValue(stakingInfo)
 
   const countUpAmount = stakingInfo?.earnedAmount?.toFixed(6) ?? '0'
   const countUpAmountPrevious = usePrevious(countUpAmount) ?? '0'
@@ -239,6 +245,25 @@ export default function Manage({
                     UBE-LP {tokenA?.symbol}-{tokenB?.symbol}
                   </TYPE.white>
                 </RowBetween>
+                {stakingInfo?.stakedAmount && stakingInfo.stakedAmount.greaterThan('0') && (
+                  <RowBetween>
+                    <RowFixed>
+                      <TYPE.white>
+                        Estimated value:{' '}
+                        {userValueCUSD
+                          ? `$${userValueCUSD.toFixed(2, {
+                              separator: ',',
+                            })}`
+                          : '--'}
+                      </TYPE.white>
+                      <QuestionHelper
+                        text={`${userAmountTokenA?.toFixed(0, { groupSeparator: ',' })} ${
+                          userAmountTokenA?.token.symbol
+                        }, ${userAmountTokenB?.toFixed(0, { groupSeparator: ',' })} ${userAmountTokenB?.token.symbol}`}
+                      />
+                    </RowFixed>
+                  </RowBetween>
+                )}
               </AutoColumn>
             </CardSection>
           </StyledDataCard>
