@@ -16,7 +16,8 @@ import CurrencyInputPanel from '../CurrencyInputPanel'
 import Modal from '../Modal'
 import { LoadingView, SubmittedView } from '../ModalViews'
 import ProgressCircles from '../ProgressSteps'
-import { RowBetween } from '../Row'
+import { AutoRow, RowBetween } from '../Row'
+import Loader from 'components/Loader'
 
 const HypotheticalRewardRate = styled.div<{ dim: boolean }>`
   display: flex;
@@ -156,7 +157,13 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
               confirmed={approval === ApprovalState.APPROVED || signatureData !== null}
               disabled={approval !== ApprovalState.NOT_APPROVED || signatureData !== null}
             >
-              Approve
+              {approval === ApprovalState.PENDING ? (
+                <AutoRow gap="6px" justify="center">
+                  Approving <Loader stroke="white" />
+                </AutoRow>
+              ) : (
+                'Approve'
+              )}
             </ButtonConfirmed>
             <ButtonError
               disabled={!!error || (signatureData === null && approval !== ApprovalState.APPROVED)}
