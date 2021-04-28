@@ -120,7 +120,7 @@
     "@types/react-dom": "^17.0.3"
   },
   "dependencies": {
-    "@celo/connect": "^1.0.1",
+    "@celo/connect": "^1.2.0",
     "@celo/contractkit": "^1.1.0",
     "@celo/utils": "^1.0.1",
     "@celo/wallet-ledger": "^1.0.2",
