@@ -66,7 +66,7 @@ interface UnclaimedInfo {
   /**
    * Total tokens left in the contract
    */
-  balanceRemaining: BigNumber
+  balanceRemaining: BigNumber | null
   /**
    * Earned but unclaimed tokens
    */
@@ -94,8 +94,10 @@ export const useUnclaimedStakingRewards = (): UnclaimedInfo => {
     'balanceOf',
     poolAddresses.map((addr) => [addr])
   )
-  const balances = balancesRaw.map((b) => b.result?.[0] ?? BigNumber.from(0)) as readonly BigNumber[]
-  const balanceRemaining = balances.reduce((sum, b) => b.add(sum), BigNumber.from(0))
+  const balances = balancesRaw.find((b) => !b.result)
+    ? null
+    : (balancesRaw.map((b) => b.result?.[0] ?? BigNumber.from(0)) as readonly BigNumber[])
+  const balanceRemaining = balances?.reduce((sum, b) => b.add(sum)) ?? null
 
   // tokens per second, constants
   const rewardRates = useMultipleContractSingleData(
@@ -133,7 +135,7 @@ export const useUnclaimedStakingRewards = (): UnclaimedInfo => {
   return {
     balanceRemaining,
     earned,
-    noncirculatingSupply: earned ? balanceRemaining.sub(earned) : null,
+    noncirculatingSupply: balanceRemaining && earned ? balanceRemaining.sub(earned) : null,
   }
 }
 
