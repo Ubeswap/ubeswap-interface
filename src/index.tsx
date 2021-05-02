@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/react'
 import { Integrations } from '@sentry/tracing'
 import { ChainId } from '@ubeswap/sdk'
 import { createWeb3ReactRoot, Web3ReactProvider } from '@web3-react/core'
-import { NETWORK_CHAIN_ID } from 'connectors'
+import { chainIdToName, NETWORK_CHAIN_ID } from 'connectors/index'
 import 'inter-ui'
 import React, { StrictMode } from 'react'
 import { isMobile } from 'react-device-detect'
@@ -76,7 +76,7 @@ Sentry.init({
   dsn: 'https://3a59012948e049a290f5e3ff6f6f68e2@o605929.ingest.sentry.io/5745027',
   integrations: [new Integrations.BrowserTracing()],
   tracesSampleRate: 0.001,
-  environment: `${environment ?? 'unknown'}-${NETWORK_CHAIN_ID}`,
+  environment: `${environment ?? 'unknown'}-${chainIdToName(NETWORK_CHAIN_ID)}`,
   release: `${process.env.REACT_APP_VERCEL_GIT_COMMIT_REF ?? 'unknown'}-${
     process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA ?? 'unknown'
   }`,
