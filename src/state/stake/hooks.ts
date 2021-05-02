@@ -118,10 +118,10 @@ export const useUnclaimedStakingRewards = (): UnclaimedInfo => {
   const amounts = now
     ? zip(rewardRates, periodFinishes).map(
         ([rate, finish]): BigNumber => {
-          const rawRate = rate?.result?.[0]
-          const finishTime = finish?.result?.[0]
-          if (rawRate && finishTime) {
-            return (rawRate as BigNumber).mul((finishTime as BigNumber).sub(now).toNumber())
+          const rawRate = rate?.result?.[0] as BigNumber | undefined
+          const finishTime = finish?.result?.[0] as BigNumber | undefined
+          if (rawRate && finishTime && finishTime.gt(now)) {
+            return rawRate.mul(finishTime.sub(now).toNumber())
           }
           return BigNumber.from(0)
         }
