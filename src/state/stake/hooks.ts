@@ -114,18 +114,21 @@ export const useUnclaimedStakingRewards = (): UnclaimedInfo => {
     NEVER_RELOAD
   )
 
-  const now = new Date().getTime() / 1000
-  const amounts = zip(rewardRates, periodFinishes).map(
-    ([rate, finish]): BigNumber => {
-      const rawRate = rate?.result?.[0]
-      const finishTime = finish?.result?.[0]
-      if (rawRate && finishTime) {
-        return (rawRate as BigNumber).mul((finishTime as BigNumber).toNumber() - now)
-      }
-      return BigNumber.from(0)
-    }
-  )
-  const earned = rewardRates?.[0]?.loading ? null : amounts.reduce((sum, amt) => sum.add(amt), BigNumber.from(0))
+  const now = useCurrentBlockTimestamp()
+  const amounts = now
+    ? zip(rewardRates, periodFinishes).map(
+        ([rate, finish]): BigNumber => {
+          const rawRate = rate?.result?.[0]
+          const finishTime = finish?.result?.[0]
+          if (rawRate && finishTime) {
+            return (rawRate as BigNumber).mul((finishTime as BigNumber).sub(now).toNumber())
+          }
+          return BigNumber.from(0)
+        }
+      )
+    : undefined
+  const earned =
+    rewardRates?.[0]?.loading || !amounts ? null : amounts.reduce((sum, amt) => sum.add(amt), BigNumber.from(0))
 
   return {
     balanceRemaining,
