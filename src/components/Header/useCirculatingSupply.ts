@@ -13,7 +13,6 @@ const RELEASED = BigNumber.from(25_700_000).mul(DECIMALS)
 
 // Addresses that do not contribute to circulating supply
 const nonCirculatingAddresses = {
-  MiningTokenAllocator: '0x9a4f417f7C23EDA400536C9fE3B14b1494c1C6a1',
   MiningReleaseEscrow: '0x9d0a92AA8832518328D14Ed5930eC6B44448165e',
   PoolManager: '0x9Ee3600543eCcc85020D6bc77EB553d1747a65D2',
 }
