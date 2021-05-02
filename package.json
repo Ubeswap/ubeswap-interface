@@ -125,6 +125,8 @@
     "@celo/utils": "^1.0.1",
     "@celo/wallet-ledger": "^1.0.2",
     "@ledgerhq/hw-transport-webusb": "^5.43.0",
+    "@sentry/react": "^6.3.5",
+    "@sentry/tracing": "^6.3.5",
     "@ubeswap/default-token-list": "^2.1.0",
     "@ubeswap/moola": "^0.2.0",
     "@ubeswap/sdk": "^2.0.0",
