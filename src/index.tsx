@@ -67,6 +67,13 @@ window.addEventListener('error', (error) => {
   })
 })
 
+const sentryCfg = {
+  environment: `${environment ?? 'unknown'}-${NETWORK_CHAIN_ID}`,
+  release: `${process.env.REACT_APP_VERCEL_GIT_COMMIT_REF ?? 'unknown'}-${
+    process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA ?? 'unknown'
+  }`,
+}
+
 Sentry.init({
   dsn: 'https://3a59012948e049a290f5e3ff6f6f68e2@o605929.ingest.sentry.io/5745027',
   integrations: [new Integrations.BrowserTracing()],
@@ -76,7 +83,12 @@ Sentry.init({
   // We recommend adjusting this value in production
   tracesSampleRate: 0.001,
   environment: `${environment ?? 'unknown'}-${NETWORK_CHAIN_ID}`,
+  release: `${process.env.REACT_APP_VERCEL_GIT_COMMIT_REF ?? 'unknown'}-${
+    process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA ?? 'unknown'
+  }`,
 })
+
+console.log(`Initializing Sentry environment at release ${sentryCfg.release} in environment ${sentryCfg.environment}`)
 
 function Updaters() {
   return (

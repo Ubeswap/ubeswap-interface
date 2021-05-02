@@ -88,7 +88,7 @@
     "start": "HTTPS=true react-scripts start",
     "start:alfajores": "REACT_APP_CHAIN_ID=44787 react-scripts start",
     "typechain": "typechain --target=ethers-v5 'src/**/abis/**/*.json' --outDir src/generated/",
-    "build": "CI='' npm run typechain && react-scripts build",
+    "build": "CI='' REACT_APP_VERCEL_GIT_COMMIT_REF=\"$VERCEL_GIT_COMMIT_REF\" REACT_APP_VERCEL_GIT_COMMIT_SHA=\"$VERCEL_GIT_COMMIT_SHA\" npm run typechain && react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "lint": "eslint .",
