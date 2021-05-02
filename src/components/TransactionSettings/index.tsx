@@ -1,6 +1,7 @@
 import { darken } from 'polished'
 import React, { useContext, useRef, useState } from 'react'
 import styled, { ThemeContext } from 'styled-components'
+
 import { TYPE } from '../../theme'
 import { AutoColumn } from '../Column'
 import QuestionHelper from '../QuestionHelper'

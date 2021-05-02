@@ -4,9 +4,9 @@
 // https://on.cypress.io/custom-commands
 // ***********************************************
 
+import { _Eip1193Bridge } from '@ethersproject/experimental/lib/eip1193-bridge'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { Wallet } from '@ethersproject/wallet'
-import { _Eip1193Bridge } from '@ethersproject/experimental/lib/eip1193-bridge'
 
 // never send real ether to this, obviously
 const PRIVATE_KEY_TEST_NEVER_USE = '0xad20c82497421e9784f18460ad2fe84f73569068e98e270b3e63743268af5763'
