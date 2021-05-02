@@ -75,6 +75,7 @@ Sentry.init({
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production
   tracesSampleRate: 0.001,
+  environment: `${environment ?? 'unknown'}-${NETWORK_CHAIN_ID}`,
 })
 
 function Updaters() {
