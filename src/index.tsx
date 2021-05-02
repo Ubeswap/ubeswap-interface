@@ -23,7 +23,7 @@ import getLibrary from './utils/getLibrary'
 
 const Web3ProviderNetwork = createWeb3ReactRoot(NetworkContextName)
 
-if (!!window.celo) {
+if (window.celo) {
   window.celo.autoRefreshOnNetworkChange = false
 }
 
