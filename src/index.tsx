@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/react'
 import { Integrations } from '@sentry/tracing'
 import { ChainId } from '@ubeswap/sdk'
 import { createWeb3ReactRoot, Web3ReactProvider } from '@web3-react/core'
-import { chainIdToName, NETWORK_CHAIN_ID } from 'connectors/index'
+import { chainIdToName, NETWORK_CHAIN_ID, NETWORK_CHAIN_NAME } from 'connectors/index'
 import 'inter-ui'
 import React, { StrictMode } from 'react'
 import { isMobile } from 'react-device-detect'
@@ -55,19 +55,19 @@ const analyticsEnv: 'staging' | 'production' | null = environment
   : null
 const GOOGLE_ANALYTICS_ID = analyticsEnv ? GOOGLE_ANALYTICS_IDS[analyticsEnv][NETWORK_CHAIN_ID] : null
 if (GOOGLE_ANALYTICS_ID) {
-  console.log(`Initializing GA at ${GOOGLE_ANALYTICS_ID} (${environment} ${NETWORK_CHAIN_ID})`)
+  console.log(`Initializing GA at ${GOOGLE_ANALYTICS_ID} (${analyticsEnv} ${NETWORK_CHAIN_NAME})`)
   ReactGA.initialize(GOOGLE_ANALYTICS_ID)
   ReactGA.set({
     customBrowserType: !isMobile ? 'desktop' : 'web3' in window || 'celo' in window ? 'mobileWeb3' : 'mobileRegular',
   })
 } else {
-  console.log(`Could not initialize GA (${environment} ${NETWORK_CHAIN_ID})`)
+  console.log(`Could not initialize GA (${analyticsEnv} ${NETWORK_CHAIN_NAME})`)
   ReactGA.initialize('test', { testMode: true, debug: true })
 }
 
 // sentry
 const sentryCfg = {
-  environment: `${environment ?? 'unknown'}-${NETWORK_CHAIN_ID}`,
+  environment: `${environment ?? 'unknown'}-${NETWORK_CHAIN_NAME}`,
   release: `${process.env.REACT_APP_VERCEL_GIT_COMMIT_REF ?? 'unknown'}-${
     process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA ?? 'unknown'
   }`,
@@ -76,7 +76,7 @@ Sentry.init({
   dsn: 'https://3a59012948e049a290f5e3ff6f6f68e2@o605929.ingest.sentry.io/5745027',
   integrations: [new Integrations.BrowserTracing()],
   tracesSampleRate: 0.001,
-  environment: `${environment ?? 'unknown'}-${chainIdToName(NETWORK_CHAIN_ID)}`,
+  environment: `${environment ?? 'unknown'}-${NETWORK_CHAIN_NAME}`,
   release: `${process.env.REACT_APP_VERCEL_GIT_COMMIT_REF ?? 'unknown'}-${
     process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA ?? 'unknown'
   }`,

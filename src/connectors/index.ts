@@ -15,7 +15,7 @@ export const NETWORK_CHAIN_ID: ChainId = process.env.REACT_APP_CHAIN_ID
   ? parseNetwork(parseInt(process.env.REACT_APP_CHAIN_ID))
   : networkChainIDFromHostname
 
-export const chainIdToName = (chainId: ChainId): string => {
+const chainIdToName = (chainId: ChainId): string => {
   switch (chainId) {
     case ChainId.ALFAJORES:
       return 'alfajores'
@@ -27,6 +27,8 @@ export const chainIdToName = (chainId: ChainId): string => {
       return 'unknown'
   }
 }
+
+export const NETWORK_CHAIN_NAME: string = chainIdToName(NETWORK_CHAIN_ID)
 
 console.log('Loading Ubeswap interface at', window.location.hostname, networkChainIDFromHostname, NETWORK_CHAIN_ID)
 
