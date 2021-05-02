@@ -45,10 +45,15 @@ const environment = window.location.hostname.includes('app-staging')
   ? 'staging'
   : window.location.hostname.includes('ubeswap.org')
   ? 'production'
+  : process.env.REACT_APP_VERCEL_ENV ?? null
+
+// google analytics
+const analyticsEnv: 'staging' | 'production' | null = environment
+  ? environment in GOOGLE_ANALYTICS_IDS
+    ? (environment as keyof typeof GOOGLE_ANALYTICS_IDS)
+    : 'staging'
   : null
-
-const GOOGLE_ANALYTICS_ID = environment ? GOOGLE_ANALYTICS_IDS[environment][NETWORK_CHAIN_ID] : null
-
+const GOOGLE_ANALYTICS_ID = analyticsEnv ? GOOGLE_ANALYTICS_IDS[analyticsEnv][NETWORK_CHAIN_ID] : null
 if (GOOGLE_ANALYTICS_ID) {
   console.log(`Initializing GA at ${GOOGLE_ANALYTICS_ID} (${environment} ${NETWORK_CHAIN_ID})`)
   ReactGA.initialize(GOOGLE_ANALYTICS_ID)
@@ -60,35 +65,31 @@ if (GOOGLE_ANALYTICS_ID) {
   ReactGA.initialize('test', { testMode: true, debug: true })
 }
 
-window.addEventListener('error', (error) => {
-  ReactGA.exception({
-    description: `${error.message} @ ${error.filename}:${error.lineno}:${error.colno}`,
-    fatal: true,
-  })
-})
-
+// sentry
 const sentryCfg = {
   environment: `${environment ?? 'unknown'}-${NETWORK_CHAIN_ID}`,
   release: `${process.env.REACT_APP_VERCEL_GIT_COMMIT_REF ?? 'unknown'}-${
     process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA ?? 'unknown'
   }`,
 }
-
 Sentry.init({
   dsn: 'https://3a59012948e049a290f5e3ff6f6f68e2@o605929.ingest.sentry.io/5745027',
   integrations: [new Integrations.BrowserTracing()],
-
-  // Set tracesSampleRate to 1.0 to capture 100%
-  // of transactions for performance monitoring.
-  // We recommend adjusting this value in production
   tracesSampleRate: 0.001,
   environment: `${environment ?? 'unknown'}-${NETWORK_CHAIN_ID}`,
   release: `${process.env.REACT_APP_VERCEL_GIT_COMMIT_REF ?? 'unknown'}-${
     process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA ?? 'unknown'
   }`,
 })
-
 console.log(`Initializing Sentry environment at release ${sentryCfg.release} in environment ${sentryCfg.environment}`)
+
+// react GA error tracking
+window.addEventListener('error', (error) => {
+  ReactGA.exception({
+    description: `${error.message} @ ${error.filename}:${error.lineno}:${error.colno}`,
+    fatal: true,
+  })
+})
 
 function Updaters() {
   return (
