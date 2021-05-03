@@ -3,6 +3,7 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
 import { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+
 import { useActiveWeb3React } from '../../hooks'
 import { useBlockNumber } from '../application/hooks'
 import { AppDispatch, AppState } from '../index'
@@ -165,7 +166,7 @@ export function useSingleContractMultipleData<T extends Contract = Contract>(
   methodName: keyof T['estimateGas'] & string,
   callInputs: OptionalMethodInputs[],
   options?: ListenerOptions
-): CallState[] {
+): readonly CallState[] {
   const fragment = useMemo(() => contract?.interface?.getFunction(methodName), [contract, methodName])
 
   const calls = useMemo(

@@ -1,9 +1,9 @@
+import { darken } from 'polished'
 import React, { HTMLProps, useCallback } from 'react'
+import { ArrowLeft, ExternalLink as LinkIconFeather, Trash,X } from 'react-feather'
 import ReactGA from 'react-ga'
 import { Link } from 'react-router-dom'
 import styled, { keyframes } from 'styled-components'
-import { darken } from 'polished'
-import { ArrowLeft, X, ExternalLink as LinkIconFeather, Trash } from 'react-feather'
 
 export const ButtonText = styled.button`
   outline: none;
@@ -191,7 +191,7 @@ const rotateImg = keyframes`
   }
 `
 
-export const UniTokenAnimated = styled.img`
+export const UbeTokenAnimated = styled.img`
   animation: ${rotateImg} 5s cubic-bezier(0.83, 0, 0.17, 1) infinite;
   padding: 2rem 0 0 0;
   filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.15));

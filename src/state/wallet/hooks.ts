@@ -1,6 +1,7 @@
 import { JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import { UBE } from 'constants/tokens'
 import { useMemo } from 'react'
+
 import ERC20_INTERFACE from '../../constants/abis/erc20'
 import { useActiveWeb3React } from '../../hooks'
 import { useAllTokens } from '../../hooks/Tokens'
@@ -90,14 +91,14 @@ export function useAllTokenBalances(): { [tokenAddress: string]: TokenAmount | u
 }
 
 // get the total owned, unclaimed, and unharvested UBE for account
-export function useAggregateUniBalance(): TokenAmount | undefined {
+export function useAggregateUbeBalance(): TokenAmount | undefined {
   const { account, chainId } = useActiveWeb3React()
 
-  const uni = chainId ? UBE[chainId] : undefined
+  const ube = chainId ? UBE[chainId] : undefined
 
-  const uniBalance: TokenAmount | undefined = useTokenBalance(account ?? undefined, uni)
+  const ubeBalance: TokenAmount | undefined = useTokenBalance(account ?? undefined, ube)
 
-  if (!uni) return undefined
+  if (!ube) return undefined
 
-  return uniBalance
+  return ubeBalance
 }

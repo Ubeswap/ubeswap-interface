@@ -1,3 +1,5 @@
+import './i18n'
+
 import * as Sentry from '@sentry/react'
 import { Integrations } from '@sentry/tracing'
 import { ChainId } from '@ubeswap/sdk'
@@ -9,8 +11,8 @@ import ReactDOM from 'react-dom'
 import ReactGA from 'react-ga'
 import { Provider } from 'react-redux'
 import { HashRouter } from 'react-router-dom'
+
 import { NetworkContextName } from './constants'
-import './i18n'
 import App from './pages/App'
 import store from './state'
 import ApplicationUpdater from './state/application/updater'
@@ -23,7 +25,7 @@ import getLibrary from './utils/getLibrary'
 
 const Web3ProviderNetwork = createWeb3ReactRoot(NetworkContextName)
 
-if (!!window.celo) {
+if (window.celo) {
   window.celo.autoRefreshOnNetworkChange = false
 }
 
