@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useValoraAccount } from 'state/user/hooks'
 
 import { ValoraConnector } from './ValoraConnector'
+import { valoraEmitter } from './valoraUtils'
 
 /**
  * useValora handles incoming valora requests
@@ -12,6 +13,7 @@ export const useValora = () => {
   const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true)
   const { activate, account: injectedAccount, connector } = useWeb3React()
   const { account: savedValoraAccount } = useValoraAccount()
+  const [isValoraLoading, setIsValoraLoading] = useState<boolean>(false)
 
   useEffect(() => {
     if (isInitialLoad) {
@@ -28,4 +30,20 @@ export const useValora = () => {
       activate(valora, undefined, true)
     }
   }, [connector, injectedAccount, savedValoraAccount, activate, isInitialLoad])
+
+  // listen to valora loading
+  useEffect(() => {
+    valoraEmitter.on('wait', () => {
+      setIsValoraLoading(true)
+    })
+    valoraEmitter.on('done', () => {
+      setIsValoraLoading(false)
+    })
+    return () => {
+      valoraEmitter.off('wait')
+      valoraEmitter.off('done')
+    }
+  }, [])
+
+  return { isValoraLoading }
 }

@@ -9,21 +9,24 @@ import {
   SignTxResponseSuccess,
   TxToSignParam,
 } from '@celo/utils'
+import EventEmitter from 'eventemitter3'
 import { identity, mapValues } from 'lodash'
 import * as querystring from 'querystring'
 
+const localStorageKey = 'valoraRedirect'
+
 // Gets the url redirected from Valora that is used to update the page
-async function waitForValoraResponse() {
-  const localStorageKey = 'valoraRedirect'
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const value = localStorage.getItem(localStorageKey)
-    if (value) {
-      localStorage.removeItem(localStorageKey)
-      return value
-    }
-    await new Promise((resolve) => setTimeout(resolve, 100))
+async function waitForValoraResponse(): Promise<string> {
+  const value = localStorage.getItem(localStorageKey)
+  if (value) {
+    localStorage.removeItem(localStorageKey)
+    return value
   }
+  return await new Promise((resolve) =>
+    setTimeout(async () => {
+      resolve(await waitForValoraResponse())
+    }, 100)
+  )
 }
 
 /**
@@ -56,7 +59,6 @@ export const parseDappkitResponse = (
 export const awaitDappkitResponse = async <T extends DappKitResponse>(): Promise<T> => {
   return await new Promise((resolve, reject) => {
     const timer = setInterval(() => {
-      console.log('awaiting')
       const url = window.location.href
       try {
         const response = parseDappkitResponse(url)
@@ -103,6 +105,11 @@ const cleanCallbackUrl = (url: string): string => {
 }
 
 /**
+ * Manages events passed through Valora
+ */
+export const valoraEmitter = new EventEmitter()
+
+/**
  * Requests auth from the Valora app.
  */
 export const requestValoraAuth = async (): Promise<AccountAuthResponseSuccess> => {
@@ -116,7 +123,9 @@ export const requestValoraAuth = async (): Promise<AccountAuthResponseSuccess> =
       callback,
     })
   )
+  valoraEmitter.emit('wait')
   window.location.href = await waitForValoraResponse()
+  valoraEmitter.emit('done')
   return await awaitDappkitResponse<AccountAuthResponseSuccess>()
 }
 
@@ -134,7 +143,9 @@ export const requestValoraTransaction = async (txs: TxToSignParam[]): Promise<Si
       callback,
     })
   )
+  valoraEmitter.emit('wait')
   window.location.href = await waitForValoraResponse()
+  valoraEmitter.emit('done')
   return await awaitDappkitResponse<SignTxResponseSuccess>()
 }
 
