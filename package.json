@@ -85,6 +85,7 @@
     "build": "IS_CI=true CI='' REACT_APP_VERCEL_ENV=\"$VERCEL_ENV\" REACT_APP_VERCEL_GIT_COMMIT_REF=\"$VERCEL_GIT_COMMIT_REF\" REACT_APP_VERCEL_GIT_COMMIT_SHA=\"$VERCEL_GIT_COMMIT_SHA\" npm run build:local",
     "build:local": "npm run typechain && craco build",
     "start": "HTTPS=true craco start",
+    "start:local": "craco start",
     "clean": "rm -fr src/generated/",
     "start:alfajores": "REACT_APP_CHAIN_ID=44787 craco start",
     "typechain": "typechain --target=ethers-v5 'src/**/abis/**/*.json' --outDir src/generated/",
