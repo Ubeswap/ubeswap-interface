@@ -25,7 +25,7 @@ const Message = styled.h2`
 export default function Web3ReactManager({ children }: { children: JSX.Element }) {
   const { t } = useTranslation()
   const { active } = useWeb3React()
-  const { isValoraLoading } = useValora()
+  useValora()
 
   const { active: networkActive, error: networkError, activate: activateNetwork } = useWeb3React(NetworkContextName)
 
@@ -77,19 +77,6 @@ export default function Web3ReactManager({ children }: { children: JSX.Element }
     ) : null
   }
 
-  if (isValoraLoading) {
-    return (
-      <>
-        <ValoraLoading>
-          <ValoraMessage>
-            <Loader size="50px" />
-            <p>Waiting for Valora...</p>
-          </ValoraMessage>
-        </ValoraLoading>
-        {children}
-      </>
-    )
-  }
   return (
     <ContractKitProvider
       networks={NETWORK_CHAIN_ID === ChainId.ALFAJORES ? [Alfajores] : [Mainnet]}
@@ -101,26 +88,3 @@ export default function Web3ReactManager({ children }: { children: JSX.Element }
     </ContractKitProvider>
   )
 }
-
-const ValoraMessage = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  & > p {
-    margin-top: 20px;
-  }
-`
-
-const ValoraLoading = styled.div`
-  position: fixed;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
-`

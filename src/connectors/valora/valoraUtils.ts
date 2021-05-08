@@ -9,7 +9,6 @@ import {
   TxToSignParam,
 } from '@celo/utils'
 import { requestAccountAddress, requestTxSig } from '@celo-tools/use-contractkit/lib/dappkit-wallet/dappkit'
-import EventEmitter from 'eventemitter3'
 import { identity } from 'lodash'
 
 const removeQueryParams = (url: string, keys: string[]): string => {
@@ -117,11 +116,6 @@ async function waitForSignedTxs(requestId: string): Promise<SignTxResponseSucces
   console.warn('Unable to parse url', url)
   throw new Error('Unable to parse Valora response')
 }
-
-/**
- * Manages events passed through Valora
- */
-export const valoraEmitter = new EventEmitter()
 
 const randomString = () => (Math.random() * 100).toString().slice(0, 6)
 
