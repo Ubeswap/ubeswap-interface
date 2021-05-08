@@ -60,7 +60,7 @@ export class ValoraProvider extends MiniRpcProvider {
           })
         )
         console.debug('Sending txs', txs)
-        const resp = await requestValoraTransaction(txs)
+        const resp = await requestValoraTransaction(this.kit, txs)
         if (resp.type === DappKitRequestTypes.SIGN_TX && resp.status === DappKitResponseStatus.SUCCESS) {
           const tx = await this.kit.web3.eth.sendSignedTransaction(resp.rawTxs[0])
           console.log('Valora TX sent', tx)

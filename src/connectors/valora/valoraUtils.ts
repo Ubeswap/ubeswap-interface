@@ -1,33 +1,20 @@
+import { ContractKit } from '@celo/contractkit'
 import {
-  AccountAuthRequest,
   AccountAuthResponseSuccess,
   DappKitResponse,
-  DappKitResponseStatus,
   parseDappkitResponseDeeplink,
-  serializeDappKitRequestDeeplink,
-  SignTxRequest,
   SignTxResponseSuccess,
   TxToSignParam,
 } from '@celo/utils'
+import {
+  requestAccountAddress,
+  requestTxSig,
+  waitForAccountAuth,
+  waitForSignedTxs,
+} from '@celo-tools/use-contractkit/lib/dappkit-wallet/dappkit'
 import EventEmitter from 'eventemitter3'
-import { identity, mapValues } from 'lodash'
+import { identity } from 'lodash'
 import * as querystring from 'querystring'
-
-const localStorageKey = 'valoraRedirect'
-
-// Gets the url redirected from Valora that is used to update the page
-async function waitForValoraResponse(): Promise<string> {
-  const value = localStorage.getItem(localStorageKey)
-  if (value) {
-    localStorage.removeItem(localStorageKey)
-    return value
-  }
-  return await new Promise((resolve) =>
-    setTimeout(async () => {
-      resolve(await waitForValoraResponse())
-    }, 100)
-  )
-}
 
 /**
  * Parses the response from Dappkit.
@@ -56,54 +43,6 @@ export const parseDappkitResponse = (
   return result
 }
 
-export const awaitDappkitResponse = async <T extends DappKitResponse>(): Promise<T> => {
-  return await new Promise((resolve, reject) => {
-    const timer = setInterval(() => {
-      const url = window.location.href
-      try {
-        const response = parseDappkitResponse(url)
-        if (!response) {
-          return
-        }
-        if (response.status === DappKitResponseStatus.UNAUTHORIZED) {
-          reject(new Error('Unauthorized'))
-        } else {
-          resolve((response as unknown) as T)
-        }
-        clearInterval(timer)
-        // eslint-disable-next-line no-empty
-      } catch (e) {}
-    }, 200)
-  })
-}
-
-export const removeQueryParams = (url: string, keys: string[]): string => {
-  const whereQuery = url.indexOf('?')
-  if (whereQuery === -1) {
-    return url
-  }
-  const searchNonDeduped = url.slice(whereQuery + 1)
-  const allSearch = searchNonDeduped.split('?')
-  const newQs: Record<string, string> = allSearch.reduce(
-    (acc, qs) => ({ ...acc, ...mapValues(querystring.parse(qs), (v) => v?.toString() ?? null) }),
-    {}
-  )
-  keys.forEach((key) => {
-    delete newQs[key]
-  })
-  const { protocol, host, hash } = new URL(url)
-  const queryParams = `${querystring.stringify(newQs)}`
-  const resultUrl = `${protocol}//${host}/${hash?.slice(0, hash.indexOf('?'))}`
-  if (queryParams) {
-    return `${resultUrl}?${queryParams}`
-  }
-  return resultUrl
-}
-
-const cleanCallbackUrl = (url: string): string => {
-  return removeQueryParams(url, [])
-}
-
 /**
  * Manages events passed through Valora
  */
@@ -113,40 +52,31 @@ export const valoraEmitter = new EventEmitter()
  * Requests auth from the Valora app.
  */
 export const requestValoraAuth = async (): Promise<AccountAuthResponseSuccess> => {
-  const requestId = 'login'
-  const dappName = 'Ubeswap'
-  const callback = cleanCallbackUrl(window.location.href)
-  window.location.href = serializeDappKitRequestDeeplink(
-    AccountAuthRequest({
-      requestId,
-      dappName,
-      callback,
-    })
-  )
-  valoraEmitter.emit('wait')
-  window.location.href = await waitForValoraResponse()
-  valoraEmitter.emit('done')
-  return await awaitDappkitResponse<AccountAuthResponseSuccess>()
+  const requestId = `login-${randomString()}`
+  requestAccountAddress({
+    requestId,
+    dappName: 'Ubeswap',
+    callback: window.location.href,
+  })
+  return await waitForAccountAuth(requestId)
 }
 
+const randomString = () => (Math.random() * 100).toString().slice(0, 6)
+
 /**
- * Requests auth from the Valora app.
+ * Requests a transaction from the Valora app.
  */
-export const requestValoraTransaction = async (txs: TxToSignParam[]): Promise<SignTxResponseSuccess> => {
-  const requestId = 'make-transaction'
-  const dappName = 'Ubeswap'
-  const callback = cleanCallbackUrl(window.location.href)
-  window.location.href = serializeDappKitRequestDeeplink(
-    SignTxRequest(txs, {
-      requestId,
-      dappName,
-      callback,
-    })
-  )
-  valoraEmitter.emit('wait')
-  window.location.href = await waitForValoraResponse()
-  valoraEmitter.emit('done')
-  return await awaitDappkitResponse<SignTxResponseSuccess>()
+export const requestValoraTransaction = async (
+  kit: ContractKit,
+  txs: TxToSignParam[]
+): Promise<SignTxResponseSuccess> => {
+  const requestId = `signTransaction-${randomString()}`
+  await requestTxSig(kit, txs, {
+    requestId,
+    dappName: 'Ubeswap',
+    callback: window.location.href,
+  })
+  return await waitForSignedTxs(requestId)
 }
 
 export type IValoraAccount = Pick<AccountAuthResponseSuccess, 'address' | 'phoneNumber'>
