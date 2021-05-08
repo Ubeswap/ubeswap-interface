@@ -52,10 +52,12 @@ export const parseDappkitResponseDeeplinkHashAware = (
 }
 
 const localStorageKey = 'ubeswap/dappkit'
+
 // hack to get around deeplinking issue where new tabs are opened
 // and the url hash state is not respected (Note this implementation
 // of dappkit doesn't use URL hashes to always force the newtab experience).
-if (typeof window !== 'undefined') {
+// don't do this on IOS
+if (typeof window !== 'undefined' && !navigator.userAgent.includes('iPhone')) {
   const params = parseSearchParamsHashAware(window.location.href)
   if (params.get('type') && params.get('requestId')) {
     localStorage.setItem(localStorageKey, window.location.href)
