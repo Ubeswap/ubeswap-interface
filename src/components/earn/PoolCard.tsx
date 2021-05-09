@@ -92,9 +92,16 @@ export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) 
 
       <TopSection>
         <DoubleCurrencyLogo currency0={token0} currency1={token1} size={24} />
-        <TYPE.white fontWeight={600} fontSize={24} style={{ marginLeft: '8px' }}>
-          {token0.symbol}-{token1.symbol}
-        </TYPE.white>
+        <PoolInfo style={{ marginLeft: '8px' }}>
+          <TYPE.white fontWeight={600} fontSize={[18, 24]}>
+            {token0.symbol}-{token1.symbol}
+          </TYPE.white>
+          {apy && apy.greaterThan('0') && (
+            <TYPE.small className="apr" fontWeight={400} fontSize={14}>
+              {apy.denominator.toString() !== '0' ? `${apy.toFixed(0, { groupSeparator: ',' })}%` : '-'} APR
+            </TYPE.small>
+          )}
+        </PoolInfo>
 
         <StyledInternalLink to={`/farm/${currencyId(token0)}/${currencyId(token1)}`} style={{ width: '100%' }}>
           <ButtonPrimary padding="8px" borderRadius="8px">
@@ -200,3 +207,13 @@ export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) 
     </Wrapper>
   )
 }
+
+const PoolInfo = styled.div`
+  .apr {
+    margin-top: 4px;
+    display: none;
+    ${({ theme }) => theme.mediaWidth.upToSmall`
+  display: block;
+  `}
+  }
+`
