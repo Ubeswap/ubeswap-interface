@@ -86,6 +86,13 @@ export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) 
       : undefined
   const apy = apyFraction ? new Percent(apyFraction.numerator, apyFraction.denominator) : undefined
 
+  const dpy = apy
+    ? new Percent(Math.floor(parseFloat(apy.divide('365').toFixed(10)) * 1_000_000).toFixed(0), '1000000')
+    : undefined
+  const weeklyAPY = apy
+    ? new Percent(Math.floor(parseFloat(apy.divide('52').add('1').toFixed(10)) ** 52 * 1_000_000).toFixed(0), '1000000')
+    : undefined
+
   return (
     <Wrapper showBackground={isStaking} bgColor={backgroundColor}>
       <CardNoise />
@@ -137,7 +144,18 @@ export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) 
           <RowBetween>
             <RowFixed>
               <TYPE.white>APR</TYPE.white>
-              <LightQuestionHelper text="The annualized, non-compounding rate of rewards based on the current value of UBE relative to the tokens in this pool." />
+              <LightQuestionHelper
+                text={
+                  <>
+                    Yield/day: {dpy?.toSignificant(4)}%<br />
+                    Weekly APY:{' '}
+                    {weeklyAPY?.toFixed(0, {
+                      groupSeparator: ',',
+                    })}
+                    %
+                  </>
+                }
+              />
             </RowFixed>
             <TYPE.white>
               {apy.denominator.toString() !== '0' ? `${apy.toFixed(0, { groupSeparator: ',' })}%` : '-'}
