@@ -7,6 +7,7 @@ import React, { useMemo } from 'react'
 import { Activity } from 'react-feather'
 import { useTranslation } from 'react-i18next'
 import styled, { css } from 'styled-components'
+import { useContractKit } from '@celo-tools/use-contractkit'
 
 import { injected } from '../../connectors'
 import { NetworkContextName } from '../../constants'
@@ -132,6 +133,7 @@ function Web3StatusInner() {
 
   const hasPendingTransactions = !!pending.length
   const toggleWalletModal = useWalletModalToggle()
+  const { connect, address } = useContractKit()
   if (account) {
     const accountName =
       connector instanceof ValoraConnector && connector.valoraAccount
@@ -160,9 +162,16 @@ function Web3StatusInner() {
     )
   } else {
     return (
-      <Web3StatusConnect id="connect-wallet" onClick={toggleWalletModal} faded={!account}>
-        <Text>{t('Connect to a wallet')}</Text>
-      </Web3StatusConnect>
+      <>
+        {account ? (
+          <div>Connected to {address}</div>
+        ) : (
+          <button onClick={connect}>Connect wallet</button>
+        )}
+      </>
+      // <Web3StatusConnect id="connect-wallet" onClick={toggleWalletModal} faded={!account}>
+      //   <Text>{t('Connect to a wallet333')}</Text>
+      // </Web3StatusConnect>
     )
   }
 }
