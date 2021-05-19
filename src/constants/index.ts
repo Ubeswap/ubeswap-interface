@@ -152,7 +152,7 @@ export const SUPPORTED_WALLETS: { [key: string]: WalletInfo } = {
     connector: celoExtensionWallet,
     name: 'Celo Extension Wallet',
     iconName: 'celo_logo.png',
-    description: 'Celo version of Metamask.',
+    description: 'Celo version of MetaMask.',
     href: null,
     color: '#35D07F',
   },
