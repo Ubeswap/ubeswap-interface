@@ -8,7 +8,7 @@ import { useValoraAccount } from 'state/user/hooks'
 import styled, { ThemeContext } from 'styled-components'
 
 import { ReactComponent as Close } from '../../assets/images/x.svg'
-import { injected } from '../../connectors'
+import { celoExtensionWallet, injected } from '../../connectors'
 import { SUPPORTED_WALLETS } from '../../constants'
 import { useActiveWeb3React } from '../../hooks'
 import { AppDispatch } from '../../state'
@@ -228,9 +228,14 @@ export default function AccountDetails({
   function formatConnectorName() {
     const { celo } = window
     const isCEW = !!celo
+    const isMetamask = window.ethereum && window.ethereum.isMetaMask
     const name =
       connector instanceof LedgerConnector
         ? 'Ledger'
+        : connector === injected
+        ? isMetamask
+          ? 'MetaMask'
+          : 'Injected'
         : Object.keys(SUPPORTED_WALLETS)
             .filter(
               (k) =>
@@ -269,11 +274,11 @@ export default function AccountDetails({
               <AccountGroupingRow>
                 {formatConnectorName()}
                 <div>
-                  {connector !== injected && (
+                  {connector !== injected && connector !== celoExtensionWallet && (
                     <WalletAction
                       style={{ fontSize: '.825rem', fontWeight: 400, marginRight: '8px' }}
                       onClick={() => {
-                        ;(connector as any).close()
+                        ;(connector as any).close?.()
                         clearValoraAccount()
                       }}
                     >
