@@ -11,9 +11,9 @@
     "@typechain/ethers-v5": "^6.0.5",
     "@types/jest": "^26.0.23",
     "@types/ledgerhq__hw-transport-webusb": "^4.70.1",
-    "@types/lodash": "^4.14.169",
+    "@types/lodash": "^4.14.170",
     "@types/lodash.flatmap": "^4.5.6",
-    "@types/multicodec": "^1.0.0",
+    "@types/multicodec": "^2.1.0",
     "@types/node": "^14.14.37",
     "@types/qs": "^6.9.6",
     "@types/react": "^17.0.6",
@@ -121,8 +121,8 @@
     "@celo/wallet-ledger": "^1.2.0",
     "@craco/craco": "^6.1.2",
     "@ledgerhq/hw-transport-webusb": "^5.51.1",
-    "@sentry/react": "^6.3.5",
-    "@sentry/tracing": "^6.3.5",
+    "@sentry/react": "^6.4.1",
+    "@sentry/tracing": "^6.4.1",
     "@ubeswap/core": "^1.0.2",
     "@ubeswap/default-token-list": "^2.1.0",
     "@ubeswap/moola": "^0.2.0",
@@ -139,6 +139,6 @@
   },
   "lint-staged": {
     "*.{js,ts,tsx}": "eslint --cache --fix",
-    "*.{html,md,graphql,json}": "prettier --write"
+    "*.{html,md,graphql,json,yaml,yml}": "prettier --write"
   }
 }
