@@ -1,12 +1,10 @@
-import { Alfajores, ContractKitProvider, Mainnet } from '@celo-tools/use-contractkit'
-import { ChainId } from '@ubeswap/sdk'
 import { useWeb3React } from '@web3-react/core'
 import { useValora } from 'connectors/valora/useValora'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import { network, NETWORK_CHAIN_ID } from '../../connectors'
+import { network } from '../../connectors'
 import { NetworkContextName } from '../../constants'
 import { useEagerConnect, useInactiveListener } from '../../hooks'
 import Loader from '../Loader'
@@ -77,14 +75,5 @@ export default function Web3ReactManager({ children }: { children: JSX.Element }
     ) : null
   }
 
-  return (
-    <ContractKitProvider
-      networks={NETWORK_CHAIN_ID === ChainId.ALFAJORES ? [Alfajores] : [Mainnet]}
-      dappName="Ubeswap"
-      dappDescription="Ubeswap is a decentralized exchange and automated market maker protocol for Celo assets."
-      dappUrl="https://ubeswap.org"
-    >
-      {children}
-    </ContractKitProvider>
-  )
+  return children
 }

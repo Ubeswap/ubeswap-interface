@@ -11,6 +11,8 @@ import ReactDOM from 'react-dom'
 import ReactGA from 'react-ga'
 import { Provider } from 'react-redux'
 import { HashRouter } from 'react-router-dom'
+import { Alfajores, ContractKitProvider, Mainnet } from '@celo-tools/use-contractkit'
+import '@celo-tools/use-contractkit/lib/styles.css';
 
 import { NetworkContextName } from './constants'
 import App from './pages/App'
@@ -114,7 +116,14 @@ ReactDOM.render(
           <ThemeProvider>
             <ThemedGlobalStyle />
             <HashRouter>
-              <App />
+              <ContractKitProvider
+                networks={NETWORK_CHAIN_ID === ChainId.ALFAJORES ? [Alfajores] : [Mainnet]}
+                dappName="Ubeswap"
+                dappDescription="Ubeswap is a decentralized exchange and automated market maker protocol for Celo assets."
+                dappUrl="https://ubeswap.org"
+              >
+                <App />
+              </ContractKitProvider>
             </HashRouter>
           </ThemeProvider>
         </Provider>
