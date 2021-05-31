@@ -1,16 +1,11 @@
+import { SupportedProviders, useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
 import { getBlockscoutLink } from '@ubeswap/sdk'
-import { LedgerConnector } from 'connectors/ledger/LedgerConnector'
-import { ValoraConnector } from 'connectors/valora/ValoraConnector'
 import React, { useCallback, useContext } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
 import { useDispatch } from 'react-redux'
-import { useValoraAccount } from 'state/user/hooks'
 import styled, { ThemeContext } from 'styled-components'
 
 import { ReactComponent as Close } from '../../assets/images/x.svg'
-import { celoExtensionWallet, injected } from '../../connectors'
-import { SUPPORTED_WALLETS } from '../../constants'
-import { useActiveWeb3React } from '../../hooks'
 import { AppDispatch } from '../../state'
 import { clearAllTransactions } from '../../state/transactions/actions'
 import { ExternalLink, LinkStyledButton, TYPE } from '../../theme'
@@ -218,36 +213,39 @@ export default function AccountDetails({
   pendingTransactions,
   confirmedTransactions,
   ENSName,
-  openOptions,
 }: AccountDetailsProps) {
-  const { chainId, account, connector } = useActiveWeb3React()
+  const {
+    connect,
+    destroy,
+    address,
+    walletType,
+    network: { chainId },
+  } = useContractKit()
   const theme = useContext(ThemeContext)
   const dispatch = useDispatch<AppDispatch>()
-  const { clearValoraAccount, account: valoraAccount } = useValoraAccount()
 
   function formatConnectorName() {
+    if (walletType === WalletTypes.Unauthenticated) {
+      return null
+    }
     const { celo } = window
-    const isCEW = !!celo
+    const isCEW = !!celo as boolean
     const isMetamask = window.ethereum && window.ethereum.isMetaMask
     const name =
-      connector instanceof LedgerConnector
-        ? 'Ledger'
-        : connector === injected
-        ? isMetamask
+      walletType === WalletTypes.DappKit
+        ? SupportedProviders.Valora
+        : walletType === WalletTypes.Metamask
+        ? isCEW
+          ? 'Celo Extension Wallet'
+          : isMetamask
           ? 'MetaMask'
           : 'Injected'
-        : Object.keys(SUPPORTED_WALLETS)
-            .filter(
-              (k) =>
-                SUPPORTED_WALLETS[k].connector === connector &&
-                (connector !== injected || isCEW === (k === 'CELO_EXTENSION_WALLET'))
-            )
-            .map((k) => SUPPORTED_WALLETS[k].name)[0]
+        : SupportedProviders[walletType]
     return <WalletName>Connected with {name}</WalletName>
   }
 
   function getStatusIcon() {
-    if (connector === injected) {
+    if (walletType === WalletTypes.Metamask) {
       return (
         <IconWrapper size={16}>
           <Identicon />
@@ -274,23 +272,15 @@ export default function AccountDetails({
               <AccountGroupingRow>
                 {formatConnectorName()}
                 <div>
-                  {connector !== injected && connector !== celoExtensionWallet && (
+                  {walletType !== WalletTypes.Metamask && (
                     <WalletAction
                       style={{ fontSize: '.825rem', fontWeight: 400, marginRight: '8px' }}
-                      onClick={() => {
-                        ;(connector as any).close?.()
-                        clearValoraAccount()
-                      }}
+                      onClick={destroy}
                     >
                       Disconnect
                     </WalletAction>
                   )}
-                  <WalletAction
-                    style={{ fontSize: '.825rem', fontWeight: 400 }}
-                    onClick={() => {
-                      openOptions()
-                    }}
-                  >
+                  <WalletAction style={{ fontSize: '.825rem', fontWeight: 400 }} onClick={connect}>
                     Change
                   </WalletAction>
                 </div>
@@ -304,17 +294,11 @@ export default function AccountDetails({
                         <p> {ENSName}</p>
                       </div>
                     </>
-                  ) : connector instanceof ValoraConnector && connector.valoraAccount ? (
-                    <>
-                      <div>
-                        <p> {valoraAccount?.phoneNumber}</p>
-                      </div>
-                    </>
                   ) : (
                     <>
                       <div>
                         {getStatusIcon()}
-                        <p> {account && shortenAddress(account)}</p>
+                        <p> {address && shortenAddress(address)}</p>
                       </div>
                     </>
                   )}
@@ -325,12 +309,12 @@ export default function AccountDetails({
                   <>
                     <AccountControl>
                       <div>
-                        {account && (
-                          <Copy toCopy={account}>
+                        {address && (
+                          <Copy toCopy={address}>
                             <span style={{ marginLeft: '4px' }}>Copy Address</span>
                           </Copy>
                         )}
-                        {chainId && account && (
+                        {chainId && address && (
                           <AddressLink
                             hasENS={!!ENSName}
                             isENS={true}
@@ -347,16 +331,16 @@ export default function AccountDetails({
                   <>
                     <AccountControl>
                       <div>
-                        {account && (
-                          <Copy toCopy={account}>
+                        {address && (
+                          <Copy toCopy={address}>
                             <span style={{ marginLeft: '4px' }}>Copy Address</span>
                           </Copy>
                         )}
-                        {chainId && account && (
+                        {chainId && address && (
                           <AddressLink
                             hasENS={!!ENSName}
                             isENS={false}
-                            href={getBlockscoutLink(chainId, account, 'address')}
+                            href={getBlockscoutLink(chainId, address, 'address')}
                           >
                             <LinkIcon size={16} />
                             <span style={{ marginLeft: '4px' }}>View on Celo Explorer</span>

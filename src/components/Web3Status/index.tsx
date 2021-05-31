@@ -1,8 +1,6 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
 import * as Sentry from '@sentry/react'
-import { AbstractConnector } from '@web3-react/abstract-connector'
 import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core'
-import { ValoraConnector } from 'connectors/valora/ValoraConnector'
 import useAccountSummary from 'hooks/useAccountSummary'
 import { darken, lighten } from 'polished'
 import React, { useEffect, useMemo } from 'react'
@@ -10,8 +8,9 @@ import { Activity } from 'react-feather'
 import { useTranslation } from 'react-i18next'
 import styled, { css } from 'styled-components'
 
-import { injected, NETWORK_CHAIN_NAME } from '../../connectors'
+import { NETWORK_CHAIN_NAME } from '../../connectors'
 import { NetworkContextName } from '../../constants'
+import { useConnectedKit } from '../../hooks/useConnectedKit'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { isTransactionRecent, useAllTransactions } from '../../state/transactions/hooks'
 import { TransactionDetails } from '../../state/transactions/reducer'
@@ -110,9 +109,9 @@ function newTransactionsFirst(a: TransactionDetails, b: TransactionDetails) {
   return b.addedTime - a.addedTime
 }
 
-// eslint-disable-next-line react/prop-types
-function StatusIcon({ connector }: { connector: AbstractConnector }) {
-  if (connector === injected) {
+const StatusIcon: React.FC = () => {
+  const { walletType } = useContractKit()
+  if (walletType === WalletTypes.Metamask || walletType === WalletTypes.CeloExtensionWallet) {
     return <Identicon />
   }
   return null
@@ -120,8 +119,8 @@ function StatusIcon({ connector }: { connector: AbstractConnector }) {
 
 function Web3StatusInner() {
   const { t } = useTranslation()
-  const { connector, error } = useWeb3React()
   const { connect, address } = useContractKit()
+  const { error } = useConnectedKit()
   const { summary } = useAccountSummary(address ?? undefined)
 
   const allTransactions = useAllTransactions()
@@ -136,10 +135,7 @@ function Web3StatusInner() {
   const hasPendingTransactions = !!pending.length
   const toggleWalletModal = useWalletModalToggle()
   if (address) {
-    const accountName =
-      connector instanceof ValoraConnector && connector.valoraAccount
-        ? connector.valoraAccount.phoneNumber
-        : summary?.name || shortenAddress(address)
+    const accountName = summary?.name ?? shortenAddress(address)
     return (
       <Web3StatusConnected id="web3-status-connected" onClick={toggleWalletModal} pending={hasPendingTransactions}>
         {hasPendingTransactions ? (
@@ -151,7 +147,7 @@ function Web3StatusInner() {
             <Text>{accountName}</Text>
           </>
         )}
-        {!hasPendingTransactions && connector && <StatusIcon connector={connector} />}
+        {!hasPendingTransactions && <StatusIcon />}
       </Web3StatusConnected>
     )
   } else if (error) {
