@@ -1,6 +1,5 @@
 import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
 import * as Sentry from '@sentry/react'
-import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core'
 import useAccountSummary from 'hooks/useAccountSummary'
 import { darken, lighten } from 'polished'
 import React, { useEffect, useMemo } from 'react'
@@ -9,8 +8,6 @@ import { useTranslation } from 'react-i18next'
 import styled, { css } from 'styled-components'
 
 import { NETWORK_CHAIN_NAME } from '../../connectors'
-import { NetworkContextName } from '../../constants'
-import { useConnectedKit } from '../../hooks/useConnectedKit'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { isTransactionRecent, useAllTransactions } from '../../state/transactions/hooks'
 import { TransactionDetails } from '../../state/transactions/reducer'
@@ -124,8 +121,8 @@ const StatusIcon: React.FC = () => {
 function Web3StatusInner() {
   const { t } = useTranslation()
   const { connect, address } = useContractKit()
-  const { error } = useConnectedKit()
   const { summary } = useAccountSummary(address ?? undefined)
+  const error = null
 
   const allTransactions = useAllTransactions()
 
@@ -158,7 +155,7 @@ function Web3StatusInner() {
     return (
       <Web3StatusError onClick={connect}>
         <NetworkIcon />
-        <Text>{error instanceof UnsupportedChainIdError ? 'Wrong Network' : 'Error'}</Text>
+        <Text>{error === 'unsupported' ? 'Wrong Network' : 'Error'}</Text>
       </Web3StatusError>
     )
   } else {
@@ -171,8 +168,7 @@ function Web3StatusInner() {
 }
 
 export default function Web3Status() {
-  const { active, account, connector } = useWeb3React()
-  const contextNetwork = useWeb3React(NetworkContextName)
+  const { address: account, walletType } = useContractKit()
   const allTransactions = useAllTransactions()
 
   const sortedRecentTransactions = useMemo(() => {
@@ -186,11 +182,11 @@ export default function Web3Status() {
 
   useEffect(() => {
     Sentry.setUser({ id: account ?? undefined })
-    Sentry.setTag('connector', connector?.constructor.name ?? 'disconnected')
+    Sentry.setTag('connector', walletType)
     Sentry.setTag('network', NETWORK_CHAIN_NAME)
-  }, [connector, account])
+  }, [walletType, account])
 
-  if (!contextNetwork.active && !active) {
+  if (!account) {
     return null
   }
 

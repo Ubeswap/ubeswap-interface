@@ -1,6 +1,5 @@
 import moolaRouterAddresses from '@ubeswap/moola/deployments/router.mainnet.addresses.json'
 import { CELO, ChainId, cUSD, JSBI, Percent, Token } from '@ubeswap/sdk'
-import { AbstractConnector } from '@web3-react/abstract-connector'
 
 import { UBE } from './tokens'
 
@@ -115,18 +114,6 @@ export const PINNED_PAIRS: { [chainId: number]: [Token, Token][] } = {
     [MCUSD, CELO],
   ].map((el) => el.map((t) => t[ChainId.ALFAJORES]) as [Token, Token]),
   [ChainId.BAKLAVA]: [[cUSD[ChainId.BAKLAVA], CELO[ChainId.BAKLAVA]]],
-}
-
-export interface WalletInfo {
-  connector?: AbstractConnector
-  name: string
-  iconName: string
-  description: string
-  href: string | null
-  color: string
-  primary?: true
-  mobile?: true
-  mobileOnly?: true
 }
 
 export const NetworkContextName = 'NETWORK'

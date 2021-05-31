@@ -1,5 +1,4 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core'
 import React, { useEffect, useState } from 'react'
 import { isMobile } from 'react-device-detect'
 import styled from 'styled-components'
@@ -107,9 +106,9 @@ export default function WalletModal({
   confirmedTransactions: string[] // hashes of confirmed
   ENSName?: string
 }) {
-  // important that these are destructed from the account-specific web3-react context
-  const { error } = useWeb3React()
   const { connect, address } = useContractKit()
+  // TODO(igm): get the errors
+  const error = null
 
   const [walletView, setWalletView] = useState(WALLET_VIEWS.ACCOUNT)
 
@@ -139,9 +138,9 @@ export default function WalletModal({
           <CloseIcon onClick={toggleWalletModal}>
             <CloseColor />
           </CloseIcon>
-          <HeaderRow>{error instanceof UnsupportedChainIdError ? 'Wrong Network' : 'Error connecting'}</HeaderRow>
+          <HeaderRow>{error === 'unsupported-chain-id' ? 'Wrong Network' : 'Error connecting'}</HeaderRow>
           <ContentWrapper>
-            {error instanceof UnsupportedChainIdError ? (
+            {error === 'unsupported-chain-id' ? (
               <div>
                 <h5>Please connect to the appropriate Celo network.</h5>
                 <br />
