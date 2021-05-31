@@ -1,3 +1,4 @@
+import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { TokenAmount } from '@ubeswap/sdk'
 import SendHeader from 'components/send/SendHeader'
 import { ERC20_ABI } from 'constants/abis/erc20'
@@ -13,7 +14,6 @@ import { AutoColumn } from '../../components/Column'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import { SwapPoolTabs } from '../../components/NavigationTabs'
 import { BottomGrouping, Wrapper } from '../../components/swap/styleds'
-import { useActiveWeb3React } from '../../hooks'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { Field } from '../../state/swap/actions'
 import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from '../../state/swap/hooks'
@@ -22,7 +22,8 @@ import AppBody from '../AppBody'
 
 export default function Send() {
   // dismiss warning if all imported tokens are in active lists
-  const { account, library } = useActiveWeb3React()
+  const { address: account } = useContractKit()
+  const library = useProvider()
 
   // toggle wallet when disconnected
   const toggleWalletModal = useWalletModalToggle()

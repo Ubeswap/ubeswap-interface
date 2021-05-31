@@ -1,17 +1,19 @@
-import { CELO, currencyEquals, cUSD, Price, Token } from '@ubeswap/sdk'
+import { useContractKit } from '@celo-tools/use-contractkit'
+import { CELO, ChainId, currencyEquals, cUSD, Price, Token } from '@ubeswap/sdk'
 import { useMemo } from 'react'
 
 import { usePairs } from '../data/Reserves'
-import { useActiveWeb3React } from '../hooks'
 
 /**
  * Returns the price in cUSD of the input currency
  * @param currency currency to compute the cUSD price of
  */
 export default function useCUSDPrice(token?: Token): Price | undefined {
-  const { chainId } = useActiveWeb3React()
-  const CUSD = cUSD[chainId]
-  const celo = CELO[chainId]
+  const {
+    network: { chainId },
+  } = useContractKit()
+  const CUSD = cUSD[chainId as ChainId]
+  const celo = CELO[chainId as ChainId]
   const tokenPairs: [Token | undefined, Token | undefined][] = useMemo(
     () => [
       [token && currencyEquals(token, CUSD) ? undefined : token, CUSD],

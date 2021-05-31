@@ -1,13 +1,16 @@
+import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { ChainId } from '@ubeswap/sdk'
 import { useCallback, useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 
-import { useActiveWeb3React } from '../../hooks'
 import useDebounce from '../../hooks/useDebounce'
 import useIsWindowVisible from '../../hooks/useIsWindowVisible'
 import { updateBlockNumber } from './actions'
 
 export default function Updater(): null {
-  const { library, chainId } = useActiveWeb3React()
+  const library = useProvider()
+  const { network } = useContractKit()
+  const chainId = network.chainId as ChainId
   const dispatch = useDispatch()
 
   const windowVisible = useIsWindowVisible()

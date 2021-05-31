@@ -1,10 +1,10 @@
+import { useProvider } from '@celo-tools/use-contractkit'
 import { TransactionResponse } from '@ethersproject/providers'
 import { Pair, TokenAmount } from '@ubeswap/sdk'
 import Loader from 'components/Loader'
 import React, { useCallback, useState } from 'react'
 import styled from 'styled-components'
 
-import { useActiveWeb3React } from '../../hooks'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { usePairContract, useStakingContract } from '../../hooks/useContract'
 import useTransactionDeadline from '../../hooks/useTransactionDeadline'
@@ -42,7 +42,7 @@ interface StakingModalProps {
 }
 
 export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiquidityUnstaked }: StakingModalProps) {
-  const { library } = useActiveWeb3React()
+  const library = useProvider()
   const addTransaction = useTransactionAdder()
 
   // track and parse user input

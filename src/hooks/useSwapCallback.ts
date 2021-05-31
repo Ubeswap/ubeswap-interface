@@ -1,6 +1,7 @@
+import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
-import { JSBI, Percent, Router, SwapParameters, Trade } from '@ubeswap/sdk'
+import { ChainId, JSBI, Percent, Router, SwapParameters, Trade } from '@ubeswap/sdk'
 import { MoolaRouterTrade } from 'components/swap/routing/hooks/useTrade'
 import { useMemo } from 'react'
 import invariant from 'tiny-invariant'
@@ -9,7 +10,6 @@ import { BIPS_BASE, INITIAL_ALLOWED_SLIPPAGE } from '../constants'
 import { useTransactionAdder } from '../state/transactions/hooks'
 import { calculateGasMargin, getMoolaRouterContract, getRouterContract, isAddress, shortenAddress } from '../utils'
 import isZero from '../utils/isZero'
-import { useActiveWeb3React } from './index'
 import useENS from './useENS'
 import useTransactionDeadline from './useTransactionDeadline'
 
@@ -47,7 +47,9 @@ function useSwapCallArguments(
   allowedSlippage: number = INITIAL_ALLOWED_SLIPPAGE, // in bips
   recipientAddressOrName: string | null // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
 ): SwapCall[] {
-  const { account, chainId, library } = useActiveWeb3React()
+  const { address: account, network } = useContractKit()
+  const library = useProvider()
+  const chainId = network.chainId as ChainId
 
   const { address: recipientAddress } = useENS(recipientAddressOrName)
   const recipient = recipientAddressOrName === null ? account : recipientAddress
@@ -97,7 +99,9 @@ export function useSwapCallback(
   allowedSlippage: number = INITIAL_ALLOWED_SLIPPAGE, // in bips
   recipientAddressOrName: string | null // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
 ): { state: SwapCallbackState; callback: null | (() => Promise<string>); error: string | null } {
-  const { account, chainId, library } = useActiveWeb3React()
+  const { network, address: account } = useContractKit()
+  const chainId = network.chainId as ChainId
+  const library = useProvider()
 
   const swapCalls = useSwapCallArguments(trade, allowedSlippage, recipientAddressOrName)
 

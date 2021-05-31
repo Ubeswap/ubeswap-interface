@@ -1,4 +1,4 @@
-import { BigNumber } from '@ethersproject/bignumber'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { MaxUint256 } from '@ethersproject/constants'
 import { TransactionResponse } from '@ethersproject/providers'
 import { TokenAmount, Trade } from '@ubeswap/sdk'
@@ -14,7 +14,6 @@ import { Field } from '../state/swap/actions'
 import { useHasPendingApproval, useTransactionAdder } from '../state/transactions/hooks'
 import { calculateGasMargin } from '../utils'
 import { computeSlippageAdjustedAmounts } from '../utils/prices'
-import { useActiveWeb3React } from './index'
 import { useTokenContract } from './useContract'
 
 export enum ApprovalState {
@@ -29,7 +28,8 @@ export function useApproveCallback(
   amountToApprove?: TokenAmount,
   spender?: string
 ): [ApprovalState, () => Promise<void>] {
-  const { account } = useActiveWeb3React()
+  const { address: account } = useContractKit()
+
   const token = amountToApprove instanceof TokenAmount ? amountToApprove.token : undefined
   const [minApprove] = useUserMinApprove()
   const currentAllowance = useTokenAllowance(token, account ?? undefined, spender)

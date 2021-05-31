@@ -1,6 +1,9 @@
-import { getBlockscoutLink, Token } from '@ubeswap/sdk'
+import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, getBlockscoutLink, Token } from '@ubeswap/sdk'
+import Card from 'components/Card'
+import Column from 'components/Column'
+import CurrencyLogo from 'components/CurrencyLogo'
 import Row, { RowBetween, RowFixed } from 'components/Row'
-import { useActiveWeb3React } from 'hooks'
 import { useToken } from 'hooks/Tokens'
 import React, { RefObject, useCallback, useMemo, useRef, useState } from 'react'
 import { useRemoveUserAddedToken, useUserAddedTokens } from 'state/user/hooks'
@@ -42,7 +45,8 @@ export default function ManageTokens({
   setModalView: (view: CurrencyModalView) => void
   setImportToken: (token: Token) => void
 }) {
-  const { chainId } = useActiveWeb3React()
+  const { network } = useContractKit()
+  const chainId = network.chainId as ChainId
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const theme = useTheme()

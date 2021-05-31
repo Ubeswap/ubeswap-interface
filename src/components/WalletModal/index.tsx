@@ -1,5 +1,4 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { AbstractConnector } from '@web3-react/abstract-connector'
 import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core'
 import React, { useEffect, useState } from 'react'
 import { isMobile } from 'react-device-detect'
@@ -88,15 +87,6 @@ const Blurb = styled.div`
   `};
 `
 
-const OptionGrid = styled.div`
-  display: grid;
-  grid-gap: 10px;
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    grid-template-columns: 1fr;
-    grid-gap: 10px;
-  `};
-`
-
 const HoverText = styled.div`
   :hover {
     cursor: pointer;
@@ -123,11 +113,6 @@ export default function WalletModal({
 
   const [walletView, setWalletView] = useState(WALLET_VIEWS.ACCOUNT)
 
-  const [pendingWallet, setPendingWallet] = useState<AbstractConnector | undefined>()
-
-  const [pendingError, setPendingError] = useState<boolean>()
-  const [activateError, setActivateError] = useState<string | null>(null)
-
   const walletModalOpen = useModalOpen(ApplicationModal.WALLET)
   const toggleWalletModal = useWalletModalToggle()
 
@@ -143,7 +128,6 @@ export default function WalletModal({
   // always reset to account view
   useEffect(() => {
     if (walletModalOpen) {
-      setPendingError(false)
       setWalletView(WALLET_VIEWS.ACCOUNT)
     }
   }, [walletModalOpen])
@@ -155,9 +139,7 @@ export default function WalletModal({
           <CloseIcon onClick={toggleWalletModal}>
             <CloseColor />
           </CloseIcon>
-          <HeaderRow>
-            {error instanceof UnsupportedChainIdError ? 'Wrong Network' : activateError ?? 'Error connecting'}
-          </HeaderRow>
+          <HeaderRow>{error instanceof UnsupportedChainIdError ? 'Wrong Network' : 'Error connecting'}</HeaderRow>
           <ContentWrapper>
             {error instanceof UnsupportedChainIdError ? (
               <div>
@@ -192,7 +174,6 @@ export default function WalletModal({
           <HeaderRow color="blue">
             <HoverText
               onClick={() => {
-                setPendingError(false)
                 setWalletView(WALLET_VIEWS.ACCOUNT)
               }}
             >

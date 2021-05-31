@@ -1,4 +1,5 @@
-import { Token, TokenAmount } from '@ubeswap/sdk'
+import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { ChainId, Token, TokenAmount } from '@ubeswap/sdk'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
 import React, { useCallback, useContext, useState } from 'react'
@@ -19,7 +20,6 @@ import Row, { RowBetween, RowFlat } from '../../components/Row'
 import TransactionConfirmationModal, { ConfirmationModalContent } from '../../components/TransactionConfirmationModal'
 import { ROUTER_ADDRESS } from '../../constants'
 import { PairState } from '../../data/Reserves'
-import { useActiveWeb3React } from '../../hooks'
 import { useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import useTransactionDeadline from '../../hooks/useTransactionDeadline'
@@ -43,7 +43,9 @@ export default function AddLiquidity({
   },
   history,
 }: RouteComponentProps<{ currencyIdA?: string; currencyIdB?: string }>) {
-  const { account, chainId, library } = useActiveWeb3React()
+  const { address: account, network } = useContractKit()
+  const library = useProvider()
+  const chainId = network.chainId as ChainId
   const theme = useContext(ThemeContext)
 
   const currencyA = useCurrency(currencyIdA)

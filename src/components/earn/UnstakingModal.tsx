@@ -1,8 +1,8 @@
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { TransactionResponse } from '@ethersproject/providers'
 import React, { useState } from 'react'
 import styled from 'styled-components'
 
-import { useActiveWeb3React } from '../../hooks'
 import { useStakingContract } from '../../hooks/useContract'
 import { StakingInfo } from '../../state/stake/hooks'
 import { useTransactionAdder } from '../../state/transactions/hooks'
@@ -26,7 +26,7 @@ interface StakingModalProps {
 }
 
 export default function UnstakingModal({ isOpen, onDismiss, stakingInfo }: StakingModalProps) {
-  const { account } = useActiveWeb3React()
+  const { address: account } = useContractKit()
 
   // monitor call to help UI loading state
   const addTransaction = useTransactionAdder()

@@ -1,8 +1,7 @@
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { Signer } from '@ethersproject/abstract-signer'
-import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import { CallOverrides, Contract, ContractTransaction, PayableOverrides } from '@ethersproject/contracts'
 import { ChainId, Trade } from '@ubeswap/sdk'
-import { useActiveWeb3React } from 'hooks'
+import { BigNumber, BigNumberish, CallOverrides, Contract, ContractTransaction, PayableOverrides } from 'ethers'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { calculateGasMargin } from 'utils'
 
@@ -78,7 +77,8 @@ const estimateGas = async (call: ContractCall): Promise<BigNumber> => {
  */
 export const useDoTransaction = (): DoTransactionFn => {
   const addTransaction = useTransactionAdder()
-  const { chainId } = useActiveWeb3React()
+  const { network } = useContractKit()
+  const chainId = network.chainId as ChainId
   return async (contract, methodName, args): Promise<string> => {
     if (chainId === ChainId.BAKLAVA) {
       throw new Error('baklava not supported')

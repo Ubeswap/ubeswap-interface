@@ -1,4 +1,5 @@
-import { cUSD, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
+import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, cUSD, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Plus } from 'react-feather'
 import { Text } from 'rebass'
@@ -12,7 +13,6 @@ import { MinimalPositionCard } from '../../components/PositionCard'
 import Row from '../../components/Row'
 import CurrencySearchModal from '../../components/SearchModal/CurrencySearchModal'
 import { PairState, usePair } from '../../data/Reserves'
-import { useActiveWeb3React } from '../../hooks'
 import { usePairAdder } from '../../state/user/hooks'
 import { useTokenBalance } from '../../state/wallet/hooks'
 import { StyledInternalLink, TYPE } from '../../theme'
@@ -26,7 +26,8 @@ enum Fields {
 }
 
 export default function PoolFinder() {
-  const { account, chainId } = useActiveWeb3React()
+  const { address: account, network } = useContractKit()
+  const chainId = network.chainId as ChainId
 
   const [showSearch, setShowSearch] = useState<boolean>(false)
   const [activeField, setActiveField] = useState<number>(Fields.TOKEN1)

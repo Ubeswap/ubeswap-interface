@@ -1,8 +1,8 @@
-import { BigNumber } from '@ethersproject/bignumber'
-import { CELO, cUSD, Fraction, TokenAmount, TradeType } from '@ubeswap/sdk'
+import { useContractKit } from '@celo-tools/use-contractkit'
+import { CELO, ChainId, cUSD, Fraction, TokenAmount, TradeType } from '@ubeswap/sdk'
 import { ErrorText } from 'components/swap/styleds'
 import { usePair } from 'data/Reserves'
-import { useActiveWeb3React } from 'hooks'
+import { BigNumber } from 'ethers'
 import React, { useContext, useEffect, useState } from 'react'
 import { ThemeContext } from 'styled-components'
 
@@ -17,7 +17,8 @@ interface Props {
 }
 
 export const MoolaDirectTradeDetails: React.FC<Props> = ({ trade }: Props) => {
-  const { account, chainId } = useActiveWeb3React()
+  const { address: account, network } = useContractKit()
+  const chainId = network.chainId as ChainId
   const lendingPool = useLendingPool()
   const theme = useContext(ThemeContext)
 
