@@ -186,10 +186,6 @@ export default function Web3Status() {
     Sentry.setTag('network', NETWORK_CHAIN_NAME)
   }, [walletType, account])
 
-  if (!account) {
-    return null
-  }
-
   return (
     <>
       <Web3StatusInner />
