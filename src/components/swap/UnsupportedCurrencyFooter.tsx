@@ -1,5 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId, getBlockscoutLink, Token } from '@ubeswap/sdk'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import { ButtonEmpty } from 'components/Button'
 import Card, { OutlineCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'

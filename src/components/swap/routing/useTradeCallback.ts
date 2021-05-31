@@ -1,5 +1,5 @@
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { ChainId, Trade } from '@ubeswap/sdk'
+import { useContractKit, useProvider } from '@ubeswap/use-contractkit'
 import { SwapCallbackState, useSwapCallback } from 'hooks/useSwapCallback'
 import { useMemo } from 'react'
 

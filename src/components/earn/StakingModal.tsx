@@ -1,6 +1,6 @@
-import { useProvider } from '@celo-tools/use-contractkit'
 import { TransactionResponse } from '@ethersproject/providers'
 import { Pair, TokenAmount } from '@ubeswap/sdk'
+import { useProvider } from '@ubeswap/use-contractkit'
 import Loader from 'components/Loader'
 import React, { useCallback, useState } from 'react'
 import styled from 'styled-components'

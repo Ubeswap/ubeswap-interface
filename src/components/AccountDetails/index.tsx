@@ -1,5 +1,5 @@
-import { SupportedProviders, useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
 import { getBlockscoutLink } from '@ubeswap/sdk'
+import { SupportedProviders, useContractKit, WalletTypes } from '@ubeswap/use-contractkit'
 import React, { useCallback, useContext } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
 import { useDispatch } from 'react-redux'

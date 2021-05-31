@@ -1,5 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { Pair } from '@ubeswap/sdk'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import React, { useContext, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Text } from 'rebass'

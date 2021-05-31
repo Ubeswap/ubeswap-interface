@@ -1,7 +1,7 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { MaxUint256 } from '@ethersproject/constants'
 import { TransactionResponse } from '@ethersproject/providers'
 import { TokenAmount, Trade } from '@ubeswap/sdk'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import { MoolaRouterTrade } from 'components/swap/routing/hooks/useTrade'
 import { MoolaDirectTrade } from 'components/swap/routing/moola/MoolaDirectTrade'
 import { useMoolaConfig } from 'components/swap/routing/moola/useMoola'

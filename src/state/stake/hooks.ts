@@ -1,5 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId, JSBI, Pair, Token, TokenAmount } from '@ubeswap/sdk'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import { POOL_MANAGER } from 'constants/poolManager'
 import { UBE } from 'constants/tokens'
 import { BigNumber } from 'ethers'

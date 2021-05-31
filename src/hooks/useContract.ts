@@ -1,7 +1,7 @@
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { Contract } from '@ethersproject/contracts'
 import IUniswapV2PairABI from '@ubeswap/core/build/abi/IUniswapV2Pair.json'
 import { ChainId } from '@ubeswap/sdk'
+import { useContractKit, useProvider } from '@ubeswap/use-contractkit'
 import { ReleaseUbe } from 'generated/ReleaseUbe'
 import { useMemo } from 'react'
 

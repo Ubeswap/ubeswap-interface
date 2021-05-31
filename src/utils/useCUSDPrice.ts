@@ -1,5 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { CELO, ChainId, currencyEquals, cUSD, Price, Token } from '@ubeswap/sdk'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import { useMemo } from 'react'
 
 import { usePairs } from '../data/Reserves'

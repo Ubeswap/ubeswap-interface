@@ -1,5 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { CELO, ChainId, cUSD, Fraction, TokenAmount, TradeType } from '@ubeswap/sdk'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import { ErrorText } from 'components/swap/styleds'
 import { usePair } from 'data/Reserves'
 import { BigNumber } from 'ethers'

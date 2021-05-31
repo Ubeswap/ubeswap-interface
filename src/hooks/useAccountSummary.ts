@@ -1,5 +1,5 @@
 import { AccountsWrapper } from '@celo/contractkit/lib/wrappers/Accounts'
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import { useEffect, useState } from 'react'
 
 type AsyncReturnType<T extends (...args: any) => any> = T extends (...args: any) => Promise<infer U>

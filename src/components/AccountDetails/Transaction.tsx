@@ -1,5 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId, getBlockscoutLink } from '@ubeswap/sdk'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import React from 'react'
 import { CheckCircle, Triangle } from 'react-feather'
 import styled from 'styled-components'

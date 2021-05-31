@@ -1,5 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { TransactionResponse } from '@ethersproject/providers'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import React, { useState } from 'react'
 import styled from 'styled-components'
 

@@ -1,5 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId, currencyEquals, Pair, Percent, Price, Token, TokenAmount, Trade, TradeType } from '@ubeswap/sdk'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import {
   BASES_TO_CHECK_TRADES_AGAINST,
   BETTER_TRADE_LESS_HOPS_THRESHOLD,

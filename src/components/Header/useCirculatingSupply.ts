@@ -1,5 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId, JSBI, TokenAmount } from '@ubeswap/sdk'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import { UBE } from 'constants/tokens'
 import { BigNumber } from 'ethers'
 import { useReleaseUbeContract, useTokenContract } from 'hooks/useContract'

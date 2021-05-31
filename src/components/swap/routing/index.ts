@@ -1,6 +1,6 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { Signer } from '@ethersproject/abstract-signer'
 import { ChainId, Trade } from '@ubeswap/sdk'
+import { useContractKit } from '@ubeswap/use-contractkit'
 import { BigNumber, BigNumberish, CallOverrides, Contract, ContractTransaction, PayableOverrides } from 'ethers'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { calculateGasMargin } from 'utils'

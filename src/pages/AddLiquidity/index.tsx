@@ -1,5 +1,5 @@
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { ChainId, Token, TokenAmount } from '@ubeswap/sdk'
+import { useContractKit, useProvider } from '@ubeswap/use-contractkit'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
 import React, { useCallback, useContext, useState } from 'react'
