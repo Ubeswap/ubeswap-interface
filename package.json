@@ -139,7 +139,7 @@
     "@ubeswap/default-token-list": "^3.3.5",
     "@ubeswap/moola": "^0.2.0",
     "@ubeswap/sdk": "^2.1.0",
-    "@ubeswap/use-contractkit": "^1.0.0-ube.5",
+    "@ubeswap/use-contractkit": "^1.0.0-ube.6",
     "ethers": "^5.2.0",
     "eventemitter3": "^4.0.7",
     "hash.js": "^1.1.7",

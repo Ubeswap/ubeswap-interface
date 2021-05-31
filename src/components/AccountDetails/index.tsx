@@ -3,6 +3,7 @@ import { SupportedProviders, useContractKit, WalletTypes } from '@ubeswap/use-co
 import React, { useCallback, useContext } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
 import { useDispatch } from 'react-redux'
+import { useCloseModals } from 'state/application/hooks'
 import styled, { ThemeContext } from 'styled-components'
 
 import { ReactComponent as Close } from '../../assets/images/x.svg'
@@ -205,7 +206,6 @@ interface AccountDetailsProps {
   pendingTransactions: string[]
   confirmedTransactions: string[]
   ENSName?: string
-  openOptions: () => void
 }
 
 export default function AccountDetails({
@@ -221,6 +221,7 @@ export default function AccountDetails({
     walletType,
     network: { chainId },
   } = useContractKit()
+  const closeModals = useCloseModals()
   const theme = useContext(ThemeContext)
   const dispatch = useDispatch<AppDispatch>()
 
@@ -268,7 +269,13 @@ export default function AccountDetails({
                       Disconnect
                     </WalletAction>
                   )}
-                  <WalletAction style={{ fontSize: '.825rem', fontWeight: 400 }} onClick={connect}>
+                  <WalletAction
+                    style={{ fontSize: '.825rem', fontWeight: 400 }}
+                    onClick={() => {
+                      closeModals()
+                      connect()
+                    }}
+                  >
                     Change
                   </WalletAction>
                 </div>
