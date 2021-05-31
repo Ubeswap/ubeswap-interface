@@ -113,6 +113,26 @@ ReactDOM.render(
       dappName="Ubeswap"
       dappDescription="The interface for Ubeswap, a decentralized exchange and automated market maker protocol for Celo assets."
       dappUrl="https://app.ubeswap.org"
+      connectModal={{
+        reactModalProps: {
+          style: {
+            content: {
+              top: '50%',
+              left: '50%',
+              right: 'auto',
+              bottom: 'auto',
+              transform: 'translate(-50%, -50%)',
+              border: 'unset',
+              background: 'unset',
+              padding: 'unset',
+            },
+            overlay: {
+              zIndex: 100,
+            },
+          },
+          overlayClassName: 'tw-fixed tw-bg-gray-100 dark:tw-bg-gray-700 tw-bg-opacity-75 tw-inset-0',
+        },
+      }}
     >
       <Web3ReactProvider getLibrary={getLibrary}>
         <Web3ProviderNetwork getLibrary={getLibrary}>

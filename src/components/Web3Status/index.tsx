@@ -1,3 +1,4 @@
+import { useContractKit } from '@celo-tools/use-contractkit'
 import * as Sentry from '@sentry/react'
 import { AbstractConnector } from '@web3-react/abstract-connector'
 import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core'
@@ -119,8 +120,9 @@ function StatusIcon({ connector }: { connector: AbstractConnector }) {
 
 function Web3StatusInner() {
   const { t } = useTranslation()
-  const { account, connector, error } = useWeb3React()
-  const { summary } = useAccountSummary(account ?? undefined)
+  const { connector, error } = useWeb3React()
+  const { connect, address } = useContractKit()
+  const { summary } = useAccountSummary(address ?? undefined)
 
   const allTransactions = useAllTransactions()
 
@@ -133,11 +135,11 @@ function Web3StatusInner() {
 
   const hasPendingTransactions = !!pending.length
   const toggleWalletModal = useWalletModalToggle()
-  if (account) {
+  if (address) {
     const accountName =
       connector instanceof ValoraConnector && connector.valoraAccount
         ? connector.valoraAccount.phoneNumber
-        : summary?.name || shortenAddress(account)
+        : summary?.name || shortenAddress(address)
     return (
       <Web3StatusConnected id="web3-status-connected" onClick={toggleWalletModal} pending={hasPendingTransactions}>
         {hasPendingTransactions ? (
@@ -154,14 +156,14 @@ function Web3StatusInner() {
     )
   } else if (error) {
     return (
-      <Web3StatusError onClick={toggleWalletModal}>
+      <Web3StatusError onClick={connect}>
         <NetworkIcon />
         <Text>{error instanceof UnsupportedChainIdError ? 'Wrong Network' : 'Error'}</Text>
       </Web3StatusError>
     )
   } else {
     return (
-      <Web3StatusConnect id="connect-wallet" onClick={toggleWalletModal} faded={!account}>
+      <Web3StatusConnect id="connect-wallet" onClick={connect} faded={!address}>
         <Text>{t('Connect to a wallet')}</Text>
       </Web3StatusConnect>
     )
