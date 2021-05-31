@@ -4,9 +4,8 @@ import { isMobile } from 'react-device-detect'
 import styled from 'styled-components'
 
 import { ReactComponent as Close } from '../../assets/images/x.svg'
-import usePrevious from '../../hooks/usePrevious'
 import { ApplicationModal } from '../../state/application/actions'
-import { useModalOpen, useWalletModalToggle } from '../../state/application/hooks'
+import { useCloseModals, useModalOpen } from '../../state/application/hooks'
 import { ExternalLink } from '../../theme'
 import AccountDetails from '../AccountDetails'
 import Modal from '../Modal'
@@ -113,16 +112,7 @@ export default function WalletModal({
   const [walletView, setWalletView] = useState(WALLET_VIEWS.ACCOUNT)
 
   const walletModalOpen = useModalOpen(ApplicationModal.WALLET)
-  const toggleWalletModal = useWalletModalToggle()
-
-  const previousAccount = usePrevious(address)
-
-  // close on connection, when logged out before
-  useEffect(() => {
-    if (address && !previousAccount && walletModalOpen) {
-      toggleWalletModal()
-    }
-  }, [address, previousAccount, toggleWalletModal, walletModalOpen])
+  const closeModals = useCloseModals()
 
   // always reset to account view
   useEffect(() => {
@@ -135,7 +125,7 @@ export default function WalletModal({
     if (error) {
       return (
         <UpperSection>
-          <CloseIcon onClick={toggleWalletModal}>
+          <CloseIcon onClick={closeModals}>
             <CloseColor />
           </CloseIcon>
           <HeaderRow>{error === 'unsupported-chain-id' ? 'Wrong Network' : 'Error connecting'}</HeaderRow>
@@ -156,7 +146,7 @@ export default function WalletModal({
     if (address && walletView === WALLET_VIEWS.ACCOUNT) {
       return (
         <AccountDetails
-          toggleWalletModal={toggleWalletModal}
+          toggleWalletModal={closeModals}
           pendingTransactions={pendingTransactions}
           confirmedTransactions={confirmedTransactions}
           ENSName={ENSName}
@@ -166,7 +156,7 @@ export default function WalletModal({
     }
     return (
       <UpperSection>
-        <CloseIcon onClick={toggleWalletModal}>
+        <CloseIcon onClick={closeModals}>
           <CloseColor />
         </CloseIcon>
         {walletView !== WALLET_VIEWS.ACCOUNT ? (
@@ -206,7 +196,7 @@ export default function WalletModal({
   }
 
   return (
-    <Modal isOpen={walletModalOpen} onDismiss={toggleWalletModal} minHeight={false} maxHeight={90}>
+    <Modal isOpen={walletModalOpen} onDismiss={closeModals} minHeight={false} maxHeight={90}>
       <Wrapper>{getModalContent()}</Wrapper>
     </Modal>
   )

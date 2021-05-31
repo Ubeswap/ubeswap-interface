@@ -1,7 +1,7 @@
 import { MaxUint256 } from '@ethersproject/constants'
 import { TransactionResponse } from '@ethersproject/providers'
 import { TokenAmount, Trade } from '@ubeswap/sdk'
-import { useContractKit } from '@ubeswap/use-contractkit'
+import { useContractKit, useGetConnectedSigner } from '@ubeswap/use-contractkit'
 import { MoolaRouterTrade } from 'components/swap/routing/hooks/useTrade'
 import { MoolaDirectTrade } from 'components/swap/routing/moola/MoolaDirectTrade'
 import { useMoolaConfig } from 'components/swap/routing/moola/useMoola'
@@ -29,6 +29,7 @@ export function useApproveCallback(
   spender?: string
 ): [ApprovalState, () => Promise<void>] {
   const { address: account } = useContractKit()
+  const getConnectedSigner = useGetConnectedSigner()
 
   const token = amountToApprove instanceof TokenAmount ? amountToApprove.token : undefined
   const [minApprove] = useUserMinApprove()
@@ -49,7 +50,7 @@ export function useApproveCallback(
       : ApprovalState.APPROVED
   }, [amountToApprove, currentAllowance, pendingApproval, spender])
 
-  const tokenContract = useTokenContract(token?.address)
+  const tokenContractDisconnected = useTokenContract(token?.address)
   const addTransaction = useTransactionAdder()
 
   const approve = useCallback(async (): Promise<void> => {
@@ -62,7 +63,7 @@ export function useApproveCallback(
       return
     }
 
-    if (!tokenContract) {
+    if (!tokenContractDisconnected) {
       console.error('tokenContract is null')
       return
     }
@@ -76,6 +77,9 @@ export function useApproveCallback(
       console.error('no spender')
       return
     }
+
+    // connect
+    const tokenContract = tokenContractDisconnected.connect(await getConnectedSigner())
 
     let useExact = false
     let estimatedGas: BigNumber | null = null
@@ -106,7 +110,16 @@ export function useApproveCallback(
         console.debug('Failed to approve token', error)
         throw error
       })
-  }, [approvalState, token, tokenContract, amountToApprove, spender, addTransaction, minApprove])
+  }, [
+    approvalState,
+    token,
+    tokenContractDisconnected,
+    amountToApprove,
+    spender,
+    addTransaction,
+    minApprove,
+    getConnectedSigner,
+  ])
 
   return [approvalState, approve]
 }

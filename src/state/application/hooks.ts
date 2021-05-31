@@ -35,7 +35,9 @@ export function useCloseModals(): () => void {
 }
 
 export function useWalletModalToggle(): () => void {
-  return useToggleModal(ApplicationModal.WALLET)
+  const { connect, address } = useContractKit()
+  const toggle = useToggleModal(ApplicationModal.WALLET)
+  return address === null ? connect : toggle
 }
 
 export function useToggleSettingsMenu(): () => void {
