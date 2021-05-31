@@ -3766,10 +3766,10 @@
     tiny-warning "^1.0.3"
     toformat "^2.0.0"
 
-"@ubeswap/use-contractkit@^1.0.0-ube.3":
-  version "1.0.0-ube.3"
-  resolved "https://registry.yarnpkg.com/@ubeswap/use-contractkit/-/use-contractkit-1.0.0-ube.3.tgz#6e3d430cbac379564d33b07e065b2bababf15c27"
-  integrity sha512-uArpytcCotaGlWpWACm9pJV2+Naiy2ynkFBVGZ19vSXUir0qeQ0rNwnenltJn/RpNE/7GqYiKu+c0Q54EE2g5Q==
+"@ubeswap/use-contractkit@^1.0.0-ube.4":
+  version "1.0.0-ube.4"
+  resolved "https://registry.yarnpkg.com/@ubeswap/use-contractkit/-/use-contractkit-1.0.0-ube.4.tgz#ad381a1574ce2f10fa0b5b0fca67077a3d1efe8d"
+  integrity sha512-t1rBF7i4WVuIz8PRaRTRLzd5B5hvLtB2yz40ytfSRI5tlzwMHQ9V98sc3DrKl/AvVk3mgipup6PV7rml6ogloA==
   dependencies:
     "@celo/contractkit" "^1.2.0"
     "@celo/utils" "^1.2.0"
