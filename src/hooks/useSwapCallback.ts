@@ -3,6 +3,7 @@ import { Contract } from '@ethersproject/contracts'
 import { ChainId, JSBI, Percent, Router, SwapParameters, Trade } from '@ubeswap/sdk'
 import { useContractKit, useGetConnectedSigner, useProvider } from '@ubeswap/use-contractkit'
 import { MoolaRouterTrade } from 'components/swap/routing/hooks/useTrade'
+import { ContractTransaction } from 'ethers'
 import { useMemo } from 'react'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import invariant from 'tiny-invariant'
@@ -192,7 +193,7 @@ export function useSwapCallback(
         return contract[methodName](...args, {
           gasLimit: calculateGasMargin(gasEstimate),
         })
-          .then((response: any) => {
+          .then((response: ContractTransaction) => {
             const inputSymbol =
               trade instanceof MoolaRouterTrade ? trade.path[0].symbol : trade.inputAmount.currency.symbol
             const outputSymbol =
