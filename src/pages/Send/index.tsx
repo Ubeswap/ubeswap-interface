@@ -1,11 +1,12 @@
 import { TokenAmount } from '@ubeswap/sdk'
 import { useContractKit, useProvider } from '@ubeswap/use-contractkit'
 import SendHeader from 'components/send/SendHeader'
+import { useDoTransaction } from 'components/swap/routing'
 import { ERC20_ABI } from 'constants/abis/erc20'
+import { Erc20 } from 'generated/Erc20'
 import useENS from 'hooks/useENS'
 import React, { useCallback } from 'react'
 import { Text } from 'rebass'
-import { useTransactionAdder } from 'state/transactions/hooks'
 import { getContract } from 'utils'
 
 import AddressInputPanel from '../../components/AddressInputPanel'
@@ -37,18 +38,17 @@ export default function Send() {
 
   const notEnoughFunds = parsedAmount && maxAmountInput && !parsedAmount.lessThan(maxAmountInput)
   const isValid = recipientAddress && parsedAmount && account && !notEnoughFunds
-  const addTransaction = useTransactionAdder()
+  const doTransaction = useDoTransaction()
   const handleSend = useCallback(async () => {
-    if (!isValid || !parsedAmount || !library || !account) {
+    if (!isValid || !parsedAmount || !library || !account || !recipientAddress) {
       return
     }
-    const token = getContract(parsedAmount.token.address, ERC20_ABI, library, account)
-    const response = await token.transfer(recipientAddress, parsedAmount.raw.toString())
-
-    addTransaction(response, {
+    const token = getContract(parsedAmount.token.address, ERC20_ABI, library, account) as Erc20
+    await doTransaction(token, 'transfer', {
+      args: [recipientAddress, parsedAmount.raw.toString()],
       summary: `Send ${parsedAmount.toSignificant(3)} ${parsedAmount.currency.symbol} to ${recipient}`,
     })
-  }, [isValid, library, parsedAmount, recipientAddress, account, addTransaction, recipient])
+  }, [isValid, parsedAmount, library, account, recipientAddress, doTransaction, recipient])
 
   const { onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
 

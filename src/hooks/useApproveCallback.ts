@@ -1,7 +1,7 @@
 import { MaxUint256 } from '@ethersproject/constants'
-import { TransactionResponse } from '@ethersproject/providers'
 import { TokenAmount, Trade } from '@ubeswap/sdk'
 import { useContractKit, useGetConnectedSigner } from '@ubeswap/use-contractkit'
+import { useDoTransaction } from 'components/swap/routing'
 import { MoolaRouterTrade } from 'components/swap/routing/hooks/useTrade'
 import { MoolaDirectTrade } from 'components/swap/routing/moola/MoolaDirectTrade'
 import { useMoolaConfig } from 'components/swap/routing/moola/useMoola'
@@ -11,8 +11,7 @@ import { useUserMinApprove } from 'state/user/hooks'
 import { ROUTER_ADDRESS, UBESWAP_MOOLA_ROUTER_ADDRESS } from '../constants'
 import { useTokenAllowance } from '../data/Allowances'
 import { Field } from '../state/swap/actions'
-import { useHasPendingApproval, useTransactionAdder } from '../state/transactions/hooks'
-import { calculateGasMargin } from '../utils'
+import { useHasPendingApproval } from '../state/transactions/hooks'
 import { computeSlippageAdjustedAmounts } from '../utils/prices'
 import { useTokenContract } from './useContract'
 
@@ -51,7 +50,7 @@ export function useApproveCallback(
   }, [amountToApprove, currentAllowance, pendingApproval, spender])
 
   const tokenContractDisconnected = useTokenContract(token?.address)
-  const addTransaction = useTransactionAdder()
+  const doTransaction = useDoTransaction()
 
   const approve = useCallback(async (): Promise<void> => {
     if (approvalState !== ApprovalState.NOT_APPROVED) {
@@ -81,44 +80,28 @@ export function useApproveCallback(
     // connect
     const tokenContract = tokenContractDisconnected.connect(await getConnectedSigner())
 
-    let useExact = false
-    let estimatedGas: BigNumber | null = null
     if (minApprove) {
-      useExact = true
-      estimatedGas = await tokenContract.estimateGas.approve(spender, amountToApprove.raw.toString())
+      await doTransaction(tokenContract, 'approve', {
+        args: [spender, amountToApprove.raw.toString()],
+        summary: `Approve ${amountToApprove.toSignificant(6)} ${amountToApprove.currency.symbol}`,
+        approval: { tokenAddress: token.address, spender: spender },
+      })
     } else {
-      estimatedGas = await tokenContract.estimateGas.approve(spender, MaxUint256).catch(() => {
-        // general fallback for tokens who restrict approval amounts
-        useExact = true
-        return tokenContract.estimateGas.approve(spender, amountToApprove.raw.toString())
+      await doTransaction(tokenContract, 'approve', {
+        args: [spender, MaxUint256],
+        summary: `Approve ${amountToApprove.currency.symbol}`,
+        approval: { tokenAddress: token.address, spender: spender },
       })
     }
-
-    return tokenContract
-      .approve(spender, useExact ? amountToApprove.raw.toString() : MaxUint256, {
-        gasLimit: calculateGasMargin(estimatedGas),
-      })
-      .then((response: TransactionResponse) => {
-        addTransaction(response, {
-          summary: `Approve ${useExact ? amountToApprove.toSignificant(6) + ' ' : ''}${
-            amountToApprove.currency.symbol
-          }`,
-          approval: { tokenAddress: token.address, spender: spender },
-        })
-      })
-      .catch((error: Error) => {
-        console.debug('Failed to approve token', error)
-        throw error
-      })
   }, [
     approvalState,
     token,
     tokenContractDisconnected,
     amountToApprove,
     spender,
-    addTransaction,
-    minApprove,
     getConnectedSigner,
+    minApprove,
+    doTransaction,
   ])
 
   return [approvalState, approve]

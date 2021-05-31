@@ -1,13 +1,13 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
 import { ChainId, JSBI, Percent, Router, SwapParameters, Trade } from '@ubeswap/sdk'
-import { useContractKit, useProvider } from '@ubeswap/use-contractkit'
+import { useContractKit, useGetConnectedSigner, useProvider } from '@ubeswap/use-contractkit'
 import { MoolaRouterTrade } from 'components/swap/routing/hooks/useTrade'
 import { useMemo } from 'react'
+import { useTransactionAdder } from 'state/transactions/hooks'
 import invariant from 'tiny-invariant'
 
 import { BIPS_BASE, INITIAL_ALLOWED_SLIPPAGE } from '../constants'
-import { useTransactionAdder } from '../state/transactions/hooks'
 import { calculateGasMargin, getMoolaRouterContract, getRouterContract, isAddress, shortenAddress } from '../utils'
 import isZero from '../utils/isZero'
 import useENS from './useENS'
@@ -110,6 +110,8 @@ export function useSwapCallback(
   const { address: recipientAddress } = useENS(recipientAddressOrName)
   const recipient = recipientAddressOrName === null ? account : recipientAddress
 
+  const getConnectedSigner = useGetConnectedSigner()
+
   return useMemo(() => {
     if (!trade || !library || !account || !chainId) {
       return { state: SwapCallbackState.INVALID, callback: null, error: 'Missing dependencies' }
@@ -180,15 +182,15 @@ export function useSwapCallback(
 
         const {
           call: {
-            contract,
+            contract: disconnectedContract,
             parameters: { methodName, args, value },
           },
           gasEstimate,
         } = successfulEstimation
 
+        const contract = disconnectedContract.connect(await getConnectedSigner())
         return contract[methodName](...args, {
           gasLimit: calculateGasMargin(gasEstimate),
-          ...(value && !isZero(value) ? { value, from: account } : { from: account }),
         })
           .then((response: any) => {
             const inputSymbol =
@@ -229,5 +231,15 @@ export function useSwapCallback(
       },
       error: null,
     }
-  }, [trade, library, account, chainId, recipient, recipientAddressOrName, swapCalls, addTransaction])
+  }, [
+    trade,
+    library,
+    account,
+    chainId,
+    recipient,
+    recipientAddressOrName,
+    swapCalls,
+    getConnectedSigner,
+    addTransaction,
+  ])
 }

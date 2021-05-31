@@ -1,5 +1,6 @@
 import { ChainId, Token, TokenAmount } from '@ubeswap/sdk'
 import { useContractKit, useProvider } from '@ubeswap/use-contractkit'
+import { useDoTransaction } from 'components/swap/routing'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
 import React, { useCallback, useContext, useState } from 'react'
@@ -26,10 +27,9 @@ import useTransactionDeadline from '../../hooks/useTransactionDeadline'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { Field } from '../../state/mint/actions'
 import { useDerivedMintInfo, useMintActionHandlers, useMintState } from '../../state/mint/hooks'
-import { useTransactionAdder } from '../../state/transactions/hooks'
 import { useIsExpertMode, useUserSlippageTolerance } from '../../state/user/hooks'
 import { TYPE } from '../../theme'
-import { calculateGasMargin, calculateSlippageAmount, getRouterContract } from '../../utils'
+import { calculateSlippageAmount, getRouterContract } from '../../utils'
 import { currencyId } from '../../utils/currencyId'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import AppBody from '../AppBody'
@@ -115,7 +115,7 @@ export default function AddLiquidity({
   const [approvalA, approveACallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_A], ROUTER_ADDRESS)
   const [approvalB, approveBCallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_B], ROUTER_ADDRESS)
 
-  const addTransaction = useTransactionAdder()
+  const doTransaction = useDoTransaction()
 
   async function onAdd() {
     if (!chainId || !library || !account) return
@@ -131,29 +131,19 @@ export default function AddLiquidity({
       [Field.CURRENCY_B]: calculateSlippageAmount(parsedAmountB, noLiquidity ? 0 : allowedSlippage)[0],
     }
 
-    const estimate = router.estimateGas.addLiquidity
-    const args = [
-      currencyA?.address ?? '',
-      currencyB?.address ?? '',
-      parsedAmountA.raw.toString(),
-      parsedAmountB.raw.toString(),
-      amountsMin[Field.CURRENCY_A].toString(),
-      amountsMin[Field.CURRENCY_B].toString(),
-      account,
-      deadline.toHexString(),
-    ] as const
-
     setAttemptingTxn(true)
     try {
-      const estimatedGasLimit = await estimate(...args)
-
-      const response = await router.addLiquidity(...args, {
-        gasLimit: calculateGasMargin(estimatedGasLimit),
-      })
-
-      setAttemptingTxn(false)
-
-      addTransaction(response, {
+      const response = await doTransaction(router, 'addLiquidity', {
+        args: [
+          currencyA?.address ?? '',
+          currencyB?.address ?? '',
+          parsedAmountA.raw.toString(),
+          parsedAmountB.raw.toString(),
+          amountsMin[Field.CURRENCY_A].toString(),
+          amountsMin[Field.CURRENCY_B].toString(),
+          account,
+          deadline.toHexString(),
+        ],
         summary:
           'Add ' +
           parsedAmounts[Field.CURRENCY_A]?.toSignificant(3) +
@@ -165,6 +155,7 @@ export default function AddLiquidity({
           currencies[Field.CURRENCY_B]?.symbol,
       })
 
+      setAttemptingTxn(false)
       setTxHash(response.hash)
 
       ReactGA.event({
