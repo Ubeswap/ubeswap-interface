@@ -111,7 +111,11 @@ function newTransactionsFirst(a: TransactionDetails, b: TransactionDetails) {
 
 const StatusIcon: React.FC = () => {
   const { walletType } = useContractKit()
-  if (walletType === WalletTypes.Metamask || walletType === WalletTypes.CeloExtensionWallet) {
+  if (
+    walletType === WalletTypes.MetaMask ||
+    walletType === WalletTypes.CeloExtensionWallet ||
+    walletType === WalletTypes.Injected
+  ) {
     return <Identicon />
   }
   return null

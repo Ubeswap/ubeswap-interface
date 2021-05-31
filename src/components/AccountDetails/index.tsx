@@ -228,24 +228,12 @@ export default function AccountDetails({
     if (walletType === WalletTypes.Unauthenticated) {
       return null
     }
-    const { celo } = window
-    const isCEW = !!celo as boolean
-    const isMetamask = window.ethereum && window.ethereum.isMetaMask
-    const name =
-      walletType === WalletTypes.DappKit
-        ? SupportedProviders.Valora
-        : walletType === WalletTypes.Metamask
-        ? isCEW
-          ? 'Celo Extension Wallet'
-          : isMetamask
-          ? 'MetaMask'
-          : 'Injected'
-        : SupportedProviders[walletType]
+    const name = walletType === WalletTypes.DappKit ? SupportedProviders.Valora : SupportedProviders[walletType]
     return <WalletName>Connected with {name}</WalletName>
   }
 
   function getStatusIcon() {
-    if (walletType === WalletTypes.Metamask) {
+    if (walletType === WalletTypes.MetaMask) {
       return (
         <IconWrapper size={16}>
           <Identicon />
@@ -272,7 +260,7 @@ export default function AccountDetails({
               <AccountGroupingRow>
                 {formatConnectorName()}
                 <div>
-                  {walletType !== WalletTypes.Metamask && (
+                  {walletType !== WalletTypes.Injected && walletType !== WalletTypes.MetaMask && (
                     <WalletAction
                       style={{ fontSize: '.825rem', fontWeight: 400, marginRight: '8px' }}
                       onClick={destroy}

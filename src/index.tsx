@@ -5,7 +5,7 @@ import { ContractKitProvider } from '@celo-tools/use-contractkit'
 import * as Sentry from '@sentry/react'
 import { Integrations } from '@sentry/tracing'
 import { ChainId } from '@ubeswap/sdk'
-import { createWeb3ReactRoot, Web3ReactProvider } from '@web3-react/core'
+import { createWeb3ReactRoot } from '@web3-react/core'
 import React, { StrictMode } from 'react'
 import { isMobile } from 'react-device-detect'
 import ReactDOM from 'react-dom'
@@ -13,7 +13,7 @@ import ReactGA from 'react-ga'
 import { Provider } from 'react-redux'
 import { HashRouter } from 'react-router-dom'
 
-import { NETWORK_CHAIN_ID, NETWORK_CHAIN_NAME } from './connectors'
+import { NETWORK, NETWORK_CHAIN_ID, NETWORK_CHAIN_NAME } from './connectors'
 import { NetworkContextName } from './constants'
 import App from './pages/App'
 import store from './state'
@@ -110,6 +110,7 @@ ReactDOM.render(
   <StrictMode>
     <FixedGlobalStyle />
     <ContractKitProvider
+      networks={[NETWORK]}
       dappName="Ubeswap"
       dappDescription="The interface for Ubeswap, a decentralized exchange and automated market maker protocol for Celo assets."
       dappUrl="https://app.ubeswap.org"
@@ -134,19 +135,17 @@ ReactDOM.render(
         },
       }}
     >
-      <Web3ReactProvider getLibrary={getLibrary}>
-        <Web3ProviderNetwork getLibrary={getLibrary}>
-          <Provider store={store}>
-            <Updaters />
-            <ThemeProvider>
-              <ThemedGlobalStyle />
-              <HashRouter>
-                <App />
-              </HashRouter>
-            </ThemeProvider>
-          </Provider>
-        </Web3ProviderNetwork>
-      </Web3ReactProvider>
+      <Web3ProviderNetwork getLibrary={getLibrary}>
+        <Provider store={store}>
+          <Updaters />
+          <ThemeProvider>
+            <ThemedGlobalStyle />
+            <HashRouter>
+              <App />
+            </HashRouter>
+          </ThemeProvider>
+        </Provider>
+      </Web3ProviderNetwork>
     </ContractKitProvider>
   </StrictMode>,
   document.getElementById('root')

@@ -1,5 +1,4 @@
 import { Pair, Token } from '@ubeswap/sdk'
-import { IValoraAccount } from 'connectors/valora/valoraUtils'
 import flatMap from 'lodash.flatmap'
 import { useCallback, useMemo } from 'react'
 import ReactGA from 'react-ga'
@@ -12,11 +11,9 @@ import { AppDispatch, AppState } from '../index'
 import {
   addSerializedPair,
   addSerializedToken,
-  clearValoraAccount,
   removeSerializedToken,
   SerializedPair,
   SerializedToken,
-  setValoraAccount,
   toggleURLWarning,
   updateUserAllowMoolaWithdrawal,
   updateUserDarkMode,
@@ -46,29 +43,6 @@ function deserializeToken(serializedToken: SerializedToken): Token {
     serializedToken.symbol,
     serializedToken.name
   )
-}
-
-export const useValoraAccount = (): {
-  setValoraAccount: (acc: IValoraAccount) => void
-  clearValoraAccount: () => void
-  account: IValoraAccount | null
-} => {
-  const dispatch = useDispatch<AppDispatch>()
-  const doSetValoraAccount = useCallback(
-    (acc: IValoraAccount) => {
-      dispatch(setValoraAccount(acc))
-    },
-    [dispatch]
-  )
-  const doClearValoraAccount = useCallback(() => {
-    dispatch(clearValoraAccount())
-  }, [dispatch])
-  const account = useSelector<AppState, AppState['user']['valoraAccount']>((state) => state.user.valoraAccount)
-  return {
-    setValoraAccount: doSetValoraAccount,
-    clearValoraAccount: doClearValoraAccount,
-    account,
-  }
 }
 
 export function useIsDarkMode(): boolean {

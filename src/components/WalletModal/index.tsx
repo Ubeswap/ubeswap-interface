@@ -3,11 +3,9 @@ import { AbstractConnector } from '@web3-react/abstract-connector'
 import { UnsupportedChainIdError, useWeb3React } from '@web3-react/core'
 import React, { useEffect, useState } from 'react'
 import { isMobile } from 'react-device-detect'
-import ReactGA from 'react-ga'
 import styled from 'styled-components'
 
 import { ReactComponent as Close } from '../../assets/images/x.svg'
-import { SUPPORTED_WALLETS } from '../../constants'
 import usePrevious from '../../hooks/usePrevious'
 import { ApplicationModal } from '../../state/application/actions'
 import { useModalOpen, useWalletModalToggle } from '../../state/application/hooks'
@@ -15,8 +13,6 @@ import { ExternalLink } from '../../theme'
 import AccountDetails from '../AccountDetails'
 import Modal from '../Modal'
 import { CeloConnector } from './CeloConnector'
-import { LedgerWalletSelector } from './LedgerWalletSelector'
-import PendingView from './PendingView'
 
 const CloseIcon = styled.div`
   position: absolute;
@@ -110,8 +106,6 @@ const HoverText = styled.div`
 const WALLET_VIEWS = {
   OPTIONS_SECONDARY: 'options_secondary',
   ACCOUNT: 'account',
-  PENDING: 'pending',
-  LEDGER: 'ledger',
 }
 
 export default function WalletModal({
@@ -153,30 +147,6 @@ export default function WalletModal({
       setWalletView(WALLET_VIEWS.ACCOUNT)
     }
   }, [walletModalOpen])
-
-  const tryActivation = async (connector: AbstractConnector | undefined) => {
-    let name = ''
-    Object.keys(SUPPORTED_WALLETS).map((key) => {
-      if (connector === SUPPORTED_WALLETS[key].connector) {
-        return (name = SUPPORTED_WALLETS[key].name)
-      }
-      return true
-    })
-    // log selected wallet
-    ReactGA.event({
-      category: 'Wallet',
-      action: 'Change Wallet',
-      label: name,
-    })
-    setPendingWallet(connector) // set wallet for pending view
-    setWalletView(WALLET_VIEWS.PENDING)
-
-    await connect().catch((error) => {
-      console.log('[Activation error]', error)
-      setActivateError(error.message)
-      setPendingError(true)
-    })
-  }
 
   function getModalContent() {
     if (error) {
@@ -235,37 +205,20 @@ export default function WalletModal({
           </HeaderRow>
         )}
         <ContentWrapper>
-          {walletView === WALLET_VIEWS.PENDING ? (
-            <PendingView
-              connector={pendingWallet}
-              error={pendingError}
-              setPendingError={setPendingError}
-              activateError={activateError}
-              tryActivation={tryActivation}
-            />
-          ) : walletView === WALLET_VIEWS.LEDGER ? (
-            <LedgerWalletSelector tryActivation={tryActivation} />
-          ) : (
-            <OptionGrid>test</OptionGrid>
+          {!isMobile && (
+            <Blurb>
+              <ExternalLink href="https://docs.ubeswap.org/wallet-support/wallets">
+                Learn more about Celo wallets
+              </ExternalLink>
+            </Blurb>
           )}
-          {walletView !== WALLET_VIEWS.PENDING && walletView !== WALLET_VIEWS.LEDGER && (
-            <>
-              {!isMobile && (
-                <Blurb>
-                  <ExternalLink href="https://docs.ubeswap.org/wallet-support/wallets">
-                    Learn more about Celo wallets
-                  </ExternalLink>
-                </Blurb>
-              )}
-              {isMobile && (
-                <Blurb>
-                  <span>New to Celo? &nbsp;</span>
-                  <ExternalLink href="https://docs.ubeswap.org/wallet-support/wallets">
-                    Learn more about wallets
-                  </ExternalLink>
-                </Blurb>
-              )}
-            </>
+          {isMobile && (
+            <Blurb>
+              <span>New to Celo? &nbsp;</span>
+              <ExternalLink href="https://docs.ubeswap.org/wallet-support/wallets">
+                Learn more about wallets
+              </ExternalLink>
+            </Blurb>
           )}
         </ContentWrapper>
       </UpperSection>
