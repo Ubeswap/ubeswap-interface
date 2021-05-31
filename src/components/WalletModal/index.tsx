@@ -105,7 +105,7 @@ export default function WalletModal({
   confirmedTransactions: string[] // hashes of confirmed
   ENSName?: string
 }) {
-  const { connect, address } = useContractKit()
+  const { address } = useContractKit()
   // TODO(igm): get the errors
   const error = null
 
