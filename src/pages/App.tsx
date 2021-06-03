@@ -99,7 +99,7 @@ export default function App() {
         <BodyWrapper>
           <Popups />
           <Polling />
-          <ErrorBoundary fallback={<p>There was an error rendering this part of the page. Please reload.</p>}>
+          <ErrorBoundary fallback={<p>An unexpected error occured on this part of the page. Please reload.</p>}>
             <Web3ReactManager>
               <Switch>
                 <Route exact strict path="/swap" component={Swap} />
