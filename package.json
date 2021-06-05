@@ -122,7 +122,7 @@
     "@craco/craco": "^6.1.2",
     "@ledgerhq/hw-transport-webusb": "^5.53.1",
     "@sentry/react": "^6.4.1",
-    "@sentry/tracing": "^6.4.1",
+    "@sentry/tracing": "^6.5.1",
     "@ubeswap/core": "^1.0.2",
     "@ubeswap/default-token-list": "^3.0.0",
     "@ubeswap/moola": "^0.2.0",
