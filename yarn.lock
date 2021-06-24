@@ -4837,10 +4837,12 @@ __metadata:
     "@web3-react/core": ^6.1.9
     "@web3-react/injected-connector": ^6.0.7
     ajv: ^6.12.3
+    bignumber.js: ^9.0.1
     cids: ^1.1.6
     copy-to-clipboard: ^3.2.0
     eslint: ^7.28.0
     eslint-config-prettier: ^8.3.0
+    eslint-import-resolver-node: ^0.3.4
     eslint-plugin-import: ^2.23.4
     eslint-plugin-prettier: ^3.4.0
     eslint-plugin-react: ^7.24.0
@@ -4866,6 +4868,7 @@ __metadata:
     react: ^17.0.2
     react-circular-progressbar: ^2.0.4
     react-countdown: ^2.3.2
+    react-dev-utils: ^11.0.4
     react-device-detect: ^1.17.0
     react-dom: ^17.0.2
     react-feather: ^2.0.9
@@ -6386,7 +6389,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bignumber.js@npm:^9.0.0":
+"bignumber.js@npm:^9.0.0, bignumber.js@npm:^9.0.1":
   version: 9.0.1
   resolution: "bignumber.js@npm:9.0.1"
   checksum: 605e9639c413f344c37b23e919254f60a5017cc5ccd925e2f8fb79b36aa3d54f356df9c726f38465263236455f685d60dcf38dbe32cb0b7e4d2a32c94b035476
@@ -17612,7 +17615,7 @@ fsevents@~2.1.2:
   languageName: node
   linkType: hard
 
-"react-dev-utils@npm:^11.0.3":
+"react-dev-utils@npm:^11.0.3, react-dev-utils@npm:^11.0.4":
   version: 11.0.4
   resolution: "react-dev-utils@npm:11.0.4"
   dependencies:
