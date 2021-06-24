@@ -1788,6 +1788,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.9.2":
+  version: 7.14.6
+  resolution: "@babel/runtime@npm:7.14.6"
+  dependencies:
+    regenerator-runtime: ^0.13.4
+  checksum: dd931f6ef1c8dab295c4a00c592db6352bf12a5c443f8222304d5c1d3e88d795fa949afcb6f053eec2e69e9827a17ff274524c1cd43813f56b61e3a540274d2f
+  languageName: node
+  linkType: hard
+
 "@babel/template@npm:^7.10.4":
   version: 7.10.4
   resolution: "@babel/template@npm:7.10.4"
@@ -2789,7 +2798,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethersproject/units@npm:5.3.0":
+"@ethersproject/units@npm:5.3.0, @ethersproject/units@npm:^5.3.0":
   version: 5.3.0
   resolution: "@ethersproject/units@npm:5.3.0"
   dependencies:
@@ -4177,14 +4186,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typechain/ethers-v5@npm:^6.0.5":
-  version: 6.0.5
-  resolution: "@typechain/ethers-v5@npm:6.0.5"
+"@typechain/ethers-v5@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "@typechain/ethers-v5@npm:7.0.1"
   peerDependencies:
-    ethers: ^5.0.0
-    typechain: ^4.0.0
+    "@ethersproject/abi": ^5.0.0
+    "@ethersproject/bytes": ^5.0.0
+    "@ethersproject/providers": ^5.0.0
+    ethers: ^5.1.3
+    typechain: ^5.0.0
     typescript: ">=4.0.0"
-  checksum: 94889c97b9f46815f02f704b00a023ea1c3a5d15cd0c4bc15465f1c2ec1095d23a0e26585485005e8e2627ec5454b511c5d9a4bd3efa0ff543f22999bcdc5151
+  checksum: c618287e177c665bd38e3684eb651f92fbf7911a0a91c08a31496cec55efbb44c440ce3c6f038df6e5087987b3efb35c543f2a2c7cf5e2dcf0085ac881f0ea98
   languageName: node
   linkType: hard
 
@@ -4484,15 +4496,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mkdirp@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "@types/mkdirp@npm:0.5.2"
-  dependencies:
-    "@types/node": "*"
-  checksum: 3bb3f7ec84b831040b2807104cf9219e3eed61d5cb01a5dbaaeff892e4bcb9cd922a3c1642f87c11eb816ebdd995dd12c5bac33c70a6761631e330d59347e502
-  languageName: node
-  linkType: hard
-
 "@types/multicodec@npm:^2.1.0":
   version: 2.1.0
   resolution: "@types/multicodec@npm:2.1.0"
@@ -4657,6 +4660,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/react-router@npm:^5":
+  version: 5.1.15
+  resolution: "@types/react-router@npm:5.1.15"
+  dependencies:
+    "@types/history": "*"
+    "@types/react": "*"
+  checksum: 6761d711ed42c4c3bc75c84aa486119d440bdab8025ef8602f189ad309d48f57a28dabfad3d2791133279fd8d65e962ad09a752eb54ff946a569e89ffc942fb6
+  languageName: node
+  linkType: hard
+
 "@types/react-virtualized-auto-sizer@npm:^1.0.0":
   version: 1.0.0
   resolution: "@types/react-virtualized-auto-sizer@npm:1.0.0"
@@ -4698,7 +4711,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/resolve@npm:0.0.8, @types/resolve@npm:^0.0.8":
+"@types/resolve@npm:0.0.8":
   version: 0.0.8
   resolution: "@types/resolve@npm:0.0.8"
   dependencies:
@@ -5133,11 +5146,18 @@ __metadata:
     "@celo/utils": ^1.2.1
     "@celo/wallet-ledger": ^1.2.0
     "@craco/craco": ^6.1.2
+    "@ethersproject/abi": ^5.3.1
+    "@ethersproject/abstract-provider": ^5.3.0
     "@ethersproject/address": ^5.3.0
+    "@ethersproject/bignumber": ^5.3.0
+    "@ethersproject/bytes": ^5.3.0
+    "@ethersproject/constants": ^5.3.0
     "@ethersproject/contracts": ^5.3.0
     "@ethersproject/networks": ^5.3.1
     "@ethersproject/providers": ^5.3.1
     "@ethersproject/solidity": ^5.3.0
+    "@ethersproject/strings": ^5.3.0
+    "@ethersproject/units": ^5.3.0
     "@ledgerhq/errors": ^6.0.2
     "@ledgerhq/hw-transport-webusb": ^6.0.2
     "@popperjs/core": ^2.9.2
@@ -5147,7 +5167,7 @@ __metadata:
     "@sentry/react": ^6.7.2
     "@sentry/tracing": ^6.7.2
     "@sentry/webpack-plugin": ^1.15.1
-    "@typechain/ethers-v5": ^6.0.5
+    "@typechain/ethers-v5": ^7.0.1
     "@types/jest": ^26.0.23
     "@types/ledgerhq__hw-transport-webusb": ^4.70.1
     "@types/lodash": ^4.14.170
@@ -5158,6 +5178,7 @@ __metadata:
     "@types/react": ^17.0.11
     "@types/react-dom": ^17.0.8
     "@types/react-redux": ^7.1.8
+    "@types/react-router": ^5
     "@types/react-router-dom": ^5.1.7
     "@types/react-virtualized-auto-sizer": ^1.0.0
     "@types/react-window": ^1.8.3
@@ -5172,8 +5193,10 @@ __metadata:
     "@ubeswap/moola": ^0.2.0
     "@ubeswap/sdk": ^2.1.0
     "@uniswap/token-lists": ^1.0.0-beta.24
+    "@web3-react/abstract-connector": ^6.0.7
     "@web3-react/core": ^6.1.9
     "@web3-react/injected-connector": ^6.0.7
+    "@web3-react/types": ^6.0.7
     ajv: ^6.12.3
     bignumber.js: ^9.0.1
     cids: ^1.1.6
@@ -5203,6 +5226,7 @@ __metadata:
     node-vibrant: ^3.1.6
     polished: ^4.1.2
     prettier: ^2.3.1
+    prop-types: ^15.7.2
     qs: ^6.10.1
     randombytes: ^2.1.0
     react: ^17.0.2
@@ -5214,8 +5238,10 @@ __metadata:
     react-feather: ^2.0.9
     react-ga: ^3.3.0
     react-i18next: ^11.10.0
+    react-is: ^17.0.2
     react-popper: ^2.2.5
     react-redux: ^7.2.4
+    react-router: ^5.2.0
     react-router-dom: ^5.0.0
     react-scripts: ^4.0.3
     react-spring: ^8.0.27
@@ -5223,10 +5249,12 @@ __metadata:
     react-virtualized-auto-sizer: ^1.0.5
     react-window: ^1.8.6
     rebass: ^4.0.7
+    redux: ^4.1.0
     redux-localstorage-simple: ^2.4.0
     rlp: ^2.2.6
     styled-components: ^5.3.0
-    typechain: ^4.0.3
+    tiny-invariant: ^1.1.0
+    typechain: ^5.1.1
     typescript: ^4.3.4
     use-count-up: ^2.3.1
     wcag-contrast: ^3.0.0
@@ -18124,7 +18152,7 @@ fsevents@~2.1.2:
   languageName: node
   linkType: hard
 
-"react-is@npm:^17.0.1":
+"react-is@npm:^17.0.1, react-is@npm:^17.0.2":
   version: 17.0.2
   resolution: "react-is@npm:17.0.2"
   checksum: 3eff23f410d40ab9bc5177f147a92c7f42c356a21ecea340e0554566956d67e5e1ba56f26cc7fa22339ac3c7151744177bd6305eaa26d3cbf15f354358c9d9b6
@@ -18258,7 +18286,7 @@ fsevents@~2.1.2:
   languageName: node
   linkType: hard
 
-"react-router@npm:5.2.0":
+"react-router@npm:5.2.0, react-router@npm:^5.2.0":
   version: 5.2.0
   resolution: "react-router@npm:5.2.0"
   dependencies:
@@ -18578,6 +18606,15 @@ fsevents@~2.1.2:
     loose-envify: ^1.4.0
     symbol-observable: ^1.2.0
   checksum: 112739c2fb83ae2e18335d942a883b3ee14ebada31ff3a7924511a1f38a4278a762f5823491f3eb5083492de601ed76cb2687295c7d5db9a6e098c2542cdc05b
+  languageName: node
+  linkType: hard
+
+"redux@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "redux@npm:4.1.0"
+  dependencies:
+    "@babel/runtime": ^7.9.2
+  checksum: d939d0df1e12982c66c0ea767c8ec98276ee981ce0381222239b7f823c6ad02ea3e3c622859bcb4934446b3f86d735db35d7bd8b1697d359070e5fbef1f4ad49
   languageName: node
   linkType: hard
 
@@ -21052,38 +21089,12 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"ts-essentials@npm:^1.0.0":
-  version: 1.0.4
-  resolution: "ts-essentials@npm:1.0.4"
-  checksum: 2e175aa3fbe98e1127eff7d088ac27fd31963387c44d543c065a331ac80cf526efd38c23d4ef2543832380bb8eb109785c6ba04098b7e1086728110278f6a3a5
-  languageName: node
-  linkType: hard
-
 "ts-essentials@npm:^7.0.1":
   version: 7.0.1
   resolution: "ts-essentials@npm:7.0.1"
   peerDependencies:
     typescript: ">=3.7.0"
   checksum: f3b7beedce99ac7a1af1f150ede1a8e5f1195fc7de4c01c308df33a2acfed8fa86ac3d898bdfc3a9132ac897799bf326c74187a088d297724fa7ab8ffd323329
-  languageName: node
-  linkType: hard
-
-"ts-generator@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "ts-generator@npm:0.1.1"
-  dependencies:
-    "@types/mkdirp": ^0.5.2
-    "@types/prettier": ^2.1.1
-    "@types/resolve": ^0.0.8
-    chalk: ^2.4.1
-    glob: ^7.1.2
-    mkdirp: ^0.5.1
-    prettier: ^2.1.2
-    resolve: ^1.8.1
-    ts-essentials: ^1.0.0
-  bin:
-    ts-generator: dist/cli/run.js
-  checksum: 5ac4c29942b397a899b3dcb693704077a8d30e20aae74631b823ba754036a03d6c528ecbc47ea5bc0a0b484f924d205da675402a9a1dffeb89d8560de4ebba65
   languageName: node
   linkType: hard
 
@@ -21268,20 +21279,23 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"typechain@npm:^4.0.3":
-  version: 4.0.3
-  resolution: "typechain@npm:4.0.3"
+"typechain@npm:^5.1.1":
+  version: 5.1.1
+  resolution: "typechain@npm:5.1.1"
   dependencies:
+    "@types/prettier": ^2.1.1
     command-line-args: ^4.0.7
     debug: ^4.1.1
     fs-extra: ^7.0.0
+    glob: ^7.1.6
     js-sha3: ^0.8.0
     lodash: ^4.17.15
+    mkdirp: ^1.0.4
+    prettier: ^2.1.2
     ts-essentials: ^7.0.1
-    ts-generator: ^0.1.1
   bin:
     typechain: dist/cli/cli.js
-  checksum: efbdfcf289bec67b3b46f462c9d0f7e7d2a2e4fa8861fc71ce1abb9d3a14cb22cd1f8c00022c8e8ddabebb4f794ef33ce20ddfd2a1af860c9b48451730c0b9b3
+  checksum: 04ee65cc70fdedc82ed27a3e1b6e13b9ad507d06ea31bdf593d7d192da08da082bf81b27d40ba435e95beab01926beca0cbcc2e761eb6b73a08d8ba8e76bad76
   languageName: node
   linkType: hard
 
