@@ -95,9 +95,7 @@ export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) 
   try {
     weeklyAPY = apy
       ? new Percent(
-          JSBI.BigInt(
-            Math.floor(parseFloat(apy.divide('52').add('1').toFixed(10)) ** 52 * 1_000_000).toFixed(0)
-          ).toString(),
+          JSBI.BigInt(Math.floor(parseFloat(apy.divide('52').add('1').toFixed(10)) ** 52 * 1_000_000).toFixed(0)),
           '1000000'
         )
       : undefined
