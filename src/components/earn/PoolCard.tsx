@@ -1,5 +1,6 @@
 import { Percent } from '@ubeswap/sdk'
 import QuestionHelper, { LightQuestionHelper } from 'components/QuestionHelper'
+import JSBI from 'jsbi'
 import { useStakingPoolValue } from 'pages/Earn/useStakingPoolValue'
 import React from 'react'
 import styled from 'styled-components'
@@ -89,9 +90,18 @@ export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) 
   const dpy = apy
     ? new Percent(Math.floor(parseFloat(apy.divide('365').toFixed(10)) * 1_000_000).toFixed(0), '1000000')
     : undefined
-  const weeklyAPY = apy
-    ? new Percent(Math.floor(parseFloat(apy.divide('52').add('1').toFixed(10)) ** 52 * 1_000_000).toFixed(0), '1000000')
-    : undefined
+
+  let weeklyAPY: Percent | undefined = undefined
+  try {
+    weeklyAPY = apy
+      ? new Percent(
+          JSBI.BigInt(Math.floor(parseFloat(apy.divide('52').add('1').toFixed(10)) ** 52 * 1_000_000).toFixed(0)),
+          '1000000'
+        )
+      : undefined
+  } catch (e) {
+    console.error('Weekly apy overflow', e)
+  }
 
   return (
     <Wrapper showBackground={isStaking} bgColor={backgroundColor}>
