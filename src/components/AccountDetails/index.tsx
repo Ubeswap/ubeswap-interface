@@ -1,3 +1,4 @@
+import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
 import { getBlockscoutLink } from '@ubeswap/sdk'
 import { SupportedProviders, useContractKit, WalletTypes } from '@ubeswap/use-contractkit'
 import React, { useCallback, useContext } from 'react'
@@ -229,8 +230,9 @@ export default function AccountDetails({
     if (walletType === WalletTypes.Unauthenticated) {
       return null
     }
-    const name = walletType === WalletTypes.DappKit ? SupportedProviders.Valora : SupportedProviders[walletType]
-    return <WalletName>Connected with {name}</WalletName>
+    // TODO(igm): should be valora??
+    // const name = walletType === WalletTypes.? SupportedProviders.Valora : SupportedProviders[walletType]
+    return <WalletName>Connected with {walletType}</WalletName>
   }
 
   function getStatusIcon() {
