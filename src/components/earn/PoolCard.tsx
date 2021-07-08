@@ -81,7 +81,7 @@ export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) 
     userAmountTokenB,
   } = useStakingPoolValue(stakingInfo)
   const apyFraction =
-    stakingInfo.active && valueOfTotalStakedAmountInCUSD && !valueOfTotalStakedAmountInCUSD.equalTo(0)
+    stakingInfo.active && valueOfTotalStakedAmountInCUSD && !valueOfTotalStakedAmountInCUSD.equalTo('0')
       ? stakingInfo.dollarRewardPerYear?.divide(valueOfTotalStakedAmountInCUSD)
       : undefined
   const apy = apyFraction ? new Percent(apyFraction.numerator, apyFraction.denominator) : undefined
