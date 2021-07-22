@@ -43,7 +43,6 @@ export const useDualStakeRewards = (
   const [data, setData] = useState<RawPoolData | null>(null)
 
   const ube = chainId ? UBE[chainId] : undefined
-  const ubePrice = useCUSDPrice(ube)
 
   const load = useCallback(async (): Promise<RawPoolData | null> => {
     if (!stakeRewards) {
