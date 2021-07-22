@@ -28,8 +28,10 @@ import { DualRewardsInfo, useDualStakeRewards } from './useDualStakeRewards'
 export const POOF_DUAL_POOL = '0x969D7653ddBAbb42589d73EfBC2051432332A940'
 export const POOF_DUAL_LP = '0x573bcEBD09Ff805eD32df2cb1A968418DC74DCf7'
 
-export const MOO_DUAL_POOL = '0x2f0ddEAa9DD2A0FB78d41e58AD35373d6A81EbB0'
-export const MOO_LP = '0x27616d3DBa43f55279726c422daf644bc60128a8'
+export const MOO_DUAL_POOL1 = '0x2f0ddEAa9DD2A0FB78d41e58AD35373d6A81EbB0'
+export const MOO_LP1 = '0x27616d3DBa43f55279726c422daf644bc60128a8'
+export const MOO_DUAL_POOL2 = '0x84Bb1795b699Bf7a798C0d63e9Aad4c96B0830f4'
+export const MOO_LP2 = '0x69d5646e63C7cE63171F76EBA89348b52c1D552c'
 
 export const STAKING_GENESIS = 1619100000
 
@@ -80,8 +82,10 @@ export const usePairDualStakingInfo = (stakingInfo: StakingInfo | undefined): Du
   let dualStakeAddress = ''
   if (stakingInfo?.poolInfo.stakingToken === POOF_DUAL_LP) {
     dualStakeAddress = POOF_DUAL_POOL
-  } else if (stakingInfo?.poolInfo.stakingToken == MOO_LP) {
-    dualStakeAddress = MOO_DUAL_POOL
+  } else if (stakingInfo?.poolInfo.stakingToken == MOO_LP1) {
+    dualStakeAddress = MOO_DUAL_POOL1
+  } else if (stakingInfo?.poolInfo.stakingToken == MOO_LP2) {
+    dualStakeAddress = MOO_DUAL_POOL2
   }
   return useDualStakeRewards(dualStakeAddress, stakingInfo, account)
 }

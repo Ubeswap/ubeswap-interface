@@ -11,8 +11,10 @@ import Loader from '../../components/Loader'
 import { RowBetween } from '../../components/Row'
 import { BIG_INT_ZERO } from '../../constants'
 import {
-  MOO_DUAL_POOL,
-  MOO_LP,
+  MOO_DUAL_POOL1,
+  MOO_DUAL_POOL2,
+  MOO_LP1,
+  MOO_LP2,
   POOF_DUAL_LP,
   POOF_DUAL_POOL,
   StakingInfo,
@@ -72,7 +74,8 @@ export default function Earn() {
   const isGenesisOver = COUNTDOWN_END < new Date().getTime()
 
   const poofUBELP = allPools.find((pool) => pool.stakingToken.address === POOF_DUAL_LP)
-  const mcUSDmcEURLP = allPools.find((pool) => pool.stakingToken.address === MOO_LP)
+  const mcUSDmcEURLP = allPools.find((pool) => pool.stakingToken.address === MOO_LP1)
+  const moomCELOLP = allPools.find((pool) => pool.stakingToken.address === MOO_LP2)
 
   return (
     <PageWrapper gap="lg" justify="center">
@@ -110,11 +113,18 @@ export default function Earn() {
         <DataRow style={{ alignItems: 'baseline' }}>
           <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>Dual Pools</TYPE.mediumHeader>
         </DataRow>
-        {!(mcUSDmcEURLP && poofUBELP) && <Loader />}
+        {!(mcUSDmcEURLP && poofUBELP && moomCELOLP) && <Loader />}
         {mcUSDmcEURLP && (
           <PoolSection>
             <ErrorBoundary>
-              <DualPoolCard poolAddress={MOO_DUAL_POOL} underlyingPool={mcUSDmcEURLP} />
+              <DualPoolCard poolAddress={MOO_DUAL_POOL1} underlyingPool={mcUSDmcEURLP} />
+            </ErrorBoundary>
+          </PoolSection>
+        )}
+        {moomCELOLP && (
+          <PoolSection>
+            <ErrorBoundary>
+              <DualPoolCard poolAddress={MOO_DUAL_POOL2} underlyingPool={moomCELOLP} />
             </ErrorBoundary>
           </PoolSection>
         )}
