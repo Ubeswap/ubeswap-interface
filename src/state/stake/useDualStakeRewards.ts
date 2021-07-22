@@ -1,6 +1,6 @@
 import { Address } from '@celo/contractkit'
 import { BigNumber } from '@ethersproject/bignumber'
-import { JSBI, TokenAmount } from '@ubeswap/sdk'
+import { JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import { UBE } from 'constants/tokens'
 import { useActiveWeb3React } from 'hooks'
 import { useToken } from 'hooks/Tokens'
@@ -14,7 +14,7 @@ export type DualRewardsInfo = StakingInfo & {
   /**
    * External earned amount. (UBE)
    */
-  earnedAmountExternal: TokenAmount
+  earnedAmountUbe: TokenAmount
 
   ubeRewardRate: TokenAmount
   totalUBERewardRate: TokenAmount
@@ -34,8 +34,8 @@ interface RawPoolData {
 
 export const useDualStakeRewards = (
   address: Address,
-  underlyingPool: StakingInfo,
-  owner: Address | null
+  underlyingPool: StakingInfo | undefined,
+  owner: Address | null | undefined
 ): DualRewardsInfo | null => {
   const { chainId } = useActiveWeb3React()
   const stakeRewards = useDualStakingContract(address)
@@ -77,7 +77,7 @@ export const useDualStakeRewards = (
   const rewardsPrice = useCUSDPrice(rewardsToken ?? undefined)
 
   return useMemo((): DualRewardsInfo | null => {
-    if (!data || !rewardsToken || !ube) {
+    if (!data || !rewardsToken || !ube || !underlyingPool) {
       return null
     }
     const { totalSupply: totalSupplyRaw, rewardRate: totalRewardRateRaw, myBalance, earned, earnedExternal } = data
@@ -125,7 +125,7 @@ export const useDualStakeRewards = (
       stakingToken,
       stakedAmount,
       earnedAmount: new TokenAmount(ube, earned?.toString() ?? '0'),
-      earnedAmountExternal: new TokenAmount(ube, earnedExternal?.toString() ?? '0'),
+      earnedAmountUbe: new TokenAmount(ube, earnedExternal?.toString() ?? '0'),
 
       rewardRate,
       ubeRewardRate,
@@ -145,6 +145,8 @@ export const useDualStakeRewards = (
       tokens: underlyingPool.tokens,
       nextPeriodRewards: underlyingPool.nextPeriodRewards,
       poolInfo: underlyingPool.poolInfo,
+      rewardToken: rewardsToken,
+      dualRewards: true,
     }
   }, [address, data, rewardsToken, ube, underlyingPool, rewardsPrice])
 }

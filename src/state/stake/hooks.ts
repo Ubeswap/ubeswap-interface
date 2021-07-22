@@ -23,6 +23,13 @@ import {
   useSingleContractMultipleData,
 } from '../multicall/hooks'
 import { tryParseAmount } from '../swap/hooks'
+import { DualRewardsInfo, useDualStakeRewards } from './useDualStakeRewards'
+
+export const POOF_DUAL_POOL = '0x969D7653ddBAbb42589d73EfBC2051432332A940'
+export const POOF_DUAL_LP = '0x573bcEBD09Ff805eD32df2cb1A968418DC74DCf7'
+
+export const MOO_DUAL_POOL = '0x2f0ddEAa9DD2A0FB78d41e58AD35373d6A81EbB0'
+export const MOO_LP = '0x27616d3DBa43f55279726c422daf644bc60128a8'
 
 export const STAKING_GENESIS = 1619100000
 
@@ -37,10 +44,13 @@ export interface StakingInfo {
   readonly stakedAmount?: TokenAmount
   // the amount of reward token earned by the active account, or undefined if no account
   readonly earnedAmount: TokenAmount
+  readonly earnedAmountUbe: TokenAmount
   // the total amount of token staked in the contract
   readonly totalStakedAmount: TokenAmount
   // the amount of token distributed per second to all LPs, constant
   readonly totalRewardRate: TokenAmount
+  readonly ubeRewardRate: TokenAmount
+  readonly totalUBERewardRate: TokenAmount
   // the current amount of token distributed to the active account per second.
   // equivalent to percent of total supply * reward rate
   readonly rewardRate: TokenAmount
@@ -57,10 +67,23 @@ export interface StakingInfo {
   readonly nextPeriodRewards: TokenAmount
   readonly poolInfo: IRawPool
   readonly dollarRewardPerYear: TokenAmount | undefined
+  readonly rewardToken: Token | undefined
+  readonly dualRewards: boolean
 }
 
 export const usePairStakingInfo = (pairToFilterBy?: Pair | null): StakingInfo | undefined => {
   return useStakingInfo(pairToFilterBy)[0] ?? undefined
+}
+
+export const usePairDualStakingInfo = (stakingInfo: StakingInfo | undefined): DualRewardsInfo | null => {
+  const { account } = useActiveWeb3React()
+  let dualStakeAddress = ''
+  if (stakingInfo?.poolInfo.stakingToken === POOF_DUAL_LP) {
+    dualStakeAddress = POOF_DUAL_POOL
+  } else if (stakingInfo?.poolInfo.stakingToken == MOO_LP) {
+    dualStakeAddress = MOO_DUAL_POOL
+  }
+  return useDualStakeRewards(dualStakeAddress, stakingInfo, account)
 }
 
 interface UnclaimedInfo {
@@ -260,8 +283,11 @@ export function useStakingInfo(pairToFilterBy?: Pair | null): readonly StakingIn
             tokens,
             periodFinish: periodFinishMs > 0 ? new Date(periodFinishMs) : undefined,
             earnedAmount: new TokenAmount(ube, JSBI.BigInt(earnedAmountState?.result?.[0] ?? 0)),
+            earnedAmountUbe: new TokenAmount(ube, JSBI.BigInt(earnedAmountState?.result?.[0] ?? 0)),
             rewardRate: individualRewardRate,
+            ubeRewardRate: individualRewardRate,
             totalRewardRate: totalRewardRate,
+            totalUBERewardRate: totalRewardRate,
             nextPeriodRewards,
             stakedAmount: stakedAmount,
             totalStakedAmount: totalStakedAmount,
@@ -269,6 +295,8 @@ export function useStakingInfo(pairToFilterBy?: Pair | null): readonly StakingIn
             active,
             poolInfo,
             dollarRewardPerYear,
+            rewardToken: ube,
+            dualRewards: false
           })
         }
         return memo

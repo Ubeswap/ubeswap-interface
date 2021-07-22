@@ -10,7 +10,14 @@ import { CardNoise, CardSection, DataCard } from '../../components/earn/styled'
 import Loader from '../../components/Loader'
 import { RowBetween } from '../../components/Row'
 import { BIG_INT_ZERO } from '../../constants'
-import { StakingInfo, useStakingInfo } from '../../state/stake/hooks'
+import {
+  MOO_DUAL_POOL,
+  MOO_LP,
+  POOF_DUAL_LP,
+  POOF_DUAL_POOL,
+  StakingInfo,
+  useStakingInfo,
+} from '../../state/stake/hooks'
 import { ExternalLink, TYPE } from '../../theme'
 import { DualPoolCard } from './DualPoolCard'
 import { COUNTDOWN_END, LaunchCountdown } from './LaunchCountdown'
@@ -39,12 +46,6 @@ const DataRow = styled(RowBetween)`
 flex-direction: column;
 `};
 `
-
-const POOF_DUAL_POOL = '0x969D7653ddBAbb42589d73EfBC2051432332A940'
-const POOF_DUAL_LP = '0x573bcEBD09Ff805eD32df2cb1A968418DC74DCf7'
-
-const MOO_DUAL_POOL = '0x2f0ddEAa9DD2A0FB78d41e58AD35373d6A81EbB0'
-const MOO_LP = '0x27616d3DBa43f55279726c422daf644bc60128a8'
 
 export default function Earn() {
   // staking info for connected account
