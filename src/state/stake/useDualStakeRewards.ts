@@ -15,6 +15,12 @@ export type DualRewardsInfo = StakingInfo & {
    * External earned amount. (UBE)
    */
   earnedAmountExternal: TokenAmount
+
+  ubeRewardRate: TokenAmount
+  totalUBERewardRate: TokenAmount
+
+  ubeDollarRewardPerYear?: TokenAmount
+  rewardsDollarRewardPerYear?: TokenAmount
 }
 
 interface RawPoolData {
@@ -69,6 +75,7 @@ export const useDualStakeRewards = (
   }, [load])
 
   const rewardsToken = useToken(data?.rewardsToken)
+  const rewardsPrice = useCUSDPrice(rewardsToken ?? undefined)
 
   return useMemo((): DualRewardsInfo | null => {
     if (!data || !rewardsToken || !ube) {
@@ -93,13 +100,26 @@ export const useDualStakeRewards = (
     const stakedAmount = myBalance ? new TokenAmount(stakingToken, myBalance.toString()) : undefined
     const totalStakedAmount = new TokenAmount(stakingToken, totalSupplyRaw.toString())
     const totalRewardRate = new TokenAmount(rewardsToken, totalRewardRateRaw.toString())
+    const totalUBERewardRate = underlyingPool.totalRewardRate
 
+    const ubeRewardRate = stakedAmount
+      ? underlyingPool.getHypotheticalRewardRate(stakedAmount, totalStakedAmount, underlyingPool.totalRewardRate)
+      : new TokenAmount(ube, '0')
     const rewardRate = stakedAmount
       ? getHypotheticalRewardRate(stakedAmount, totalStakedAmount, totalRewardRate)
       : new TokenAmount(totalRewardRate.token, '0')
 
-    const ubePerYear = new TokenAmount(ube, JSBI.multiply(totalRewardRate.raw, JSBI.BigInt(365 * 24 * 60 * 60)))
-    const dollarRewardPerYear = ubePrice?.quote(ubePerYear)
+    const ubeDollarRewardPerYear = underlyingPool.dollarRewardPerYear
+
+    const rewardsPerYear = new TokenAmount(
+      rewardsToken,
+      JSBI.multiply(totalRewardRate.raw, JSBI.BigInt(365 * 24 * 60 * 60))
+    )
+    const rewardsDollarRewardPerYear = rewardsPrice?.quote(rewardsPerYear)
+
+    const dollarRewardPerYear = rewardsDollarRewardPerYear
+      ? ubeDollarRewardPerYear?.add(rewardsDollarRewardPerYear)
+      : undefined
 
     return {
       stakingRewardAddress: address,
@@ -107,17 +127,25 @@ export const useDualStakeRewards = (
       stakedAmount,
       earnedAmount: new TokenAmount(ube, earned?.toString() ?? '0'),
       earnedAmountExternal: new TokenAmount(ube, earnedExternal?.toString() ?? '0'),
+
       rewardRate,
+      ubeRewardRate,
+
       totalRewardRate,
+      totalUBERewardRate,
+
       totalStakedAmount,
       periodFinish: new Date(),
       active: true,
       getHypotheticalRewardRate,
+
       dollarRewardPerYear,
+      ubeDollarRewardPerYear,
+      rewardsDollarRewardPerYear,
 
       tokens: underlyingPool.tokens,
       nextPeriodRewards: underlyingPool.nextPeriodRewards,
       poolInfo: underlyingPool.poolInfo,
     }
-  }, [address, data, rewardsToken, ube, ubePrice, underlyingPool])
+  }, [address, data, rewardsToken, ube, underlyingPool, rewardsPrice])
 }

@@ -2,6 +2,7 @@ import { Percent } from '@ubeswap/sdk'
 import QuestionHelper, { LightQuestionHelper } from 'components/QuestionHelper'
 import { useStakingPoolValue } from 'pages/Earn/useStakingPoolValue'
 import React from 'react'
+import { DualRewardsInfo } from 'state/stake/useDualStakeRewards'
 import styled from 'styled-components'
 
 import { BIG_INT_SECONDS_IN_WEEK } from '../../constants'
@@ -66,9 +67,10 @@ const BottomSection = styled.div<{ showBackground: boolean }>`
 
 interface Props {
   stakingInfo: StakingInfo
+  dualRewards?: DualRewardsInfo
 }
 
-export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
+export const PoolCard: React.FC<Props> = ({ stakingInfo, dualRewards }: Props) => {
   const [token0, token1] = stakingInfo.tokens
 
   const isStaking = Boolean(stakingInfo.stakedAmount && stakingInfo.stakedAmount.greaterThan('0'))
@@ -142,7 +144,7 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
           </TYPE.white>
         </RowBetween>
         <RowBetween>
-          <TYPE.white>Pool rate</TYPE.white>
+          <TYPE.white>{dualRewards ? dualRewards.totalRewardRate.token.symbol : 'Pool'} rate</TYPE.white>
           <TYPE.white>
             {stakingInfo
               ? stakingInfo.active
@@ -153,10 +155,24 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
               : '-'}
           </TYPE.white>
         </RowBetween>
+        {dualRewards && (
+          <RowBetween>
+            <TYPE.white>UBE rate</TYPE.white>
+            <TYPE.white>
+              {stakingInfo
+                ? stakingInfo.active
+                  ? `${dualRewards.totalUBERewardRate
+                      ?.multiply(BIG_INT_SECONDS_IN_WEEK)
+                      ?.toFixed(0, { groupSeparator: ',' })} ${dualRewards.totalUBERewardRate.token.symbol} / week`
+                  : `0 ${dualRewards.totalUBERewardRate.token.symbol} / week`
+                : '-'}
+            </TYPE.white>
+          </RowBetween>
+        )}
         {apy && apy.greaterThan('0') && (
           <RowBetween>
             <RowFixed>
-              <TYPE.white>APR</TYPE.white>
+              <TYPE.white>{dualRewards ? 'Combined APR' : 'APR'}</TYPE.white>
               <LightQuestionHelper
                 text={
                   <>

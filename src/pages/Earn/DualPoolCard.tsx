@@ -13,10 +13,9 @@ export const DualPoolCard: React.FC<Props> = ({ poolAddress, underlyingPool }: P
   const { account } = useActiveWeb3React()
   const mooPool = useDualStakeRewards(poolAddress, underlyingPool, account ?? null)
 
-  console.log('pool', mooPool)
   if (!mooPool) {
     return <></>
   }
 
-  return <PoolCard stakingInfo={mooPool} />
+  return <PoolCard stakingInfo={mooPool} dualRewards={mooPool} />
 }
