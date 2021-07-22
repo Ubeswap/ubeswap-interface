@@ -12,6 +12,7 @@ import { RowBetween } from '../../components/Row'
 import { BIG_INT_ZERO } from '../../constants'
 import { StakingInfo, useStakingInfo } from '../../state/stake/hooks'
 import { ExternalLink, TYPE } from '../../theme'
+import { DualPoolCard } from './DualPoolCard'
 import { COUNTDOWN_END, LaunchCountdown } from './LaunchCountdown'
 
 const PageWrapper = styled(AutoColumn)`
@@ -39,6 +40,9 @@ flex-direction: column;
 `};
 `
 
+const MOO_DUAL_POOL = '0x2f0ddEAa9DD2A0FB78d41e58AD35373d6A81EbB0'
+const MOO_LP = '0x27616d3DBa43f55279726c422daf644bc60128a8'
+
 export default function Earn() {
   // staking info for connected account
   const stakingInfos = useStakingInfo()
@@ -46,20 +50,24 @@ export default function Earn() {
   // toggle copy if rewards are inactive
   const stakingRewardsExist = true
 
+  const allPools = useMemo(
+    () =>
+      // Sort staking info by highest rewards
+      stakingInfos?.slice().sort((a: StakingInfo, b: StakingInfo) => {
+        return JSBI.toNumber(JSBI.subtract(b.totalRewardRate.raw, a.totalRewardRate.raw))
+      }),
+    [stakingInfos]
+  )
+
   const [stakedPools, unstakedPools] = useMemo(() => {
-    // Sort staking info by highest rewards
-    const sortedStakingInfos = stakingInfos?.slice().sort((a: StakingInfo, b: StakingInfo) => {
-      return JSBI.toNumber(JSBI.subtract(b.totalRewardRate.raw, a.totalRewardRate.raw))
-    })
-    return partition(
-      sortedStakingInfos,
-      (pool) => pool.stakedAmount && JSBI.greaterThan(pool.stakedAmount.raw, BIG_INT_ZERO)
-    )
-  }, [stakingInfos])
+    return partition(allPools, (pool) => pool.stakedAmount && JSBI.greaterThan(pool.stakedAmount.raw, BIG_INT_ZERO))
+  }, [allPools])
 
   const [activePools, inactivePools] = partition(unstakedPools, (pool) => pool.active)
 
   const isGenesisOver = COUNTDOWN_END < new Date().getTime()
+
+  const mcUSDmcEURLP = allPools.find((pool) => pool.stakingToken.address === MOO_LP)
 
   return (
     <PageWrapper gap="lg" justify="center">
@@ -92,6 +100,19 @@ export default function Earn() {
       )}
 
       {!isGenesisOver && <LaunchCountdown />}
+
+      <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
+        <DataRow style={{ alignItems: 'baseline' }}>
+          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>Dual Pools</TYPE.mediumHeader>
+        </DataRow>
+        {mcUSDmcEURLP && (
+          <PoolSection>
+            <ErrorBoundary>
+              <DualPoolCard poolAddress={MOO_DUAL_POOL} underlyingPool={mcUSDmcEURLP} />
+            </ErrorBoundary>
+          </PoolSection>
+        )}
+      </AutoColumn>
 
       {stakedPools.length > 0 && (
         <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>

@@ -141,14 +141,13 @@ export const useUnclaimedStakingRewards = (): UnclaimedInfo => {
 // gets the staking info from the network for the active chain id
 export function useStakingInfo(pairToFilterBy?: Pair | null): readonly StakingInfo[] {
   const { chainId, account } = useActiveWeb3React()
-  const ubePrice = useCUSDPrice(UBE[chainId as ChainId])
+  const ube = chainId ? UBE[chainId] : undefined
+  const ubePrice = useCUSDPrice(ube)
 
   // detect if staking is ended
   const currentBlockTimestamp = useCurrentBlockTimestamp()
 
   const info = useStakingPools(pairToFilterBy)
-
-  const ube = chainId ? UBE[chainId] : undefined
 
   // These are the staking pools
   const rewardsAddresses = useMemo(() => info.map(({ stakingRewardAddress }) => stakingRewardAddress), [info])
