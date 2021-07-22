@@ -1,6 +1,6 @@
 import { Address } from '@celo/contractkit'
 import { BigNumber } from '@ethersproject/bignumber'
-import { JSBI, Token, TokenAmount } from '@ubeswap/sdk'
+import { JSBI, TokenAmount } from '@ubeswap/sdk'
 import { UBE } from 'constants/tokens'
 import { useActiveWeb3React } from 'hooks'
 import { useToken } from 'hooks/Tokens'

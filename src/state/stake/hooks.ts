@@ -296,7 +296,7 @@ export function useStakingInfo(pairToFilterBy?: Pair | null): readonly StakingIn
             poolInfo,
             dollarRewardPerYear,
             rewardToken: ube,
-            dualRewards: false
+            dualRewards: false,
           })
         }
         return memo
