@@ -109,6 +109,7 @@ export default function Earn() {
         <DataRow style={{ alignItems: 'baseline' }}>
           <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>Dual Pools</TYPE.mediumHeader>
         </DataRow>
+        {!(mcUSDmcEURLP && poofUBELP) && <Loader />}
         {mcUSDmcEURLP && (
           <PoolSection>
             <ErrorBoundary>

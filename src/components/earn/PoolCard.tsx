@@ -157,7 +157,7 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo, dualRewards }: Props) =
         </RowBetween>
         {dualRewards && (
           <RowBetween>
-            <TYPE.white>UBE rate</TYPE.white>
+            <TYPE.white>{dualRewards.totalUBERewardRate.token.symbol} rate</TYPE.white>
             <TYPE.white>
               {stakingInfo
                 ? stakingInfo.active
@@ -198,7 +198,7 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo, dualRewards }: Props) =
               <TYPE.white>
                 {`${stakingInfo.nextPeriodRewards.toFixed(0, {
                   groupSeparator: ',',
-                })} UBE / week`}
+                })} ${stakingInfo.nextPeriodRewards.token.symbol} / week`}
               </TYPE.white>
             </RowBetween>
           ))}
@@ -218,11 +218,13 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo, dualRewards }: Props) =
                   ⚡
                 </span>
                 {stakingInfo
-                  ? stakingInfo.active
-                    ? `${stakingInfo.rewardRate
-                        ?.multiply(BIG_INT_SECONDS_IN_WEEK)
-                        ?.toSignificant(4, { groupSeparator: ',' })} UBE / week`
-                    : '0 UBE / week'
+                  ? `${
+                      stakingInfo.active
+                        ? stakingInfo.rewardRate
+                            ?.multiply(BIG_INT_SECONDS_IN_WEEK)
+                            ?.toSignificant(4, { groupSeparator: ',' })
+                        : '0'
+                    } ${stakingInfo.rewardRate.token.symbol} / week`
                   : '-'}
               </TYPE.black>
             </RowBetween>
