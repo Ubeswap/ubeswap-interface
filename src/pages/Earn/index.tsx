@@ -40,6 +40,9 @@ flex-direction: column;
 `};
 `
 
+const POOF_DUAL_POOL = '0x969D7653ddBAbb42589d73EfBC2051432332A940'
+const POOF_DUAL_LP = '0x573bcEBD09Ff805eD32df2cb1A968418DC74DCf7'
+
 const MOO_DUAL_POOL = '0x2f0ddEAa9DD2A0FB78d41e58AD35373d6A81EbB0'
 const MOO_LP = '0x27616d3DBa43f55279726c422daf644bc60128a8'
 
@@ -67,6 +70,7 @@ export default function Earn() {
 
   const isGenesisOver = COUNTDOWN_END < new Date().getTime()
 
+  const poofUBELP = allPools.find((pool) => pool.stakingToken.address === POOF_DUAL_LP)
   const mcUSDmcEURLP = allPools.find((pool) => pool.stakingToken.address === MOO_LP)
 
   return (
@@ -109,6 +113,13 @@ export default function Earn() {
           <PoolSection>
             <ErrorBoundary>
               <DualPoolCard poolAddress={MOO_DUAL_POOL} underlyingPool={mcUSDmcEURLP} />
+            </ErrorBoundary>
+          </PoolSection>
+        )}
+        {poofUBELP && (
+          <PoolSection>
+            <ErrorBoundary>
+              <DualPoolCard poolAddress={POOF_DUAL_POOL} underlyingPool={poofUBELP} />
             </ErrorBoundary>
           </PoolSection>
         )}
