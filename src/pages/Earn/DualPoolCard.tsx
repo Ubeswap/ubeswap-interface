@@ -1,4 +1,4 @@
-import PoolCard from 'components/earn/PoolCard'
+import { PoolCard } from 'components/earn/PoolCard'
 import { useActiveWeb3React } from 'hooks'
 import React from 'react'
 import { StakingInfo } from 'state/stake/hooks'

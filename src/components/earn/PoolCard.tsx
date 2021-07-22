@@ -64,7 +64,11 @@ const BottomSection = styled.div<{ showBackground: boolean }>`
   z-index: 1;
 `
 
-export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) {
+interface Props {
+  stakingInfo: StakingInfo
+}
+
+export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
   const [token0, token1] = stakingInfo.tokens
 
   const isStaking = Boolean(stakingInfo.stakedAmount && stakingInfo.stakedAmount.greaterThan('0'))
@@ -144,8 +148,8 @@ export default function PoolCard({ stakingInfo }: { stakingInfo: StakingInfo }) 
               ? stakingInfo.active
                 ? `${stakingInfo.totalRewardRate
                     ?.multiply(BIG_INT_SECONDS_IN_WEEK)
-                    ?.toFixed(0, { groupSeparator: ',' })} UBE / week`
-                : '0 UBE / week'
+                    ?.toFixed(0, { groupSeparator: ',' })} ${stakingInfo.totalRewardRate.token.symbol} / week`
+                : `0 ${stakingInfo.totalRewardRate.token.symbol} / week`
               : '-'}
           </TYPE.white>
         </RowBetween>
