@@ -20,4 +20,3 @@ export const ExternalPoolCard: React.FC<Props> = ({ poolAddress, underlyingPool 
 
   return <PoolCard stakingInfo={mooPool} dualRewards={mooPool} />
 }
-

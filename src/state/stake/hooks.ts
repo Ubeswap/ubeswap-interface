@@ -254,7 +254,10 @@ export function useStakingInfo(pairToFilterBy?: Pair | null): readonly StakingIn
           const nextPeriodRewards = new TokenAmount(ube, poolInfo.nextPeriodRewards?.toString() ?? '0')
 
           // tokens per month
-          const ubePerYear = rewardToken === ube ? new TokenAmount(ube, JSBI.multiply(totalRewardRate.raw, JSBI.BigInt(365 * 24 * 60 * 60))) : new TokenAmount(ube, "0")
+          const ubePerYear =
+            rewardToken === ube
+              ? new TokenAmount(ube, JSBI.multiply(totalRewardRate.raw, JSBI.BigInt(365 * 24 * 60 * 60)))
+              : new TokenAmount(ube, '0')
           const dollarRewardPerYear = ubePrice?.quote(ubePerYear)
 
           const getHypotheticalRewardRate = (
