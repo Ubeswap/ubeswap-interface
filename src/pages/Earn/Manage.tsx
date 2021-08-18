@@ -321,7 +321,7 @@ export default function Manage({
                         ?.multiply(BIG_INT_SECONDS_IN_WEEK)
                         ?.toSignificant(4, { groupSeparator: ',' }) ?? '-'
                     : '0'}
-                  {' UBE / week'}
+                  {` ${stakingInfo?.rewardToken?.symbol ?? 'UBE'} / week`}
                 </TYPE.black>
               </RowBetween>
               {isDualFarm && (

@@ -240,17 +240,21 @@ export function useStakingInfo(pairToFilterBy?: Pair | null): readonly StakingIn
             return memo
           }
 
+          const rewardToken = poolInfo.rewardToken
+            ? new Token(chainId, poolInfo.rewardToken, 18, poolInfo.rewardTokenSymbol)
+            : ube
+
           // get the LP token
           const liquidityToken = new Token(chainId, poolInfo.stakingToken, 18, 'ULP', 'Ubeswap LP Token')
 
           // check for account, if no account set to 0
           const stakedAmount = new TokenAmount(liquidityToken, JSBI.BigInt(balanceState?.result?.[0] ?? 0))
           const totalStakedAmount = new TokenAmount(liquidityToken, JSBI.BigInt(totalSupplyState.result?.[0]))
-          const totalRewardRate = new TokenAmount(ube, JSBI.BigInt(rewardRateState.result?.[0]))
+          const totalRewardRate = new TokenAmount(rewardToken, JSBI.BigInt(rewardRateState.result?.[0]))
           const nextPeriodRewards = new TokenAmount(ube, poolInfo.nextPeriodRewards?.toString() ?? '0')
 
           // tokens per month
-          const ubePerYear = new TokenAmount(ube, JSBI.multiply(totalRewardRate.raw, JSBI.BigInt(365 * 24 * 60 * 60)))
+          const ubePerYear = rewardToken === ube ? new TokenAmount(ube, JSBI.multiply(totalRewardRate.raw, JSBI.BigInt(365 * 24 * 60 * 60))) : new TokenAmount(ube, "0")
           const dollarRewardPerYear = ubePrice?.quote(ubePerYear)
 
           const getHypotheticalRewardRate = (
@@ -259,7 +263,7 @@ export function useStakingInfo(pairToFilterBy?: Pair | null): readonly StakingIn
             totalRewardRate: TokenAmount
           ): TokenAmount => {
             return new TokenAmount(
-              ube,
+              rewardToken,
               JSBI.greaterThan(totalStakedAmount.raw, JSBI.BigInt(0))
                 ? JSBI.divide(JSBI.multiply(totalRewardRate.raw, stakedAmount.raw), totalStakedAmount.raw)
                 : JSBI.BigInt(0)
@@ -286,8 +290,8 @@ export function useStakingInfo(pairToFilterBy?: Pair | null): readonly StakingIn
             stakingToken: totalStakedAmount.token,
             tokens,
             periodFinish: periodFinishMs > 0 ? new Date(periodFinishMs) : undefined,
-            earnedAmount: new TokenAmount(ube, JSBI.BigInt(earnedAmountState?.result?.[0] ?? 0)),
-            earnedAmountUbe: new TokenAmount(ube, JSBI.BigInt(earnedAmountState?.result?.[0] ?? 0)),
+            earnedAmount: new TokenAmount(rewardToken, JSBI.BigInt(earnedAmountState?.result?.[0] ?? 0)),
+            earnedAmountUbe: new TokenAmount(rewardToken, JSBI.BigInt(earnedAmountState?.result?.[0] ?? 0)),
             rewardRate: individualRewardRate,
             ubeRewardRate: individualRewardRate,
             totalRewardRate: totalRewardRate,
@@ -299,7 +303,7 @@ export function useStakingInfo(pairToFilterBy?: Pair | null): readonly StakingIn
             active,
             poolInfo,
             dollarRewardPerYear,
-            rewardToken: ube,
+            rewardToken,
             dualRewards: false,
           })
         }
@@ -391,8 +395,10 @@ interface IRawPool {
   stakingToken: string
   poolAddress: string
   weight: number
-  nextPeriod: number
-  nextPeriodRewards: BigNumber | null
+  rewardToken?: string
+  rewardTokenSymbol?: string
+  nextPeriod?: number
+  nextPeriodRewards?: BigNumber | null
 }
 
 export function useStakingPoolsInfo(
@@ -404,6 +410,25 @@ export function useStakingPoolsInfo(
     'pools',
     poolAddresses.map((addr) => [addr])
   )
+
+  const EXTERNAL_POOLS: IRawPool[] = [
+    {
+      index: -1,
+      poolAddress: '0x33F819986FE80A4f4A9032260A24770918511849',
+      stakingToken: '0xF97E6168283e38FC42725082FC63b47B6cD16B18',
+      rewardToken: '0x18414Ce6dAece0365f935F3e78A7C1993e77d8Cd',
+      rewardTokenSymbol: 'LAPIS',
+      weight: 0,
+    },
+    {
+      index: -1,
+      poolAddress: '0xD409B7C4F67F5C845c53505b3d3B5aCD44e479AB',
+      stakingToken: '0x573bcEBD09Ff805eD32df2cb1A968418DC74DCf7',
+      rewardToken: '0x18414Ce6dAece0365f935F3e78A7C1993e77d8Cd',
+      rewardTokenSymbol: 'LAPIS',
+      weight: 0,
+    },
+  ]
 
   const rawPools = useMemo(() => {
     return !pools || !pools[0] || pools[0].loading
@@ -417,7 +442,7 @@ export function useStakingPoolsInfo(
     'computeAmountForPool',
     rawPools.map((p) => [p.stakingToken, nextPeriod?.result?.[0]])
   )
-  return rawPools.map((pool, i) => ({
+  return rawPools.concat(EXTERNAL_POOLS).map((pool, i) => ({
     ...pool,
     nextPeriodRewards: poolRewards?.[i]?.result?.[0] ?? null,
   }))
