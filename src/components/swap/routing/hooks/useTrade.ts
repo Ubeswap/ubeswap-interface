@@ -93,7 +93,7 @@ export function useAllCommonPairsWithMoolaDuals(tokenA?: Token, tokenB?: Token):
   )
 }
 
-const MAX_HOPS = 3
+const MAX_HOPS = 4
 
 const moolaRouter: TradeRouter = {
   routerAddress: UBESWAP_MOOLA_ROUTER_ADDRESS,
