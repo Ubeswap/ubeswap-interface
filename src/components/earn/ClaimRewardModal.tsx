@@ -49,9 +49,11 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
           gasLimit: 350000,
         },
         summary: `Claim accumulated UBE rewards`,
-      }).catch(() => {
-        setAttempting(false)
       })
+        .catch(console.error)
+        .finally(() => {
+          wrappedOnDismiss()
+        })
     }
   }
 

@@ -1,6 +1,6 @@
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { parseBytes32String } from '@ethersproject/strings'
 import { ChainId, currencyEquals, Token } from '@ubeswap/sdk'
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { arrayify } from 'ethers/lib/utils'
 import { useMemo } from 'react'
 

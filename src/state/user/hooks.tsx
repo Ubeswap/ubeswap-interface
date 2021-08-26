@@ -1,5 +1,5 @@
-import { ChainId, Pair, Token } from '@ubeswap/sdk'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, Pair, Token } from '@ubeswap/sdk'
 import flatMap from 'lodash.flatmap'
 import { useCallback, useMemo } from 'react'
 import ReactGA from 'react-ga'

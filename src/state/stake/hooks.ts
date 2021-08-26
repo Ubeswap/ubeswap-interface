@@ -1,8 +1,8 @@
-import { ChainId, JSBI, Pair, Token, TokenAmount } from '@ubeswap/sdk'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { BigNumber } from '@ethersproject/bignumber'
+import { ChainId, JSBI, Pair, Token, TokenAmount } from '@ubeswap/sdk'
 import { POOL_MANAGER } from 'constants/poolManager'
 import { UBE } from 'constants/tokens'
-import { BigNumber } from 'ethers'
 import { PoolManager } from 'generated/'
 import { useAllTokens } from 'hooks/Tokens'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
@@ -78,7 +78,7 @@ export const usePairStakingInfo = (pairToFilterBy?: Pair | null, stakingAddress?
 }
 
 export const usePairDualStakingInfo = (stakingInfo: StakingInfo | undefined): DualRewardsInfo | null => {
-  const { account } = useActiveWeb3React()
+  const { address } = useContractKit()
   let dualStakeAddress = ''
   if (stakingInfo?.poolInfo.stakingToken === POOF_DUAL_LP) {
     dualStakeAddress = POOF_DUAL_POOL
@@ -87,7 +87,7 @@ export const usePairDualStakingInfo = (stakingInfo: StakingInfo | undefined): Du
   } else if (stakingInfo?.poolInfo.stakingToken == MOO_LP2) {
     dualStakeAddress = MOO_DUAL_POOL2
   }
-  return useDualStakeRewards(dualStakeAddress, stakingInfo, account)
+  return useDualStakeRewards(dualStakeAddress, stakingInfo, address)
 }
 
 interface UnclaimedInfo {
@@ -106,14 +106,11 @@ interface UnclaimedInfo {
 }
 
 export const useUnclaimedStakingRewards = (): UnclaimedInfo => {
-  const {
-    network: { chainId },
-  } = useContractKit()
-  const ube = chainId ? UBE[chainId as ChainId] : undefined
+  const { network } = useContractKit()
+  const { chainId } = network
+  const ube = chainId ? UBE[chainId] : undefined
   const ubeContract = useTokenContract(ube?.address)
-  const poolManagerContract = usePoolManagerContract(
-    chainId !== ChainId.BAKLAVA ? POOL_MANAGER[chainId as ChainId.MAINNET | ChainId.ALFAJORES] : undefined
-  )
+  const poolManagerContract = usePoolManagerContract(chainId !== ChainId.BAKLAVA ? POOL_MANAGER[chainId] : undefined)
   const poolsCountBigNumber = useSingleCallResult(poolManagerContract, 'poolsCount').result?.[0] as
     | BigNumber
     | undefined
@@ -170,24 +167,21 @@ export const useUnclaimedStakingRewards = (): UnclaimedInfo => {
 }
 
 // gets the staking info from the network for the active chain id
-export function useStakingInfo(pairToFilterBy?: Pair | null): readonly StakingInfo[] {
-  const {
-    address: account,
-    network: { chainId },
-  } = useContractKit()
-  const ubePrice = useCUSDPrice(UBE[chainId as ChainId])
+export function useStakingInfo(pairToFilterBy?: Pair | null, stakingAddress?: string): readonly StakingInfo[] {
+  const { network, address } = useContractKit()
+  const { chainId } = network
+  const ube = chainId ? UBE[chainId] : undefined
+  const ubePrice = useCUSDPrice(ube)
 
   // detect if staking is ended
   const currentBlockTimestamp = useCurrentBlockTimestamp()
 
   const info = useStakingPools(pairToFilterBy, stakingAddress)
 
-  const ube = chainId ? UBE[chainId as ChainId] : undefined
-
   // These are the staking pools
   const rewardsAddresses = useMemo(() => info.map(({ stakingRewardAddress }) => stakingRewardAddress), [info])
 
-  const accountArg = useMemo(() => [account ?? undefined], [account])
+  const accountArg = useMemo(() => [address ?? undefined], [address])
 
   // get all the info from the staking rewards contracts
   const balances = useMultipleContractSingleData(rewardsAddresses, STAKING_REWARDS_INTERFACE, 'balanceOf', accountArg)
@@ -344,8 +338,8 @@ interface IStakingPool {
 
 export function useStakingPools(pairToFilterBy?: Pair | null, stakingAddress?: string): readonly IStakingPool[] {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
-  const ube = chainId ? UBE[chainId as ChainId] : undefined
+  const { chainId } = network
+  const ube = chainId ? UBE[chainId] : undefined
 
   const poolManagerContract = usePoolManagerContract(chainId !== ChainId.BAKLAVA ? POOL_MANAGER[chainId] : undefined)
   const poolsCountBigNumber = useSingleCallResult(poolManagerContract, 'poolsCount').result?.[0] as
@@ -471,7 +465,7 @@ export function usePairDataFromAddresses(
   pairAddresses: readonly string[]
 ): readonly (readonly [Token, Token] | undefined)[] {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const { chainId } = network
 
   const token0Data = useMultipleContractSingleData(
     pairAddresses,
@@ -564,7 +558,7 @@ export function usePairDataFromAddresses(
 
 export function useTotalUbeEarned(): TokenAmount | undefined {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const { chainId } = network
   const ube = chainId ? UBE[chainId] : undefined
   const stakingInfos = useStakingInfo()
 
@@ -588,7 +582,7 @@ export function useDerivedStakeInfo(
   parsedAmount?: TokenAmount
   error?: string
 } {
-  const { address: account } = useContractKit()
+  const { address } = useContractKit()
 
   const parsedInput: TokenAmount | undefined = tryParseAmount(typedValue, stakingToken)
 
@@ -598,7 +592,7 @@ export function useDerivedStakeInfo(
       : undefined
 
   let error: string | undefined
-  if (!account) {
+  if (!address) {
     error = 'Connect Wallet'
   }
   if (!parsedAmount) {
@@ -619,14 +613,14 @@ export function useDerivedUnstakeInfo(
   parsedAmount?: TokenAmount
   error?: string
 } {
-  const { address: account } = useContractKit()
+  const { address } = useContractKit()
 
   const parsedInput: TokenAmount | undefined = tryParseAmount(typedValue, stakingAmount.token)
 
   const parsedAmount = parsedInput && JSBI.lessThanOrEqual(parsedInput.raw, stakingAmount.raw) ? parsedInput : undefined
 
   let error: string | undefined
-  if (!account) {
+  if (!address) {
     error = 'Connect Wallet'
   }
   if (!parsedAmount) {

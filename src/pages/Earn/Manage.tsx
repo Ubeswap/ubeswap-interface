@@ -1,5 +1,5 @@
-import { ChainId, cUSD, JSBI } from '@ubeswap/sdk'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, cUSD, JSBI } from '@ubeswap/sdk'
 import QuestionHelper from 'components/QuestionHelper'
 import React, { useCallback, useState } from 'react'
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom'
@@ -93,6 +93,7 @@ export default function Manage({
 }: RouteComponentProps<{ currencyIdA: string; currencyIdB: string }>) {
   const { address: account, network } = useContractKit()
   const chainId = network.chainId as ChainId
+  const location = useLocation()
 
   // get currencies and pair
   const [tokenA, tokenB] = [useCurrency(currencyIdA) ?? undefined, useCurrency(currencyIdB) ?? undefined]
@@ -106,6 +107,7 @@ export default function Manage({
 
   // detect existing unstaked LP position to show add button if none found
   const userLiquidityUnstaked = useTokenBalance(account ?? undefined, stakingInfo?.stakedAmount?.token)
+  console.log(isDualFarm, dualStakingInfo)
   const showAddLiquidityButton = Boolean(stakingInfo?.stakedAmount?.equalTo('0') && userLiquidityUnstaked?.equalTo('0'))
 
   // toggle for staking modal and unstaking modal

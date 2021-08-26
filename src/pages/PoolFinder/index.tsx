@@ -1,5 +1,5 @@
-import { ChainId, cUSD, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, cUSD, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Plus } from 'react-feather'
 import { Text } from 'rebass'

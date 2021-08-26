@@ -1,6 +1,6 @@
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { Contract } from '@ethersproject/contracts'
 import { ChainId } from '@ubeswap/sdk'
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { useEffect, useMemo, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 

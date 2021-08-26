@@ -1,5 +1,5 @@
-import { CELO, ChainId, TokenAmount } from '@ubeswap/sdk'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { CELO, ChainId, TokenAmount } from '@ubeswap/sdk'
 import { CardNoise } from 'components/earn/styled'
 import Modal from 'components/Modal'
 import usePrevious from 'hooks/usePrevious'

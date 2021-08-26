@@ -1,5 +1,5 @@
-import { ChainId, Pair, Token, TokenAmount, Trade } from '@ubeswap/sdk'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, Pair, Token, TokenAmount, Trade } from '@ubeswap/sdk'
 import flatMap from 'lodash.flatmap'
 import { useMemo } from 'react'
 import { useUserSingleHopOnly } from 'state/user/hooks'

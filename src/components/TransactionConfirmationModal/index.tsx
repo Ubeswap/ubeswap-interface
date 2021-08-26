@@ -1,5 +1,5 @@
-import { ChainId, getBlockscoutLink } from '@ubeswap/sdk'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, getBlockscoutLink } from '@ubeswap/sdk'
 import React, { useContext } from 'react'
 import { AlertTriangle, ArrowUpCircle } from 'react-feather'
 import { Text } from 'rebass'

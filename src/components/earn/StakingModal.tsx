@@ -1,5 +1,5 @@
-import { Pair, TokenAmount } from '@ubeswap/sdk'
 import { useProvider } from '@celo-tools/use-contractkit'
+import { Pair, TokenAmount } from '@ubeswap/sdk'
 import Loader from 'components/Loader'
 import { useDoTransaction } from 'components/swap/routing'
 import React, { useCallback, useState } from 'react'

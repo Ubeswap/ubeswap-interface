@@ -1,6 +1,6 @@
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { parseUnits } from '@ethersproject/units'
 import { ChainId, cUSD, JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { useUbeswapTradeExactIn, useUbeswapTradeExactOut } from 'components/swap/routing/hooks/useTrade'
 import { UbeswapTrade } from 'components/swap/routing/trade'
 import { ParsedQs } from 'qs'
@@ -263,8 +263,9 @@ export function useDefaultsFromURLSearch():
   const chainId = network.chainId as ChainId
   const dispatch = useDispatch<AppDispatch>()
   const parsedQs = useParsedQueryString()
-  const [result, setResult] =
-    useState<{ inputCurrencyId: string | undefined; outputCurrencyId: string | undefined } | undefined>()
+  const [result, setResult] = useState<
+    { inputCurrencyId: string | undefined; outputCurrencyId: string | undefined } | undefined
+  >()
 
   useEffect(() => {
     if (!chainId) return

@@ -1,5 +1,5 @@
-import { Pair, Token } from '@ubeswap/sdk'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { Pair, Token } from '@ubeswap/sdk'
 import { darken } from 'polished'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'

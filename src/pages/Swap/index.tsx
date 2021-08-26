@@ -1,5 +1,5 @@
-import { JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
 import { describeTrade } from 'components/swap/routing/describeTrade'
 import { MoolaDirectTrade } from 'components/swap/routing/moola/MoolaDirectTrade'
 import { useTradeCallback } from 'components/swap/routing/useTradeCallback'

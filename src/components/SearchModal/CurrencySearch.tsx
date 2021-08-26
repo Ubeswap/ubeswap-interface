@@ -1,5 +1,5 @@
-import { ChainId, cUSD, Token } from '@ubeswap/sdk'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, cUSD, Token } from '@ubeswap/sdk'
 import { ButtonLight } from 'components/Button'
 import { useOnClickOutside } from 'hooks/useOnClickOutside'
 import useTheme from 'hooks/useTheme'

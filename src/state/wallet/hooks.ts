@@ -1,5 +1,5 @@
-import { ChainId, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import { UBE } from 'constants/tokens'
 import { useMemo } from 'react'
 
