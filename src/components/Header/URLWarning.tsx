@@ -1,5 +1,5 @@
 import { ChainId } from '@ubeswap/sdk'
-import { useContractKit } from '@ubeswap/use-contractkit'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import React from 'react'
 import { isMobile } from 'react-device-detect'
 import { AlertTriangle, X } from 'react-feather'

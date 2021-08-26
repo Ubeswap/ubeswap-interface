@@ -1,5 +1,5 @@
 import { ChainId, TokenAmount } from '@ubeswap/sdk'
-import { useContractKit } from '@ubeswap/use-contractkit'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import Loader from 'components/Loader'
 import React from 'react'
 import { X } from 'react-feather'

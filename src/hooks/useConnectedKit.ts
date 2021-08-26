@@ -1,4 +1,4 @@
-import { useContractKit } from '@ubeswap/use-contractkit'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { useEffect, useState } from 'react'
 
 export const useConnectedKit = () => {

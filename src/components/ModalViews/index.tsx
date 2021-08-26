@@ -1,5 +1,5 @@
 import { ChainId, getBlockscoutLink } from '@ubeswap/sdk'
-import { useContractKit } from '@ubeswap/use-contractkit'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import React, { useContext } from 'react'
 import { ArrowUpCircle } from 'react-feather'
 import styled, { ThemeContext } from 'styled-components'

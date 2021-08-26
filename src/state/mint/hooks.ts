@@ -1,5 +1,5 @@
 import { JSBI, Pair, Percent, Price, Token, TokenAmount } from '@ubeswap/sdk'
-import { useContractKit } from '@ubeswap/use-contractkit'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { useCallback, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 

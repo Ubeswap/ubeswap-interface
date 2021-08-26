@@ -1,6 +1,6 @@
 import { Signer } from '@ethersproject/abstract-signer'
 import { ChainId, Trade } from '@ubeswap/sdk'
-import { useContractKit, useGetConnectedSigner } from '@ubeswap/use-contractkit'
+import { useContractKit, useGetConnectedSigner } from '@celo-tools/use-contractkit'
 import { BigNumber, BigNumberish, CallOverrides, Contract, ContractTransaction, PayableOverrides } from 'ethers'
 import { useCallback } from 'react'
 import { useTransactionAdder } from 'state/transactions/hooks'

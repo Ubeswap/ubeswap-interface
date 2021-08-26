@@ -1,5 +1,5 @@
 import { ChainId, parseNetwork } from '@ubeswap/sdk'
-import { Alfajores, Baklava, Mainnet } from '@ubeswap/use-contractkit'
+import { Alfajores, Baklava, Mainnet } from '@celo-tools/use-contractkit'
 
 const networkChainIDFromHostname: ChainId = window.location.hostname.includes('alfajores')
   ? ChainId.ALFAJORES

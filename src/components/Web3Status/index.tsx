@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/react'
-import { useContractKit, WalletTypes } from '@ubeswap/use-contractkit'
+import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
 import useAccountSummary from 'hooks/useAccountSummary'
 import { darken, lighten } from 'polished'
 import React, { useEffect, useMemo } from 'react'

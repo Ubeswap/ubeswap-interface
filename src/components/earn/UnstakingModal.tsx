@@ -1,4 +1,4 @@
-import { useContractKit } from '@ubeswap/use-contractkit'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { useDoTransaction } from 'components/swap/routing'
 import React, { useState } from 'react'
 import styled from 'styled-components'

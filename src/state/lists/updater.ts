@@ -1,4 +1,4 @@
-import { useProvider } from '@ubeswap/use-contractkit'
+import { useProvider } from '@celo-tools/use-contractkit'
 import { getVersionUpgrade, minVersionBump, VersionUpgrade } from '@uniswap/token-lists'
 import { useAllInactiveTokens } from 'hooks/Tokens'
 import { useCallback, useEffect } from 'react'

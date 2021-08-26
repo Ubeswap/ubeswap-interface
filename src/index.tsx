@@ -1,10 +1,11 @@
 import './i18n'
-import '@ubeswap/use-contractkit/lib/styles.css'
+import '@celo-tools/use-contractkit/lib/styles.css'
+import './index.css'
 
 import * as Sentry from '@sentry/react'
 import { Integrations } from '@sentry/tracing'
 import { ChainId } from '@ubeswap/sdk'
-import { ContractKitProvider } from '@ubeswap/use-contractkit'
+import { ContractKitProvider } from '@celo-tools/use-contractkit'
 import { NETWORK, NETWORK_CHAIN_ID, NETWORK_CHAIN_NAME } from 'connectors/index'
 import React, { StrictMode } from 'react'
 import { isMobile } from 'react-device-detect'
@@ -105,7 +106,10 @@ ReactDOM.render(
   <StrictMode>
     <FixedGlobalStyle />
     <ContractKitProvider
+<<<<<<< HEAD
       networks={[NETWORK]}
+=======
+>>>>>>> Upgrade use-oontractkit
       dapp={{
         name: 'Ubeswap',
         description:
@@ -124,6 +128,7 @@ ReactDOM.render(
               border: 'unset',
               background: 'unset',
               padding: 'unset',
+              color: 'black',
             },
             overlay: {
               zIndex: 100,

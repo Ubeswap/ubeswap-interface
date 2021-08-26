@@ -1,5 +1,5 @@
 import { ChainId, getBlockscoutLink } from '@ubeswap/sdk'
-import { useContractKit } from '@ubeswap/use-contractkit'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import React, { useEffect, useState } from 'react'
 import styled, { keyframes } from 'styled-components'
 

@@ -1,6 +1,6 @@
 import { parseUnits } from '@ethersproject/units'
 import { ChainId, cUSD, JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
-import { useContractKit } from '@ubeswap/use-contractkit'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { useUbeswapTradeExactIn, useUbeswapTradeExactOut } from 'components/swap/routing/hooks/useTrade'
 import { UbeswapTrade } from 'components/swap/routing/trade'
 import { ParsedQs } from 'qs'

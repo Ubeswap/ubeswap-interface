@@ -1,5 +1,5 @@
 import { ChainId, cUSD, JSBI } from '@ubeswap/sdk'
-import { useContractKit } from '@ubeswap/use-contractkit'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import QuestionHelper from 'components/QuestionHelper'
 import React, { useCallback, useState } from 'react'
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom'
