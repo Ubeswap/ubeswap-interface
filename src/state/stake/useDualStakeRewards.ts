@@ -19,7 +19,6 @@ export type DualRewardsInfo = StakingInfo & {
   ubeRewardRate: TokenAmount
   totalUBERewardRate: TokenAmount
 
-  ubeDollarRewardPerYear?: TokenAmount
   rewardsDollarRewardPerYear?: TokenAmount
 }
 
@@ -108,17 +107,11 @@ export const useDualStakeRewards = (
       ? getHypotheticalRewardRate(stakedAmount, totalStakedAmount, totalRewardRate)
       : new TokenAmount(totalRewardRate.token, '0')
 
-    const ubeDollarRewardPerYear = underlyingPool.dollarRewardPerYear
-
     const rewardsPerYear = new TokenAmount(
       rewardsToken,
       JSBI.multiply(totalRewardRate.raw, JSBI.BigInt(365 * 24 * 60 * 60))
     )
     const rewardsDollarRewardPerYear = rewardsPrice?.quote(rewardsPerYear)
-
-    const dollarRewardPerYear = rewardsDollarRewardPerYear
-      ? ubeDollarRewardPerYear?.add(rewardsDollarRewardPerYear)
-      : undefined
 
     return {
       stakingRewardAddress: address,
@@ -138,8 +131,6 @@ export const useDualStakeRewards = (
       active: true,
       getHypotheticalRewardRate,
 
-      dollarRewardPerYear,
-      ubeDollarRewardPerYear,
       rewardsDollarRewardPerYear,
 
       tokens: underlyingPool.tokens,
