@@ -1,5 +1,5 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
-import { ChainId, Token, TokenAmount } from '@ubeswap/sdk'
+import { Token, TokenAmount } from '@ubeswap/sdk'
 import { useDoTransaction } from 'components/swap/routing'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
@@ -45,7 +45,7 @@ export default function AddLiquidity({
 }: RouteComponentProps<{ currencyIdA?: string; currencyIdB?: string }>) {
   const { address: account, network } = useContractKit()
   const library = useProvider()
-  const chainId = network.chainId 
+  const chainId = network.chainId
   const theme = useContext(ThemeContext)
 
   const currencyA = useCurrency(currencyIdA)

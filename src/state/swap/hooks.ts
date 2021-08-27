@@ -260,7 +260,7 @@ export function useDefaultsFromURLSearch():
   | { inputCurrencyId: string | undefined; outputCurrencyId: string | undefined }
   | undefined {
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId as unknown as ChainId
   const dispatch = useDispatch<AppDispatch>()
   const parsedQs = useParsedQueryString()
   const [result, setResult] = useState<

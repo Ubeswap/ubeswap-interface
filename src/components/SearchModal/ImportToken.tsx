@@ -50,7 +50,7 @@ export function ImportToken({ tokens, onBack, onDismiss, handleCurrencySelect }:
   const theme = useTheme()
 
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId as unknown as ChainId
 
   const [confirmed, setConfirmed] = useState(false)
 

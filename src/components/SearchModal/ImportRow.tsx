@@ -1,5 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId, Token } from '@ubeswap/sdk'
+import { Token } from '@ubeswap/sdk'
 import { ButtonPrimary } from 'components/Button'
 import { AutoColumn } from 'components/Column'
 import CurrencyLogo from 'components/CurrencyLogo'
@@ -55,7 +55,7 @@ export default function ImportRow({
 }) {
   // gloabls
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId
   const theme = useTheme()
 
   // check if token comes from list

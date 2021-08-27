@@ -172,7 +172,7 @@ export default function TransactionConfirmationModal({
   content,
 }: ConfirmationModalProps) {
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId as unknown as ChainId
 
   if (!chainId) return null
 

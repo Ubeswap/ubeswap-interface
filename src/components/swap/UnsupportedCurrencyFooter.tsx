@@ -45,7 +45,7 @@ export default function UnsupportedCurrencyFooter({
   currencies: (Token | undefined)[]
 }) {
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId as unknown as ChainId
   const [showDetails, setShowDetails] = useState(false)
 
   const tokens = currencies

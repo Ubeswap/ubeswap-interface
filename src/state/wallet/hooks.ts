@@ -1,5 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
+import { JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import { UBE } from 'constants/tokens'
 import { useMemo } from 'react'
 
@@ -98,7 +98,7 @@ export function useAggregateUbeBalance(): TokenAmount | undefined {
     network: { chainId },
   } = useContractKit()
 
-  const ube = chainId ? UBE[chainId ] : undefined
+  const ube = chainId ? UBE[chainId] : undefined
 
   const ubeBalance: TokenAmount | undefined = useTokenBalance(address ?? undefined, ube)
 

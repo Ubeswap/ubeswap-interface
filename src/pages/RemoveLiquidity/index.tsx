@@ -1,6 +1,6 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { Contract } from '@ethersproject/contracts'
-import { ChainId, Percent, Token } from '@ubeswap/sdk'
+import { Percent, Token } from '@ubeswap/sdk'
 import { useDoTransaction } from 'components/swap/routing'
 import React, { useCallback, useContext, useState } from 'react'
 import { ArrowDown, Plus } from 'react-feather'
@@ -45,7 +45,7 @@ export default function RemoveLiquidity({
   const [currencyA, currencyB] = [useCurrency(currencyIdA) ?? undefined, useCurrency(currencyIdB) ?? undefined]
   const { address: account, network, connect } = useContractKit()
   const library = useProvider()
-  const chainId = network.chainId 
+  const chainId = network.chainId
   const [tokenA, tokenB] = [currencyA, currencyB]
 
   const theme = useContext(ThemeContext)

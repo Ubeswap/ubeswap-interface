@@ -1,6 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { Contract } from '@ethersproject/contracts'
-import { ChainId } from '@ubeswap/sdk'
 import { useEffect, useMemo, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -121,7 +120,7 @@ export default function Updater(): null {
   const debouncedListeners = useDebounce(state.callListeners, 100)
   const latestBlockNumber = useBlockNumber()
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId
   const multicallContract = useMulticallContract()
   const cancellations = useRef<{ blockNumber: number; cancellations: (() => void)[] }>()
 

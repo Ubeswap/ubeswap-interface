@@ -1,4 +1,4 @@
-import { useContractKit, ChainId } from '@celo-tools/use-contractkit'
+import { ChainId, useContractKit } from '@celo-tools/use-contractkit'
 import { BigNumber } from '@ethersproject/bignumber'
 import { ChainId as UbeswapChainId, JSBI, Pair, Token, TokenAmount } from '@ubeswap/sdk'
 import { POOL_MANAGER } from 'constants/poolManager'

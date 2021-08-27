@@ -1,5 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId, cUSD, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
+import { cUSD, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Plus } from 'react-feather'
 import { Text } from 'rebass'
@@ -27,7 +27,7 @@ enum Fields {
 
 export default function PoolFinder() {
   const { address: account, network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId
 
   const [showSearch, setShowSearch] = useState<boolean>(false)
   const [activeField, setActiveField] = useState<number>(Fields.TOKEN1)

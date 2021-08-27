@@ -1,5 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId, currencyEquals, Pair, Percent, Price, Token, TokenAmount, Trade, TradeType } from '@ubeswap/sdk'
+import { currencyEquals, Pair, Percent, Price, Token, TokenAmount, Trade, TradeType } from '@ubeswap/sdk'
 import {
   BASES_TO_CHECK_TRADES_AGAINST,
   BETTER_TRADE_LESS_HOPS_THRESHOLD,
@@ -26,7 +26,7 @@ import { useDirectTradeExactIn, useDirectTradeExactOut } from './directTrades'
  */
 export function useAllCommonPairsWithMoolaDuals(tokenA?: Token, tokenB?: Token): readonly Pair[] {
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId
 
   const bases: readonly Token[] = useMemo(() => (chainId ? BASES_TO_CHECK_TRADES_AGAINST[chainId] : []), [chainId])
 

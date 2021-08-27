@@ -1,5 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { CELO, ChainId, cUSD, Fraction, TokenAmount, TradeType } from '@ubeswap/sdk'
+import { CELO, cUSD, Fraction, TokenAmount, TradeType } from '@ubeswap/sdk'
 import { ErrorText } from 'components/swap/styleds'
 import { usePair } from 'data/Reserves'
 import { BigNumber } from 'ethers'
@@ -18,7 +18,7 @@ interface Props {
 
 export const MoolaDirectTradeDetails: React.FC<Props> = ({ trade }: Props) => {
   const { address: account, network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId
   const lendingPool = useLendingPool()
   const theme = useContext(ThemeContext)
 

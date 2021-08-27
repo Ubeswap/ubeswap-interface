@@ -64,7 +64,7 @@ const Spinner = styled.div`
 
 export default function Polling() {
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId as unknown as ChainId
 
   const blockNumber = useBlockNumber()
 

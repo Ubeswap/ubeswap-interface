@@ -55,7 +55,7 @@ const estimateGas = async (call: ContractCall): Promise<BigNumber> => {
       const result = await contract.callStatic[methodName](...fullArgs)
       console.debug('Unexpected successful call after failed estimate gas', call, gasError, result)
       throw new Error('Unexpected issue with estimating the gas. Please try again.')
-    } catch (callError) {
+    } catch (callError: any) {
       console.debug('Call threw error', call, callError)
       let errorMessage: string
       switch (callError.reason) {
@@ -80,7 +80,7 @@ export const useDoTransaction = (): DoTransactionFn => {
   const addTransaction = useTransactionAdder()
   const { network } = useContractKit()
   const getConnectedSigner = useGetConnectedSigner()
-  const chainId = network.chainId 
+  const chainId = network.chainId as unknown as ChainId
   return useCallback(
     async (contractDisconnected, methodName, args): Promise<ContractTransaction> => {
       if (chainId === ChainId.BAKLAVA) {
@@ -101,7 +101,7 @@ export const useDoTransaction = (): DoTransactionFn => {
           claim: args.claim,
         })
         return response
-      } catch (error) {
+      } catch (error: any) {
         // if the user rejected the tx, pass this along
         if (error?.code === 4001) {
           throw new Error('Transaction rejected.')

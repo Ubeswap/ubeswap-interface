@@ -1,7 +1,7 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { cUSD, JSBI } from '@ubeswap/sdk'
 import QuestionHelper from 'components/QuestionHelper'
-import { useCallback, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import { CountUp } from 'use-count-up'

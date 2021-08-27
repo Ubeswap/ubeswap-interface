@@ -34,7 +34,7 @@ export default function URLWarning() {
   const toggleURLWarning = useURLWarningToggle()
   const showURLWarning = useURLWarningVisible()
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId
 
   return isMobile ? (
     <PhishAlert isActive={showURLWarning}>

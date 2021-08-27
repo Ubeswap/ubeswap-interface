@@ -78,7 +78,7 @@ export default function AddressInputPanel({
   onChange: (value: string) => void
 }) {
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId as unknown as ChainId
   const theme = useContext(ThemeContext)
 
   const { address, loading, name } = useENS(value)

@@ -1,5 +1,4 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
-import { ChainId } from '@ubeswap/sdk'
 import { useCallback, useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 
@@ -10,7 +9,7 @@ import { updateBlockNumber } from './actions'
 export default function Updater(): null {
   const library = useProvider()
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId
   const dispatch = useDispatch()
 
   const windowVisible = useIsWindowVisible()

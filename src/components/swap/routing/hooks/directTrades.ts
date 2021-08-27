@@ -1,5 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId, Pair, Token, TokenAmount, Trade } from '@ubeswap/sdk'
+import { Pair, Token, TokenAmount, Trade } from '@ubeswap/sdk'
 import flatMap from 'lodash.flatmap'
 import { useMemo } from 'react'
 import { useUserSingleHopOnly } from 'state/user/hooks'
@@ -11,7 +11,7 @@ import { UbeswapTrade } from '../trade'
 
 function useAllCommonPairs(tokenA?: Token, tokenB?: Token): Pair[] {
   const { network } = useContractKit()
-  const chainId = network.chainId 
+  const chainId = network.chainId
 
   const bases: Token[] = useMemo(() => {
     if (!chainId) return []

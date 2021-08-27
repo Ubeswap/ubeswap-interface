@@ -1,5 +1,5 @@
 import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
-import { getBlockscoutLink } from '@ubeswap/sdk'
+import { ChainId, getBlockscoutLink } from '@ubeswap/sdk'
 import React, { useCallback, useContext } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
 import { useDispatch } from 'react-redux'
@@ -214,13 +214,8 @@ export default function AccountDetails({
   confirmedTransactions,
   ENSName,
 }: AccountDetailsProps) {
-  const {
-    connect,
-    destroy,
-    address,
-    walletType,
-    network: { chainId },
-  } = useContractKit()
+  const { connect, destroy, address, walletType, network } = useContractKit()
+  const chainId = network.chainId as unknown as ChainId
   const closeModals = useCloseModals()
   const theme = useContext(ThemeContext)
   const dispatch = useDispatch<AppDispatch>()
