@@ -53,7 +53,7 @@ export type MoolaConfig = typeof moolaLendingPools[IMoolaChain]
 
 export const useMoolaConfig = () => {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   // TODO(igm): this breaks on baklava
   const chainCfg = moolaLendingPools[chainId as IMoolaChain]
   const { lendingPool, lendingPoolCore } = chainCfg

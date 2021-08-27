@@ -1,7 +1,7 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId, cUSD, JSBI } from '@ubeswap/sdk'
+import { cUSD, JSBI } from '@ubeswap/sdk'
 import QuestionHelper from 'components/QuestionHelper'
-import React, { useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link, RouteComponentProps, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import { CountUp } from 'use-count-up'
@@ -90,9 +90,9 @@ export default function Manage({
   match: {
     params: { currencyIdA, currencyIdB, stakingAddress },
   },
-}: RouteComponentProps<{ currencyIdA: string; currencyIdB: string }>) {
+}: RouteComponentProps<{ currencyIdA: string; currencyIdB: string; stakingAddress: string }>) {
   const { address: account, network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const { chainId } = network
   const location = useLocation()
 
   // get currencies and pair

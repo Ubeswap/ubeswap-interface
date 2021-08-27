@@ -1,6 +1,6 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { parseBytes32String } from '@ethersproject/strings'
-import { ChainId, currencyEquals, Token } from '@ubeswap/sdk'
+import { currencyEquals, Token } from '@ubeswap/sdk'
 import { arrayify } from 'ethers/lib/utils'
 import { useMemo } from 'react'
 
@@ -15,7 +15,7 @@ import { useBytes32TokenContract, useTokenContract } from './useContract'
 // reduce token map into standard address <-> Token mapping, optionally include user added tokens
 function useTokensFromMap(tokenMap: TokenAddressMap, includeUserAdded: boolean): { [address: string]: Token } {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId
   const userAddedTokens = useUserAddedTokens()
 
   return useMemo(() => {
@@ -94,7 +94,7 @@ export function useIsTokenActive(token: Token | undefined | null): boolean {
 // used to detect extra search results
 export function useFoundOnInactiveList(searchQuery: string): Token[] | undefined {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId
   const inactiveTokens = useAllInactiveTokens()
 
   return useMemo(() => {
@@ -135,7 +135,7 @@ function parseStringOrBytes32(str: string | undefined, bytes32: string | undefin
 // otherwise returns the token
 export function useToken(tokenAddress?: string): Token | undefined | null {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId
   const tokens = useAllTokens()
 
   const address = isAddress(tokenAddress)

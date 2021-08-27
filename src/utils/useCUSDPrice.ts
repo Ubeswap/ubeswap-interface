@@ -1,5 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { CELO, ChainId, currencyEquals, cUSD, Price, Token } from '@ubeswap/sdk'
+import { CELO, currencyEquals, cUSD, Price, Token } from '@ubeswap/sdk'
 import { useMemo } from 'react'
 
 import { usePairs } from '../data/Reserves'
@@ -12,8 +12,8 @@ export default function useCUSDPrice(token?: Token): Price | undefined {
   const {
     network: { chainId },
   } = useContractKit()
-  const CUSD = cUSD[chainId as ChainId]
-  const celo = CELO[chainId as ChainId]
+  const CUSD = cUSD[chainId]
+  const celo = CELO[chainId]
   const tokenPairs: [Token | undefined, Token | undefined][] = useMemo(
     () => [
       [token && currencyEquals(token, CUSD) ? undefined : token, CUSD],

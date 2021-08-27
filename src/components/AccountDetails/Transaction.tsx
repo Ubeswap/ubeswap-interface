@@ -38,7 +38,7 @@ const IconWrapper = styled.div<{ pending: boolean; success?: boolean }>`
 
 export default function Transaction({ hash }: { hash: string }) {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   const allTransactions = useAllTransactions()
 
   const tx = allTransactions?.[hash]

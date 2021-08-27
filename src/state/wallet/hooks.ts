@@ -98,7 +98,7 @@ export function useAggregateUbeBalance(): TokenAmount | undefined {
     network: { chainId },
   } = useContractKit()
 
-  const ube = chainId ? UBE[chainId as ChainId] : undefined
+  const ube = chainId ? UBE[chainId ] : undefined
 
   const ubeBalance: TokenAmount | undefined = useTokenBalance(address ?? undefined, ube)
 

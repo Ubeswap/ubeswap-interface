@@ -45,7 +45,7 @@ export default function AddLiquidity({
 }: RouteComponentProps<{ currencyIdA?: string; currencyIdB?: string }>) {
   const { address: account, network } = useContractKit()
   const library = useProvider()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   const theme = useContext(ThemeContext)
 
   const currencyA = useCurrency(currencyIdA)

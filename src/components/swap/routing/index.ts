@@ -80,7 +80,7 @@ export const useDoTransaction = (): DoTransactionFn => {
   const addTransaction = useTransactionAdder()
   const { network } = useContractKit()
   const getConnectedSigner = useGetConnectedSigner()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   return useCallback(
     async (contractDisconnected, methodName, args): Promise<ContractTransaction> => {
       if (chainId === ChainId.BAKLAVA) {

@@ -23,7 +23,7 @@ export default function TransactionPopup({
   summary?: string
 }) {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
 
   const theme = useContext(ThemeContext)
 

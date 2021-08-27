@@ -18,7 +18,7 @@ interface Props {
 
 export const MoolaDirectTradeDetails: React.FC<Props> = ({ trade }: Props) => {
   const { address: account, network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   const lendingPool = useLendingPool()
   const theme = useContext(ThemeContext)
 

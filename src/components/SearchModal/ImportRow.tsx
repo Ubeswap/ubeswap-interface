@@ -55,7 +55,7 @@ export default function ImportRow({
 }) {
   // gloabls
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   const theme = useTheme()
 
   // check if token comes from list

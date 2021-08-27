@@ -13,7 +13,7 @@ export const useMoolaDirectRoute = (
 ): Route | null => {
   const library = useProvider()
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   const [allowMoolaWithdrawal] = useUserAllowMoolaWithdrawal()
 
   return useMemo(() => {

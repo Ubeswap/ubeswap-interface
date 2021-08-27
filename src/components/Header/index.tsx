@@ -265,7 +265,7 @@ const NETWORK_LABELS: { [chainId in ChainId]?: string } = {
 
 export default function Header() {
   const { address: account, network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   const { t } = useTranslation()
 
   const userCELOBalance = useTokenBalance(account ?? undefined, CELO[chainId])

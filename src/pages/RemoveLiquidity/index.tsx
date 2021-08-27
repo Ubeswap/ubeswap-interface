@@ -45,7 +45,7 @@ export default function RemoveLiquidity({
   const [currencyA, currencyB] = [useCurrency(currencyIdA) ?? undefined, useCurrency(currencyIdB) ?? undefined]
   const { address: account, network, connect } = useContractKit()
   const library = useProvider()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   const [tokenA, tokenB] = [currencyA, currencyB]
 
   const theme = useContext(ThemeContext)

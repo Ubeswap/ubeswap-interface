@@ -42,7 +42,7 @@ const StyledClose = styled(X)`
  */
 export default function UbeBalanceContent({ setShowUbeBalanceModal }: { setShowUbeBalanceModal: any }) {
   const { address: account, network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   const ube = chainId ? UBE[chainId] : undefined
 
   const total = useAggregateUbeBalance()

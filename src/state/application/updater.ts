@@ -10,7 +10,7 @@ import { updateBlockNumber } from './actions'
 export default function Updater(): null {
   const library = useProvider()
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   const dispatch = useDispatch()
 
   const windowVisible = useIsWindowVisible()

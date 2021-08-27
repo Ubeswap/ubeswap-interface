@@ -22,7 +22,7 @@ const nonCirculatingAddresses = {
  */
 export const useCirculatingSupply = (): TokenAmount | undefined => {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   const ube = chainId ? UBE[chainId] : undefined
   const ubeContract = useTokenContract(ube?.address)
   const releaseUbe = useReleaseUbeContract()

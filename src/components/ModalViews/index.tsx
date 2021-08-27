@@ -48,7 +48,7 @@ export function SubmittedView({
 }) {
   const theme = useContext(ThemeContext)
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
 
   return (
     <ConfirmOrLoadingWrapper>

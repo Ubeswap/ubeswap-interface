@@ -1,6 +1,6 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit, ChainId } from '@celo-tools/use-contractkit'
 import { BigNumber } from '@ethersproject/bignumber'
-import { ChainId, JSBI, Pair, Token, TokenAmount } from '@ubeswap/sdk'
+import { ChainId as UbeswapChainId, JSBI, Pair, Token, TokenAmount } from '@ubeswap/sdk'
 import { POOL_MANAGER } from 'constants/poolManager'
 import { UBE } from 'constants/tokens'
 import { PoolManager } from 'generated/'
@@ -110,7 +110,7 @@ export const useUnclaimedStakingRewards = (): UnclaimedInfo => {
   const { chainId } = network
   const ube = chainId ? UBE[chainId] : undefined
   const ubeContract = useTokenContract(ube?.address)
-  const poolManagerContract = usePoolManagerContract(chainId !== ChainId.BAKLAVA ? POOL_MANAGER[chainId] : undefined)
+  const poolManagerContract = usePoolManagerContract(chainId !== ChainId.Baklava ? POOL_MANAGER[chainId] : undefined)
   const poolsCountBigNumber = useSingleCallResult(poolManagerContract, 'poolsCount').result?.[0] as
     | BigNumber
     | undefined
@@ -169,7 +169,7 @@ export const useUnclaimedStakingRewards = (): UnclaimedInfo => {
 // gets the staking info from the network for the active chain id
 export function useStakingInfo(pairToFilterBy?: Pair | null, stakingAddress?: string): readonly StakingInfo[] {
   const { network, address } = useContractKit()
-  const { chainId } = network
+  const chainId = network.chainId as unknown as UbeswapChainId
   const ube = chainId ? UBE[chainId] : undefined
   const ubePrice = useCUSDPrice(ube)
 
@@ -338,10 +338,12 @@ interface IStakingPool {
 
 export function useStakingPools(pairToFilterBy?: Pair | null, stakingAddress?: string): readonly IStakingPool[] {
   const { network } = useContractKit()
-  const { chainId } = network
+  const chainId = network.chainId as unknown as UbeswapChainId
   const ube = chainId ? UBE[chainId] : undefined
 
-  const poolManagerContract = usePoolManagerContract(chainId !== ChainId.BAKLAVA ? POOL_MANAGER[chainId] : undefined)
+  const poolManagerContract = usePoolManagerContract(
+    chainId !== UbeswapChainId.BAKLAVA ? POOL_MANAGER[chainId] : undefined
+  )
   const poolsCountBigNumber = useSingleCallResult(poolManagerContract, 'poolsCount').result?.[0] as
     | BigNumber
     | undefined
@@ -465,7 +467,7 @@ export function usePairDataFromAddresses(
   pairAddresses: readonly string[]
 ): readonly (readonly [Token, Token] | undefined)[] {
   const { network } = useContractKit()
-  const { chainId } = network
+  const chainId = network.chainId as unknown as UbeswapChainId
 
   const token0Data = useMultipleContractSingleData(
     pairAddresses,

@@ -27,7 +27,7 @@ enum Fields {
 
 export default function PoolFinder() {
   const { address: account, network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
 
   const [showSearch, setShowSearch] = useState<boolean>(false)
   const [activeField, setActiveField] = useState<number>(Fields.TOKEN1)

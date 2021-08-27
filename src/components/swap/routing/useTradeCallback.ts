@@ -22,7 +22,7 @@ export const useTradeCallback = (
 ): { state: SwapCallbackState; callback: null | (() => Promise<string>); error: string | null } => {
   const { address: account, network } = useContractKit()
   const library = useProvider()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
   const doTransaction = useDoTransaction()
 
   const {

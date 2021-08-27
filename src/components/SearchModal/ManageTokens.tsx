@@ -43,7 +43,7 @@ export default function ManageTokens({
   setImportToken: (token: Token) => void
 }) {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const theme = useTheme()

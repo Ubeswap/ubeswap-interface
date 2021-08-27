@@ -11,7 +11,7 @@ import { UbeswapTrade } from '../trade'
 
 function useAllCommonPairs(tokenA?: Token, tokenB?: Token): Pair[] {
   const { network } = useContractKit()
-  const chainId = network.chainId as ChainId
+  const chainId = network.chainId 
 
   const bases: Token[] = useMemo(() => {
     if (!chainId) return []
