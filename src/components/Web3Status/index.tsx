@@ -121,7 +121,8 @@ const StatusIcon: React.FC = () => {
 function Web3StatusInner() {
   const { t } = useTranslation()
   const { connect, address } = useContractKit()
-  const { summary } = useAccountSummary(address ?? undefined)
+  // TODO(bl): Figure out why summary.name is empty
+  // const { summary } = useAccountSummary(address ?? undefined)
   const error = null
 
   const allTransactions = useAllTransactions()
@@ -136,7 +137,7 @@ function Web3StatusInner() {
   const hasPendingTransactions = !!pending.length
   const toggleWalletModal = useWalletModalToggle()
   if (address) {
-    const accountName = summary?.name ?? shortenAddress(address)
+    const accountName = shortenAddress(address)
     return (
       <Web3StatusConnected id="web3-status-connected" onClick={toggleWalletModal} pending={hasPendingTransactions}>
         {hasPendingTransactions ? (
