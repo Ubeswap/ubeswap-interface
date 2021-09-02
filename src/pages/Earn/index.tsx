@@ -68,9 +68,16 @@ export default function Earn() {
 
   const multiRewards = multiRewardPools.map((multiPool) => {
     return [multiPool, allPools.find((pool) => pool.poolInfo.poolAddress === multiPool.basePool)]
-  }) as [MultiRewardPool, StakingInfo | null][]
-  const dualRewards = multiRewards.filter(([pool]) => pool.numRewards === 2)
-  const tripleRewards = multiRewards.filter(([pool]) => pool.numRewards === 3)
+  }) as [MultiRewardPool, StakingInfo][]
+
+  const [dualRewards, inactiveDualRewards] = partition(
+    multiRewards.filter(([pool]) => pool.numRewards === 2),
+    ([pool]) => pool.active
+  )
+  const [tripleRewards, inactiveTripleRewards] = partition(
+    multiRewards.filter(([pool]) => pool.numRewards === 3),
+    ([pool]) => pool.active
+  )
 
   return (
     <PageWrapper gap="lg" justify="center">
@@ -202,6 +209,32 @@ export default function Earn() {
                 <PoolCard stakingInfo={pool} />
               </ErrorBoundary>
             ))}
+            {inactiveTripleRewards.map((x) => {
+              return (
+                x[1] && (
+                  <PoolSection>
+                    <ErrorBoundary>
+                      <TriplePoolCard
+                        poolAddress={x[0].address}
+                        dualPoolAddress={x[0].underlyingPool}
+                        underlyingPool={x[1]}
+                      />
+                    </ErrorBoundary>
+                  </PoolSection>
+                )
+              )
+            })}
+            {inactiveDualRewards.map((x) => {
+              return (
+                x[1] && (
+                  <PoolSection>
+                    <ErrorBoundary>
+                      <DualPoolCard poolAddress={x[0].address} underlyingPool={x[1]} />
+                    </ErrorBoundary>
+                  </PoolSection>
+                )
+              )
+            })}
           </PoolSection>
         </AutoColumn>
       )}
