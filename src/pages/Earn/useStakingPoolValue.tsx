@@ -2,9 +2,8 @@ import { useContractKit } from '@celo-tools/use-contractkit'
 import { cUSD, JSBI, TokenAmount } from '@ubeswap/sdk'
 import { BIG_INT_ZERO } from 'constants/index'
 import { usePair } from 'data/Reserves'
-import { useTotalSupply } from 'data/TotalSupply'
 import { StakingInfo } from 'state/stake/hooks'
-import useCUSDPrice from 'utils/useCUSDPrice'
+import { useCUSDPrice } from 'utils/useCUSDPrice'
 
 interface IStakingPoolValue {
   valueCUSD?: TokenAmount
@@ -18,7 +17,7 @@ interface IStakingPoolValue {
 export const useStakingPoolValue = (stakingInfo?: StakingInfo | null): IStakingPoolValue => {
   const { network } = useContractKit()
   const chainId = network.chainId
-  const totalSupplyOfStakingToken = useTotalSupply(stakingInfo?.stakingToken)
+  const totalSupplyOfStakingToken = stakingInfo?.totalStakedAmount
   const [, stakingTokenPair] = usePair(stakingInfo?.tokens[0], stakingInfo?.tokens[1])
 
   const cusd = cUSD[chainId]
