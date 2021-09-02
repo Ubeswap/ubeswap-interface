@@ -7,7 +7,6 @@ import { useToken } from 'hooks/Tokens'
 import { useMultiStakingContract } from 'hooks/useContract'
 import { zip } from 'lodash'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useCUSDPrice } from 'utils/useCUSDPrice'
 
 import { StakingInfo } from './hooks'
 
@@ -66,7 +65,7 @@ export const useMultiStakeRewards = (
       console.error(e)
       return null
     }
-  }, [owner, stakeRewards])
+  }, [owner, stakeRewards, numRewards])
 
   useEffect(() => {
     void (async () => {
@@ -75,7 +74,6 @@ export const useMultiStakeRewards = (
   }, [load])
 
   const rewardsToken = useToken(data?.rewardsToken)
-  const rewardsPrice = useCUSDPrice(rewardsToken ?? undefined)
 
   return useMemo((): StakingInfo | null => {
     if (!data || !rewardsToken || !ube || !underlyingPool) {
@@ -113,7 +111,7 @@ export const useMultiStakeRewards = (
     const rewardTokens = [rewardsToken, ...underlyingPool.rewardTokens]
     const earnedAmounts = earned
       ? zip<BigNumber, Token>(earned, rewardTokens).map(
-          ([amount, token]) => new TokenAmount(token!, amount?.toString() ?? '0')
+          ([amount, token]) => new TokenAmount(token as Token, amount?.toString() ?? '0')
         )
       : undefined
 
@@ -133,5 +131,5 @@ export const useMultiStakeRewards = (
       poolInfo: underlyingPool.poolInfo,
       rewardTokens,
     }
-  }, [address, data, rewardsToken, ube, underlyingPool, rewardsPrice])
+  }, [address, data, rewardsToken, ube, underlyingPool])
 }
