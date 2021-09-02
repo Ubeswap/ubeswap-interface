@@ -1,9 +1,10 @@
 import { useContractKit, useGetConnectedSigner } from '@celo-tools/use-contractkit'
 import { Signer } from '@ethersproject/abstract-signer'
 import { ChainId, Trade } from '@ubeswap/sdk'
-import { CallOverrides, Contract, ContractTransaction, PayableOverrides } from 'ethers'
+import { BigNumber, BigNumberish, CallOverrides, Contract, ContractTransaction, PayableOverrides } from 'ethers'
 import { useCallback } from 'react'
 import { useTransactionAdder } from 'state/transactions/hooks'
+import { calculateGasMargin } from 'utils'
 
 type Head<T extends any[]> = Required<T> extends [...infer H, any] ? H : never
 type Last<T extends Array<unknown>> = Required<T> extends [...unknown[], infer L] ? L : never
@@ -36,41 +37,40 @@ export interface TradeExecutor<T extends Trade> {
   }>
 }
 
-// type ContractCall = {
-//   contract: Contract
-//   methodName: string
-//   args: unknown[]
-//   value?: BigNumberish | Promise<BigNumberish>
-// }
+type ContractCall = {
+  contract: Contract
+  methodName: string
+  args: unknown[]
+  value?: BigNumberish | Promise<BigNumberish>
+}
 
-// TODO: Fix gas estimates
-// const estimateGas = async (call: ContractCall): Promise<BigNumber> => {
-//   const { contract, methodName, args, value } = call
-//   const fullArgs = value ? [...args, { value }] : args
-//   try {
-//     return await contract.estimateGas[methodName](...fullArgs)
-//   } catch (gasError) {
-//     console.debug('Gas estimate failed, trying eth_call to extract error', call)
-//     try {
-//       const result = await contract.callStatic[methodName](...fullArgs)
-//       console.debug('Unexpected successful call after failed estimate gas', call, gasError, result)
-//       throw new Error('Unexpected issue with estimating the gas. Please try again.')
-//     } catch (callError: any) {
-//       console.debug('Call threw error', call, callError)
-//       let errorMessage: string
-//       switch (callError.reason) {
-//         case 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT':
-//         case 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT':
-//           errorMessage =
-//             'This transaction will not succeed either due to price movement or fee on transfer. Try increasing your slippage tolerance.'
-//           break
-//         default:
-//           errorMessage = `The transaction cannot succeed due to error: ${callError.reason}. This is probably an issue with one of the tokens you are swapping.`
-//       }
-//       throw new Error(errorMessage)
-//     }
-//   }
-// }
+const estimateGas = async (call: ContractCall): Promise<BigNumber> => {
+  const { contract, methodName, args, value } = call
+  const fullArgs = value ? [...args, { value }] : args
+  try {
+    return await contract.estimateGas[methodName](...fullArgs)
+  } catch (gasError) {
+    console.debug('Gas estimate failed, trying eth_call to extract error', call)
+    try {
+      const result = await contract.callStatic[methodName](...fullArgs)
+      console.debug('Unexpected successful call after failed estimate gas', call, gasError, result)
+      throw new Error('Unexpected issue with estimating the gas. Please try again.')
+    } catch (callError: any) {
+      console.debug('Call threw error', call, callError)
+      let errorMessage: string
+      switch (callError.reason) {
+        case 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT':
+        case 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT':
+          errorMessage =
+            'This transaction will not succeed either due to price movement or fee on transfer. Try increasing your slippage tolerance.'
+          break
+        default:
+          errorMessage = `The transaction cannot succeed due to error: ${callError.reason}. This is probably an issue with one of the tokens you are swapping.`
+      }
+      throw new Error(errorMessage)
+    }
+  }
+}
 
 /**
  * Allows performing transactions.
@@ -88,11 +88,11 @@ export const useDoTransaction = (): DoTransactionFn => {
       }
       const contract = contractDisconnected.connect(await getConnectedSigner())
       const call = { contract, methodName, args: args.args, value: args.overrides?.value }
-      // const gasEstimate = await estimateGas(call)
+      const gasEstimate = await estimateGas(call)
 
       try {
         const response: ContractTransaction = await contract[methodName](...args.args, {
-          gasLimit: 2e7,
+          gasLimit: calculateGasMargin(gasEstimate),
           ...args.overrides,
         })
         addTransaction(response, {
