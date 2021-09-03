@@ -2,7 +2,6 @@ import { Address } from '@celo/contractkit'
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { BigNumber } from '@ethersproject/bignumber'
 import { JSBI, Token, TokenAmount } from '@ubeswap/sdk'
-import { UBE } from 'constants/tokens'
 import { useToken } from 'hooks/Tokens'
 import { useMultiStakingContract } from 'hooks/useContract'
 import { zip } from 'lodash'
@@ -24,13 +23,11 @@ export const useMultiStakeRewards = (
   underlyingPool: StakingInfo | undefined | null,
   numRewards: number
 ): StakingInfo | null => {
-  const { network, address: owner } = useContractKit()
-  const { chainId } = network
+  const { address: owner } = useContractKit()
   const stakeRewards = useMultiStakingContract(address)
 
   const [data, setData] = useState<RawPoolData | null>(null)
 
-  const ube = chainId ? UBE[chainId] : undefined
   const blockNumber = useBlockNumber()
 
   const load = useCallback(async (): Promise<RawPoolData | null> => {
@@ -78,7 +75,7 @@ export const useMultiStakeRewards = (
   const rewardsToken = useToken(data?.rewardsToken)
 
   return useMemo((): StakingInfo | null => {
-    if (!data || !rewardsToken || !ube || !underlyingPool) {
+    if (!data || !rewardsToken || !underlyingPool) {
       return null
     }
     const { totalSupply: totalSupplyRaw, rewardRate: totalRewardRateRaw, myBalance, earned } = data
@@ -110,7 +107,7 @@ export const useMultiStakeRewards = (
       ? getHypotheticalRewardRate(stakedAmount, totalStakedAmount, totalRewardRates)
       : totalRewardRates.map((totalRewardRate) => new TokenAmount(totalRewardRate.token, '0'))
 
-    const rewardTokens = [rewardsToken, ...underlyingPool.rewardTokens]
+    const rewardTokens = [rewardsToken, ...underlyingPool.rewardTokens.reverse()] // TODO: Hardcode reverse
     const earnedAmounts = earned
       ? zip<BigNumber, Token>(earned, rewardTokens).map(
           ([amount, token]) => new TokenAmount(token as Token, amount?.toString() ?? '0')
@@ -133,5 +130,5 @@ export const useMultiStakeRewards = (
       poolInfo: underlyingPool.poolInfo,
       rewardTokens,
     }
-  }, [address, data, rewardsToken, ube, underlyingPool])
+  }, [address, data, rewardsToken, underlyingPool])
 }

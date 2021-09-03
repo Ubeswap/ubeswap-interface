@@ -133,23 +133,25 @@ export default function Earn() {
         })}
       </AutoColumn>
 
-      <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
-        <DataRow style={{ alignItems: 'baseline' }}>
-          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>Dual Reward Pools</TYPE.mediumHeader>
-        </DataRow>
-        {dualRewards.map((x) => x[1]).some((x) => !x) && <Loader />}
-        {dualRewards.map((x) => {
-          return (
-            x[1] && (
-              <PoolSection>
-                <ErrorBoundary>
-                  <DualPoolCard poolAddress={x[0].address} underlyingPool={x[1]} />
-                </ErrorBoundary>
-              </PoolSection>
+      {dualRewards.length > 0 && (
+        <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
+          <DataRow style={{ alignItems: 'baseline' }}>
+            <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>Dual Reward Pools</TYPE.mediumHeader>
+          </DataRow>
+          {dualRewards.map((x) => x[1]).some((x) => !x) && <Loader />}
+          {dualRewards.map((x) => {
+            return (
+              x[1] && (
+                <PoolSection>
+                  <ErrorBoundary>
+                    <DualPoolCard poolAddress={x[0].address} underlyingPool={x[1]} />
+                  </ErrorBoundary>
+                </PoolSection>
+              )
             )
-          )
-        })}
-      </AutoColumn>
+          })}
+        </AutoColumn>
+      )}
 
       {stakedPools.length > 0 && (
         <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
