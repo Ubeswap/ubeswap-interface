@@ -64,7 +64,7 @@ export const useMultiStakeRewards = (
         earned: [result[1], ...result[2]],
       }
     } catch (e) {
-      console.error(e)
+      console.error(e, blockNumber) // Force usage of blockNumber so that we are refreshing
       return null
     }
   }, [owner, stakeRewards, numRewards, blockNumber])
