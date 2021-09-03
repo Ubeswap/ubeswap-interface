@@ -48,7 +48,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
   const { parsedAmount, error } = useDerivedStakeInfo(typedValue, stakingInfo.stakingToken, userLiquidityUnstaked)
   const parsedAmountWrapped = parsedAmount
 
-  let hypotheticalRewardRates: TokenAmount[] | undefined = stakingInfo?.rewardRates?.map(
+  let hypotheticalRewardRates: TokenAmount[] | undefined = stakingInfo?.totalRewardRates?.map(
     (rewardRate) => new TokenAmount(rewardRate.token, '0')
   )
   if (parsedAmountWrapped?.greaterThan('0')) {
@@ -142,15 +142,16 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
             </div>
 
             <div>
-              {hypotheticalRewardRates && (
-                <TYPE.black>
-                  {hypotheticalRewardRates.map((hypotheticalRewardRate) => {
-                    hypotheticalRewardRate
-                      .multiply((60 * 60 * 24 * 7).toString())
-                      .toSignificant(4, { groupSeparator: ',' }) + `${hypotheticalRewardRate.token.symbol} / week`
-                  })}
-                </TYPE.black>
-              )}
+              {hypotheticalRewardRates &&
+                hypotheticalRewardRates.map((hypotheticalRewardRate, idx) => {
+                  return (
+                    <TYPE.black key={idx}>
+                      {hypotheticalRewardRate
+                        .multiply((60 * 60 * 24 * 7).toString())
+                        .toSignificant(4, { groupSeparator: ',' }) + ` ${hypotheticalRewardRate.token.symbol} / week`}
+                    </TYPE.black>
+                  )
+                })}
             </div>
           </HypotheticalRewardRate>
 
