@@ -44,9 +44,6 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
       setAttempting(true)
       await doTransaction(stakingContract, 'getReward', {
         args: [],
-        overrides: {
-          gasLimit: 350000,
-        },
         summary: `Claim accumulated UBE rewards`,
       })
         .catch(console.error)

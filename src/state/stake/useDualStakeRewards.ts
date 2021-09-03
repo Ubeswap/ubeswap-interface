@@ -7,6 +7,7 @@ import { useToken } from 'hooks/Tokens'
 import { useMultiStakingContract } from 'hooks/useContract'
 import { zip } from 'lodash'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useBlockNumber } from 'state/application/hooks'
 
 import { StakingInfo } from './hooks'
 
@@ -30,6 +31,7 @@ export const useMultiStakeRewards = (
   const [data, setData] = useState<RawPoolData | null>(null)
 
   const ube = chainId ? UBE[chainId] : undefined
+  const blockNumber = useBlockNumber()
 
   const load = useCallback(async (): Promise<RawPoolData | null> => {
     if (!stakeRewards) {
@@ -65,7 +67,7 @@ export const useMultiStakeRewards = (
       console.error(e)
       return null
     }
-  }, [owner, stakeRewards, numRewards])
+  }, [owner, stakeRewards, numRewards, blockNumber])
 
   useEffect(() => {
     void (async () => {

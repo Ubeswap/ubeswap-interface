@@ -31,7 +31,7 @@ export function shortenAddress(address: string, chars = 4): string {
 
 // add 100%
 export function calculateGasMargin(value: BigNumber): BigNumber {
-  return value.mul(BigNumber.from(10))
+  return value.mul(BigNumber.from(2))
 }
 
 // converts a basis points value to a sdk percent

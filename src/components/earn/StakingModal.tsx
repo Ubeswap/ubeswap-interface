@@ -85,9 +85,6 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
       if (approval === ApprovalState.APPROVED) {
         const response = await doTransaction(stakingContract, 'stake', {
           args: [`0x${parsedAmount.raw.toString(16)}`],
-          overrides: {
-            gasLimit: 350000,
-          },
           summary: `Stake deposited liquidity`,
         })
         setHash(response.hash)
