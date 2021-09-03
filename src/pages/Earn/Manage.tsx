@@ -248,7 +248,7 @@ export default function Manage({
                 <RowBetween>
                   <TYPE.white fontWeight={600}>Your liquidity deposits</TYPE.white>
                 </RowBetween>
-                <RowBetween style={{ alignItems: 'baseline' }}>
+                <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
                   <TYPE.white fontSize={36} fontWeight={600}>
                     {stakingInfo?.stakedAmount?.toSignificant(6) ?? '-'}
                   </TYPE.white>
