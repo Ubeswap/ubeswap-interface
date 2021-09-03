@@ -308,15 +308,19 @@ export default function Manage({
               {stakingInfo?.rewardRates?.map((rewardRate, idx) => (
                 <RowBetween style={{ alignItems: 'baseline' }} key={idx}>
                   <TYPE.largeHeader fontSize={36} fontWeight={600}>
-                    <CountUp
-                      key={countUpAmounts[idx]}
-                      isCounting
-                      decimalPlaces={4}
-                      start={parseFloat(countUpAmountsPrevious[idx])}
-                      end={parseFloat(countUpAmounts[idx])}
-                      thousandsSeparator={','}
-                      duration={1}
-                    />
+                    {countUpAmounts[idx] ? (
+                      <CountUp
+                        key={countUpAmounts[idx]}
+                        isCounting
+                        decimalPlaces={4}
+                        start={parseFloat(countUpAmountsPrevious[idx] || countUpAmounts[idx])}
+                        end={parseFloat(countUpAmounts[idx])}
+                        thousandsSeparator={','}
+                        duration={1}
+                      />
+                    ) : (
+                      '0'
+                    )}
                   </TYPE.largeHeader>
                   <TYPE.black fontSize={16} fontWeight={500}>
                     <span role="img" aria-label="wizard-icon" style={{ marginRight: '8px ' }}>
