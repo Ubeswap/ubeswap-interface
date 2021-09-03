@@ -66,22 +66,6 @@ export const multiRewardPools: MultiRewardPool[] = [
   },
   // mCUSD-mcEUR
   {
-    address: '0xb030882bfc44e223fd5e20d8645c961be9b30bb3',
-    underlyingPool: '0xaf13437122cd537C5D8942f17787cbDBd787fE94',
-    basePool: '0xaf13437122cd537C5D8942f17787cbDBd787fE94',
-    numRewards: 2,
-    active: true,
-  },
-  // MOO-mCELO
-  {
-    address: '0x8f309df7527f16dff49065d3338ea3f3c12b5d09',
-    underlyingPool: '0xC087aEcAC0a4991f9b0e931Ce2aC77a826DDdaf3',
-    basePool: '0xC087aEcAC0a4991f9b0e931Ce2aC77a826DDdaf3',
-    numRewards: 2,
-    active: true,
-  },
-  // mCUSD-mcEUR
-  {
     address: '0x3d823f7979bB3af846D8F1a7d98922514eA203fC',
     underlyingPool: '0xb030882bfc44e223fd5e20d8645c961be9b30bb3',
     basePool: '0xaf13437122cd537C5D8942f17787cbDBd787fE94',
