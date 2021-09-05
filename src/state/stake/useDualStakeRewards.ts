@@ -131,5 +131,5 @@ export const useMultiStakeRewards = (
       poolInfo: underlyingPool.poolInfo,
       rewardTokens,
     }
-  }, [address, data, rewardsToken, underlyingPool])
+  }, [address, data, rewardsToken, underlyingPool, active])
 }
