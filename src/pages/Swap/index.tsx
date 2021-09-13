@@ -90,7 +90,14 @@ export default function Swap() {
 
   // swap state
   const { independentField, typedValue, recipient } = useSwapState()
-  const { v2Trade, currencyBalances, parsedAmount, currencies, inputError: swapInputError } = useDerivedSwapInfo()
+  const {
+    v2Trade,
+    currencyBalances,
+    parsedAmount,
+    currencies,
+    inputError: swapInputError,
+    showRamp,
+  } = useDerivedSwapInfo()
   const { address: recipientAddress } = useENS(recipient)
   const trade = v2Trade
 
@@ -397,6 +404,15 @@ export default function Swap() {
                 <TYPE.main mb="4px">Insufficient liquidity for this trade.</TYPE.main>
                 {singleHopOnly && <TYPE.main mb="4px">Try enabling multi-hop trades.</TYPE.main>}
               </GreyCard>
+            ) : showRamp ? (
+              <a
+                style={{ textDecoration: 'none' }}
+                href={`https://buy.ramp.network/?userAddress=${account}&swapAsset=${currencies.INPUT?.symbol}&hostAppName=Ubeswap&hostLogoUrl=https://info.ubeswap.org/favicon.png`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <ButtonLight>Get more {currencies.INPUT?.symbol} via Ramp</ButtonLight>
+              </a>
             ) : showApproveFlow ? (
               <RowBetween>
                 <ButtonConfirmed
