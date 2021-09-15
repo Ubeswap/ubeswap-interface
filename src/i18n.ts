@@ -20,4 +20,6 @@ i18next
     interpolation: { escapeValue: false },
   })
 
+i18next.changeLanguage('tr')
+
 export default i18next
