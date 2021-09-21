@@ -134,6 +134,7 @@
     "@ledgerhq/errors": "^6.0.2",
     "@ledgerhq/hw-transport-webusb": "^6.0.2",
     "@pedrouid/environment": "^1.0.1",
+    "@ramp-network/ramp-instant-sdk": "^2.5.0",
     "@sentry/react": "^6.9.0",
     "@sentry/tracing": "^6.9.0",
     "@ubeswap/core": "^1.0.2",

@@ -1,4 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { CELO, ChainId as UbeswapChainId, JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
 import { describeTrade } from 'components/swap/routing/describeTrade'
 import { MoolaDirectTrade } from 'components/swap/routing/moola/MoolaDirectTrade'
@@ -405,14 +406,19 @@ export default function Swap() {
                 {singleHopOnly && <TYPE.main mb="4px">Try enabling multi-hop trades.</TYPE.main>}
               </GreyCard>
             ) : showRamp ? (
-              <a
-                style={{ textDecoration: 'none' }}
-                href={`https://buy.ramp.network/?userAddress=${account}&swapAsset=${currencies.INPUT?.symbol}&hostAppName=Ubeswap&hostLogoUrl=https://info.ubeswap.org/favicon.png`}
-                target="_blank"
-                rel="noreferrer"
+              <ButtonLight
+                onClick={() => {
+                  new RampInstantSDK({
+                    hostAppName: 'Ubeswap',
+                    hostLogoUrl: 'https://info.ubeswap.org/favicon.png',
+                    userAddress: account,
+                    swapAsset: currencies.INPUT?.symbol,
+                    hostApiKey: process.env.REACT_APP_RAMP_KEY,
+                  }).show()
+                }}
               >
-                <ButtonLight>Get more {currencies.INPUT?.symbol} via Ramp</ButtonLight>
-              </a>
+                Get more {currencies.INPUT?.symbol} via Ramp
+              </ButtonLight>
             ) : showApproveFlow ? (
               <RowBetween>
                 <ButtonConfirmed
