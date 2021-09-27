@@ -68,43 +68,51 @@ export const chains: Chain[] = [
     domain: 1667591279,
     bridgeRouter: '0xf244eA81F715F343040569398A4E7978De656bf6',
   },
-  {
-    network: Kovan,
-    token: new WrappedTokenInfo(
-      {
-        name: 'Wrapped Ether',
-        address: '0xd0a1e359811322d97991e03f863a0c30c2cf029c',
-        symbol: 'WETH',
-        decimals: 18,
-        chainId: 42,
-        logoURI:
-          'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png',
-      },
-      []
-    ),
-    name: 'kovan',
-    prettyName: 'Kovan',
-    domain: 3000,
-    bridgeRouter: '0x383Eb849c707fE38f3DfBF45679C0c6f21Ba82fF',
-  },
-  {
-    network: Alfajores,
-    token: new WrappedTokenInfo(
-      {
-        address: '0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9',
-        name: 'Celo',
-        symbol: 'CELO',
-        chainId: 44787,
-        decimals: 18,
-        logoURI: 'https://raw.githubusercontent.com/ubeswap/default-token-list/master/assets/asset_CELO.png',
-      },
-      []
-    ),
-    name: 'alfajores',
-    prettyName: 'Alfajores',
-    domain: 1000,
-    bridgeRouter: '0xdaa6e362f9BE0CDaCe107b298639034b8dEC617a',
-  },
+  ...(process.env.NODE_ENV !== 'production'
+    ? [
+        {
+          network: Kovan,
+          token: new WrappedTokenInfo(
+            {
+              name: 'Wrapped Ether',
+              address: '0xd0a1e359811322d97991e03f863a0c30c2cf029c',
+              symbol: 'WETH',
+              decimals: 18,
+              chainId: 42,
+              logoURI:
+                'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png',
+            },
+            []
+          ),
+          name: 'kovan',
+          prettyName: 'Kovan',
+          domain: 3000,
+          bridgeRouter: '0x383Eb849c707fE38f3DfBF45679C0c6f21Ba82fF',
+        },
+      ]
+    : []),
+  ...(process.env.NODE_ENV !== 'production'
+    ? [
+        {
+          network: Alfajores,
+          token: new WrappedTokenInfo(
+            {
+              address: '0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9',
+              name: 'Celo',
+              symbol: 'CELO',
+              chainId: 44787,
+              decimals: 18,
+              logoURI: 'https://raw.githubusercontent.com/ubeswap/default-token-list/master/assets/asset_CELO.png',
+            },
+            []
+          ),
+          name: 'alfajores',
+          prettyName: 'Alfajores',
+          domain: 1000,
+          bridgeRouter: '0xdaa6e362f9BE0CDaCe107b298639034b8dEC617a',
+        },
+      ]
+    : []),
 ]
 
 interface ChainSearchModalProps {
