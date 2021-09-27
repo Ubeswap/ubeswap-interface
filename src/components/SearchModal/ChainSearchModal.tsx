@@ -112,7 +112,6 @@ interface ChainSearchModalProps {
   onDismiss: () => void
   onChainSelect: (chain: Chain) => void
   selectedChain?: Chain | null
-  otherSelectedChain?: Chain | null
 }
 
 export default function ChainSearchModal({ isOpen, onDismiss, onChainSelect }: ChainSearchModalProps) {
