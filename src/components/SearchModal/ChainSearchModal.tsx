@@ -27,6 +27,7 @@ export type Chain = {
   name: string
   prettyName: string
   domain: number
+  bridgeRouter: string
 }
 
 export const chains: Chain[] = [

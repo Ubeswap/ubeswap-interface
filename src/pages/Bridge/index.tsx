@@ -9,7 +9,7 @@ import { useDoTransaction } from 'components/swap/routing'
 import SwapHeader from 'components/swap/SwapHeader'
 import { ethers } from 'ethers'
 import { BridgeRouter__factory } from 'generated/factories/BridgeRouter__factory'
-import { useApproveCallback } from 'hooks/useApproveCallback'
+import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import { BodyWrapper } from 'pages/AppBody'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -50,9 +50,8 @@ export const Bridge: React.FC = () => {
   const [selectingDestChain, setSelectingDestChain] = useState(false)
   const [amount, setAmount] = useState('')
   const [currency, setCurrency] = useState<Token>(homeChain.token)
-  const tokenAmount = tryParseAmount(amount, currency)
-  const [approved, setApproved] = useState(false) // TODO: Figure out why calls on Ethereum don't work
-  const [, approve] = useApproveCallback(tokenAmount, homeChain.bridgeRouter)
+  const tokenAmount = tryParseAmount(amount === '' ? '0' : amount, currency)
+  const [approvalState, approve] = useApproveCallback(tokenAmount, homeChain.bridgeRouter)
   useEffect(() => {
     setCurrency(homeChain.token)
   }, [homeChain])
@@ -84,16 +83,9 @@ export const Bridge: React.FC = () => {
           {t('changeNetwork')} {homeChain.prettyName}
         </ButtonLight>
       )
-    } else if (!approved) {
+    } else if (approvalState !== ApprovalState.APPROVED) {
       button = (
-        <ButtonPrimary
-          onClick={() =>
-            approve()
-              .then(() => setApproved(true))
-              .catch(console.error)
-          }
-          disabled={!tokenAmount}
-        >
+        <ButtonPrimary onClick={() => approve().catch(console.error)} disabled={!tokenAmount}>
           {t('approve')}
         </ButtonPrimary>
       )
