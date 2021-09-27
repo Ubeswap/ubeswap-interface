@@ -309,6 +309,9 @@ export default function Header() {
           <StyledNavLink id="farm-nav-link" to="/farm">
             {t('farm')}
           </StyledNavLink>
+          <StyledNavLink id={`bridge-nav-link`} to={'/bridge'}>
+            {t('bridge')}
+          </StyledNavLink>
           <StyledExternalLink id={`stake-nav-link`} href={'https://info.ubeswap.org'}>
             {t('charts')} <span style={{ fontSize: '11px' }}>↗</span>
           </StyledExternalLink>

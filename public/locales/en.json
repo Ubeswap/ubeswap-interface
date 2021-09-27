@@ -1,4 +1,8 @@
 {
+  "approve": "Approve",
+  "bridge": "Bridge",
+  "amount": "Amount",
+  "changeNetwork": "Change network to",
   "connectWallet": "Connect Wallet",
   "yourLiquidity": "Your liquidity",
   "liquidityMining": "liquidity mining",

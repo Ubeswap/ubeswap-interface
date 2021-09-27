@@ -53,7 +53,7 @@ export function useApproveCallback(
   const doTransaction = useDoTransaction()
 
   const approve = useCallback(async (): Promise<void> => {
-    if (approvalState !== ApprovalState.NOT_APPROVED) {
+    if (approvalState !== ApprovalState.NOT_APPROVED && approvalState !== ApprovalState.UNKNOWN) {
       console.error('approve was called unnecessarily')
       return
     }
