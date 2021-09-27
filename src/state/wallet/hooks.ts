@@ -25,14 +25,18 @@ export function useTokenBalancesWithLoadingIndicator(
 
   const validatedTokenAddresses = useMemo(() => validatedTokens.map((vt) => vt.address), [validatedTokens])
 
-  const call = useCallback(async () => {
-    return await Promise.all(
-      validatedTokenAddresses.map((tokenAddress) => {
-        const token = new kit.web3.eth.Contract(ERC20_ABI as AbiItem[], tokenAddress)
-        return token.methods.balanceOf(address).call()
-      })
-    )
-  }, [kit.web3, validatedTokenAddresses?.[0]])
+  const call = useCallback(
+    async () => {
+      return await Promise.all(
+        validatedTokenAddresses.map((tokenAddress) => {
+          const token = new kit.web3.eth.Contract(ERC20_ABI as AbiItem[], tokenAddress)
+          return token.methods.balanceOf(address).call()
+        })
+      )
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [kit, validatedTokenAddresses[0]]
+  )
   const [balances] = useAsyncState(
     validatedTokenAddresses.map(() => null),
     call

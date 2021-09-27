@@ -4,6 +4,8 @@ import AddressInputPanel from 'components/AddressInputPanel'
 import { ButtonLight, ButtonPrimary } from 'components/Button'
 import CurrencyInputPanel from 'components/CurrencyInputPanel'
 import CurrencyLogo from 'components/CurrencyLogo'
+import Loader from 'components/Loader'
+import { AutoRow } from 'components/Row'
 import ChainSearchModal, { Chain, chains } from 'components/SearchModal/ChainSearchModal'
 import { useDoTransaction } from 'components/swap/routing'
 import SwapHeader from 'components/swap/SwapHeader'
@@ -14,6 +16,7 @@ import { BodyWrapper } from 'pages/AppBody'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { tryParseAmount } from 'state/swap/hooks'
+import { useCurrencyBalance } from 'state/wallet/hooks'
 import styled from 'styled-components'
 import { isAddress } from 'web3-utils'
 
@@ -52,6 +55,7 @@ export const Bridge: React.FC = () => {
   const [currency, setCurrency] = useState<Token>(homeChain.token)
   const tokenAmount = tryParseAmount(amount === '' ? '0' : amount, currency)
   const [approvalState, approve] = useApproveCallback(tokenAmount, homeChain.bridgeRouter)
+  const selectedCurrencyBalance = useCurrencyBalance(address ?? undefined, currency)
   useEffect(() => {
     setCurrency(homeChain.token)
   }, [homeChain])
@@ -85,8 +89,18 @@ export const Bridge: React.FC = () => {
       )
     } else if (approvalState !== ApprovalState.APPROVED) {
       button = (
-        <ButtonPrimary onClick={() => approve().catch(console.error)} disabled={!tokenAmount}>
-          {t('approve')}
+        <ButtonPrimary
+          onClick={() => approve().catch(console.error)}
+          disabled={!tokenAmount}
+          altDisabledStyle={approvalState === ApprovalState.PENDING} // show solid button while waiting
+        >
+          {approvalState === ApprovalState.PENDING ? (
+            <AutoRow gap="6px" justify="center">
+              Approving <Loader stroke="white" />
+            </AutoRow>
+          ) : (
+            'Approve ' + currency.symbol
+          )}
         </ButtonPrimary>
       )
     } else {
@@ -120,10 +134,10 @@ export const Bridge: React.FC = () => {
             onUserInput={setAmount}
             label={t('amount')}
             showMaxButton
+            onMax={() => selectedCurrencyBalance && setAmount(selectedCurrencyBalance.toSignificant(6))}
             currency={currency}
             onCurrencySelect={setCurrency}
             disableCurrencySelect={!correctNetwork}
-            // otherCurrency={currencies[Field.INPUT]}
             id="bridge-currency"
           />
         </div>
