@@ -67,7 +67,7 @@ export const Bridge: React.FC = () => {
       args: [currency.address, tokenAmount.raw.toString(), destChain.domain, ethers.utils.hexZeroPad(recipient, 32)],
       summary: `Bridge ${amount} ${currency.symbol} from ${homeChain.prettyName} to ${destChain.prettyName}`,
     })
-  }, [doTransaction, currency, amount, homeChain, destChain, recipient])
+  }, [doTransaction, currency, amount, homeChain, destChain, recipient, getConnectedSigner, tokenAmount])
 
   let button = <ButtonLight onClick={() => connect().catch(console.warn)}>{t('connectWallet')}</ButtonLight>
   if (address) {

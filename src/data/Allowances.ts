@@ -8,11 +8,11 @@ import ERC20_ABI from '../constants/abis/erc20.json'
 
 export function useTokenAllowance(token?: Token, owner?: string, spender?: string): TokenAmount | undefined {
   const { kit } = useContractKit()
-  const tokenContract = new kit.web3.eth.Contract(ERC20_ABI as AbiItem[], token?.address)
 
   const call = useCallback(async () => {
+    const tokenContract = new kit.web3.eth.Contract(ERC20_ABI as AbiItem[], token?.address)
     return await tokenContract.methods.allowance(owner, spender).call()
-  }, [owner, spender])
+  }, [owner, spender, token])
   const [allowance] = useAsyncState('0', call)
 
   return useMemo(

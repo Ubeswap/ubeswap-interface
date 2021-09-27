@@ -92,7 +92,7 @@ export default function ManageTokens({
         </RowBetween>
       ))
     )
-  }, [userAddedTokens, removeToken, network])
+  }, [userAddedTokens, removeToken, network, chainId])
 
   return (
     <Wrapper>
