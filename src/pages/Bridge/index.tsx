@@ -2,10 +2,12 @@ import { useContractKit, useGetConnectedSigner } from '@celo-tools/use-contractk
 import { Token } from '@ubeswap/sdk'
 import AddressInputPanel from 'components/AddressInputPanel'
 import { ButtonLight, ButtonPrimary } from 'components/Button'
+import { AutoColumn } from 'components/Column'
 import CurrencyInputPanel from 'components/CurrencyInputPanel'
 import CurrencyLogo from 'components/CurrencyLogo'
+import { CardNoise, CardSection, DataCard } from 'components/earn/styled'
 import Loader from 'components/Loader'
-import { AutoRow } from 'components/Row'
+import { AutoRow, RowBetween } from 'components/Row'
 import ChainSearchModal, { Chain, chains } from 'components/SearchModal/ChainSearchModal'
 import { useDoTransaction } from 'components/swap/routing'
 import SwapHeader from 'components/swap/SwapHeader'
@@ -18,16 +20,22 @@ import { useTranslation } from 'react-i18next'
 import { tryParseAmount } from 'state/swap/hooks'
 import { useCurrencyBalance } from 'state/wallet/hooks'
 import styled from 'styled-components'
+import { ExternalLink, TYPE } from 'theme'
 import { isAddress } from 'web3-utils'
 
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
+
+const TopSection = styled(AutoColumn)({
+  maxWidth: '480px',
+  width: '100%',
+})
 
 const Wrapper = styled.div({
   margin: '0px 24px',
 })
 
 const Label = styled.div({
-  margin: '16px 0px 8px 0px',
+  margin: '24px 0px 8px 0px',
 })
 
 const ChainSelect = styled.div({
@@ -35,7 +43,7 @@ const ChainSelect = styled.div({
   justifyContent: 'space-between',
   alignItems: 'center',
   padding: '12px 64px',
-  border: ' 1px solid rgba(255, 255, 255, 0.4)',
+  border: '1px solid rgba(255, 255, 255, 0.4)',
   cursor: 'pointer',
   borderRadius: '20px',
   ':hover': {
@@ -113,49 +121,76 @@ export const Bridge: React.FC = () => {
   }
 
   return (
-    <BodyWrapper>
-      <SwapHeader title={t('bridge')} hideSettings />
-      <Wrapper>
-        <Label>Home chain</Label>
-        <ChainSelect onClick={() => setSelectingHomeChain(true)}>
-          <CurrencyLogo currency={homeChain.token} />
-          <span>{homeChain.prettyName}</span>
-          <DropDown />
-        </ChainSelect>
-        <Label>Destination chain</Label>
-        <ChainSelect onClick={() => setSelectingDestChain(true)}>
-          <CurrencyLogo currency={destChain.token} />
-          <span>{destChain.prettyName}</span>
-          <DropDown />
-        </ChainSelect>
-        <div style={{ margin: '16px 0px' }}>
-          <CurrencyInputPanel
-            value={amount}
-            onUserInput={setAmount}
-            label={t('amount')}
-            showMaxButton
-            onMax={() => selectedCurrencyBalance && setAmount(selectedCurrencyBalance.toSignificant(6))}
-            currency={currency}
-            onCurrencySelect={setCurrency}
-            disableCurrencySelect={!correctNetwork}
-            id="bridge-currency"
-          />
+    <>
+      <TopSection gap="md">
+        <DataCard style={{ marginBottom: '32px' }}>
+          <CardNoise />
+          <CardSection>
+            <AutoColumn gap="md">
+              <RowBetween>
+                <TYPE.white fontWeight={600}>Optics {t('bridge')}</TYPE.white>
+              </RowBetween>
+              <RowBetween>
+                <TYPE.white fontSize={14}>{t('bridgeDesc')}</TYPE.white>
+              </RowBetween>{' '}
+              <ExternalLink
+                style={{ color: 'white', textDecoration: 'underline' }}
+                href="https://docs.celo.org/celo-codebase/protocol/optics"
+                target="_blank"
+              >
+                <TYPE.white fontSize={14}>{t('bridgeReadMore')}</TYPE.white>
+              </ExternalLink>
+            </AutoColumn>
+          </CardSection>
+          <CardNoise />
+        </DataCard>
+      </TopSection>
+      <BodyWrapper>
+        <div style={{ marginTop: '8px' }}>
+          <SwapHeader title={t('bridge')} hideSettings />
         </div>
-        <div style={{ margin: '16px 0px' }}>
-          <AddressInputPanel value={recipient} onChange={setRecipient} />
-        </div>
-        <div style={{ marginBottom: '16px' }}>{button}</div>
-      </Wrapper>
-      <ChainSearchModal
-        isOpen={selectingHomeChain}
-        onDismiss={() => setSelectingHomeChain(false)}
-        onChainSelect={(chain) => setHomeChain(chain)}
-      />
-      <ChainSearchModal
-        isOpen={selectingDestChain}
-        onDismiss={() => setSelectingDestChain(false)}
-        onChainSelect={(chain) => setDestChain(chain)}
-      />
-    </BodyWrapper>
+        <Wrapper>
+          <Label>Home chain</Label>
+          <ChainSelect onClick={() => setSelectingHomeChain(true)}>
+            <CurrencyLogo currency={homeChain.token} />
+            <span>{homeChain.prettyName}</span>
+            <DropDown />
+          </ChainSelect>
+          <Label>Destination chain</Label>
+          <ChainSelect onClick={() => setSelectingDestChain(true)}>
+            <CurrencyLogo currency={destChain.token} />
+            <span>{destChain.prettyName}</span>
+            <DropDown />
+          </ChainSelect>
+          <div style={{ margin: '16px 0px' }}>
+            <CurrencyInputPanel
+              value={amount}
+              onUserInput={setAmount}
+              label={t('amount')}
+              showMaxButton
+              onMax={() => selectedCurrencyBalance && setAmount(selectedCurrencyBalance.toSignificant(6))}
+              currency={currency}
+              onCurrencySelect={setCurrency}
+              disableCurrencySelect={!correctNetwork}
+              id="bridge-currency"
+            />
+          </div>
+          <div style={{ margin: '16px 0px' }}>
+            <AddressInputPanel value={recipient} onChange={setRecipient} />
+          </div>
+          <div style={{ marginBottom: '16px' }}>{button}</div>
+        </Wrapper>
+        <ChainSearchModal
+          isOpen={selectingHomeChain}
+          onDismiss={() => setSelectingHomeChain(false)}
+          onChainSelect={(chain) => setHomeChain(chain)}
+        />
+        <ChainSearchModal
+          isOpen={selectingDestChain}
+          onDismiss={() => setSelectingDestChain(false)}
+          onChainSelect={(chain) => setDestChain(chain)}
+        />
+      </BodyWrapper>
+    </>
   )
 }

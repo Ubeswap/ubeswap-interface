@@ -1,6 +1,8 @@
 {
   "approve": "Approve",
   "bridge": "Bridge",
+  "bridgeDesc": "Bridge tokens between Celo and other networks. Please use at your own risk.",
+  "bridgeReadMore": "Read more about Optics",
   "amount": "Amount",
   "changeNetwork": "Change network to",
   "connectWallet": "Connect Wallet",

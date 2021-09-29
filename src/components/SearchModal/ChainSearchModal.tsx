@@ -11,7 +11,7 @@ const ChainSelect = styled.div({
   justifyContent: 'center',
   alignItems: 'center',
   padding: '12px 64px',
-  border: ' 1px solid rgba(255, 255, 255, 0.4)',
+  border: '1px solid rgba(255, 255, 255, 0.4)',
   cursor: 'pointer',
   borderRadius: '20px',
   ':hover': {
@@ -132,7 +132,7 @@ export default function ChainSearchModal({ isOpen, onDismiss, onChainSelect }: C
   )
 
   return (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={80} minHeight={80}>
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={60} minHeight={60}>
       <div style={{ padding: '48px', width: '100%' }}>
         <div style={{ marginBottom: '16px' }}>
           <span>Select chain</span>
