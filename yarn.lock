@@ -1339,7 +1339,7 @@
     web3-eth-abi "1.3.6"
     web3-utils "1.3.6"
 
-"@celo/utils@1.2.5", "@celo/utils@^1.2.1":
+"@celo/utils@1.2.5", "@celo/utils@^1.2.0", "@celo/utils@^1.2.1":
   version "1.2.5"
   resolved "https://registry.yarnpkg.com/@celo/utils/-/utils-1.2.5.tgz#84212540568c112d1ba43d3a76c96f96e574e2ac"
   integrity sha512-21Ays/8sqJNblU6gowsNmSnSxitNgx7nHe37dYWgtFXoUHFWQLF1J+SRVBjM55+4oVl6QpaH9cQjbEbLcCdD3Q==
@@ -1387,7 +1387,7 @@
     eth-lib "^0.2.8"
     ethereumjs-util "^5.2.0"
 
-"@celo/wallet-base@1.2.5":
+"@celo/wallet-base@1.2.5", "@celo/wallet-base@^1.2.0":
   version "1.2.5"
   resolved "https://registry.yarnpkg.com/@celo/wallet-base/-/wallet-base-1.2.5.tgz#d17bf43bbcd6010b8b1fe1ea76d7c84cf7ba12f5"
   integrity sha512-6I7OdV2EbIkajgZNNDGm/R7SQBfIXrDJJyLQ37V0aV4SwVmYTx7GcP+9StuSccqSyAfdw0oy7fMolN+V70x0QA==
@@ -1471,7 +1471,7 @@
     eth-lib "^0.2.8"
     ethereumjs-util "^5.2.0"
 
-"@celo/wallet-remote@1.2.5":
+"@celo/wallet-remote@1.2.5", "@celo/wallet-remote@^1.2.0":
   version "1.2.5"
   resolved "https://registry.yarnpkg.com/@celo/wallet-remote/-/wallet-remote-1.2.5.tgz#53cef7535a1f8fe2272c932ec7e245f6842a559c"
   integrity sha512-8jeGYEAg/dkq4dzdMLfWb6EKoUIbYOKSx+a5/IJUaQEnzbyqLInrnuree2L5VPN+TlI+y2SJ0fGL4i0VBWe9Hw==
@@ -1484,17 +1484,17 @@
     eth-lib "^0.2.8"
     ethereumjs-util "^5.2.0"
 
-"@celo/wallet-walletconnect@1.2.4":
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/@celo/wallet-walletconnect/-/wallet-walletconnect-1.2.4.tgz#82f7916d2bf383ed9f5fbdb64679f4a8359c6b5c"
-  integrity sha512-cZzCvJIfUbMrAg01Fs/tCU32qWnW/DvukjYyZgV1RB3SX+T5Zz51S2nA2kNRQgjGsGSsiEkjoa9l3i0cF01W9g==
+"@celo/wallet-walletconnect@1.2.0", "@celo/wallet-walletconnect@1.2.4":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@celo/wallet-walletconnect/-/wallet-walletconnect-1.2.0.tgz#ab4e241cf1f3eeecb963851bbe5fefca8671fbb5"
+  integrity sha512-5AB+r3y3h9Ouos8t9boJUg/aJJ8XYkDdk2NbmUgPz96+QYGhYk6ziX9wFwNXGnmjD7jwFtl8nRP4OtC+Y0SP9g==
   dependencies:
-    "@celo/connect" "1.2.4"
-    "@celo/utils" "1.2.4"
-    "@celo/wallet-base" "1.2.4"
-    "@celo/wallet-remote" "1.2.4"
-    "@walletconnect/client" "2.0.0-beta.9"
-    "@walletconnect/types" "2.0.0-beta.9"
+    "@celo/connect" "^1.2.0"
+    "@celo/utils" "^1.2.0"
+    "@celo/wallet-base" "^1.2.0"
+    "@celo/wallet-remote" "^1.2.0"
+    "@walletconnect/client" "2.0.0-alpha.35"
+    "@walletconnect/types" "2.0.0-alpha.35"
     debug "^4.1.1"
     ethereumjs-util "^7.0.8"
 
@@ -2360,7 +2360,7 @@
     "@babel/runtime" "^7.7.2"
     regenerator-runtime "^0.13.3"
 
-"@json-rpc-tools/provider@^1.4.0", "@json-rpc-tools/provider@^1.7.2":
+"@json-rpc-tools/provider@^1.4.0", "@json-rpc-tools/provider@^1.6.4", "@json-rpc-tools/provider@^1.7.2":
   version "1.7.6"
   resolved "https://registry.yarnpkg.com/@json-rpc-tools/provider/-/provider-1.7.6.tgz#8a17c34c493fa892632e278fd9331104e8491ec6"
   integrity sha512-z7D3xvJ33UfCGv77n40lbzOYjZKVM3k2+5cV7xS8G6SCvKTzMkhkUYuD/qzQUNT4cG/lv0e9mRToweEEVLVVmA==
@@ -2370,52 +2370,20 @@
     safe-json-utils "^1.1.1"
     ws "^7.4.0"
 
-"@json-rpc-tools/provider@^2.0.0-beta.3":
-  version "2.0.0-beta.12"
-  resolved "https://registry.yarnpkg.com/@json-rpc-tools/provider/-/provider-2.0.0-beta.12.tgz#635296b8d53da6861dc776290dc6fb6a8ef9a19d"
-  integrity sha512-YXckO+chyylvZWtYr0RmmYLP/Khi17r1DYyJRyzQKYUUkzL13rx71QEUYVed9VBnuBK2ezHUW+V1BSGXwGNs6g==
-  dependencies:
-    "@json-rpc-tools/utils" "^2.0.0-beta.12"
-    safe-json-utils "^2.0.0-beta.0"
-
-"@json-rpc-tools/types@^1.7.2", "@json-rpc-tools/types@^1.7.6":
+"@json-rpc-tools/types@^1.6.4", "@json-rpc-tools/types@^1.7.2", "@json-rpc-tools/types@^1.7.6":
   version "1.7.6"
   resolved "https://registry.yarnpkg.com/@json-rpc-tools/types/-/types-1.7.6.tgz#5abd5fde01364a130c46093b501715bcce5bdc0e"
   integrity sha512-nDSqmyRNEqEK9TZHtM15uNnDljczhCUdBmRhpNZ95bIPKEDQ+nTDmGMFd2lLin3upc5h2VVVd9tkTDdbXUhDIQ==
   dependencies:
     keyvaluestorage-interface "^1.0.0"
 
-"@json-rpc-tools/types@^2.0.0-beta.1", "@json-rpc-tools/types@^2.0.0-beta.12", "@json-rpc-tools/types@^2.0.0-beta.3":
-  version "2.0.0-beta.12"
-  resolved "https://registry.yarnpkg.com/@json-rpc-tools/types/-/types-2.0.0-beta.12.tgz#358f77c48a844a3f55169c2db3b35c6af1cf4e8b"
-  integrity sha512-UM8w0RnD4DjYql/HlThe051ivW2Q8ulWarr7ux5Aas1UsOmcGQEg4slQo46p+BXgh1Nth7SHWS2tVnW/UUnCwQ==
-  dependencies:
-    keyvaluestorage-interface "^1.0.0"
-
-"@json-rpc-tools/utils@^1.4.0", "@json-rpc-tools/utils@^1.7.2", "@json-rpc-tools/utils@^1.7.6":
+"@json-rpc-tools/utils@^1.4.0", "@json-rpc-tools/utils@^1.6.4", "@json-rpc-tools/utils@^1.7.2", "@json-rpc-tools/utils@^1.7.6":
   version "1.7.6"
   resolved "https://registry.yarnpkg.com/@json-rpc-tools/utils/-/utils-1.7.6.tgz#67f04987dbaa2e7adb6adff1575367b75a9a9ba1"
   integrity sha512-HjA8x/U/Q78HRRe19yh8HVKoZ+Iaoo3YZjakJYxR+rw52NHo6jM+VE9b8+7ygkCFXl/EHID5wh/MkXaE/jGyYw==
   dependencies:
     "@json-rpc-tools/types" "^1.7.6"
     "@pedrouid/environment" "^1.0.1"
-
-"@json-rpc-tools/utils@^2.0.0-beta.12", "@json-rpc-tools/utils@^2.0.0-beta.3":
-  version "2.0.0-beta.12"
-  resolved "https://registry.yarnpkg.com/@json-rpc-tools/utils/-/utils-2.0.0-beta.12.tgz#40be0f4c07e176d7fc14a441fbbf1bd1a0f9847f"
-  integrity sha512-7j3REzegFNXdgA0rjllNKz84ikIAXm4Yv3mO8Lx9D64hUOU2tUZfELtKEm2wr8FsP5if46Xl9ZH/Ch7JB4nXJQ==
-  dependencies:
-    "@json-rpc-tools/types" "^2.0.0-beta.12"
-    "@pedrouid/environment" "^1.0.1"
-
-"@json-rpc-tools/ws-connection@^2.0.0-beta.3":
-  version "2.0.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@json-rpc-tools/ws-connection/-/ws-connection-2.0.0-beta.3.tgz#383ae45c5a6c7765fe334a800c76a187b8cca065"
-  integrity sha512-cDAlcFTOZFI9y0TzgNFth1CJYqNG56+2v14+VrBflaWU89XhVmbzd3hEtwh0ejoHsmh3JLrETUlErMxfnR9xcg==
-  dependencies:
-    "@json-rpc-tools/utils" "^2.0.0-beta.3"
-    safe-json-utils "^1.1.1"
-    ws "^7.4.0"
 
 "@ledgerhq/devices@^5.11.0", "@ledgerhq/devices@^5.51.1":
   version "5.51.1"
@@ -3730,6 +3698,23 @@
     "@walletconnect/window-metadata" "1.0.0"
     detect-browser "5.2.0"
 
+"@walletconnect/client@2.0.0-alpha.35":
+  version "2.0.0-alpha.35"
+  resolved "https://registry.yarnpkg.com/@walletconnect/client/-/client-2.0.0-alpha.35.tgz#2cdfdb8780171a6d8fe469daeb96d578e8ef63db"
+  integrity sha512-LaEDcZ2JWRXPAd9TtQXT+n5EzDh+OJz0AAVreF4uD64jSe9T23r4PyLtfJ8dSLivcU/qCzld92WMrInP0vpGLw==
+  dependencies:
+    "@json-rpc-tools/provider" "^1.6.4"
+    "@json-rpc-tools/utils" "^1.6.4"
+    "@pedrouid/pino-utils" "^1.0.1"
+    "@walletconnect/types" "^2.0.0-alpha.35"
+    "@walletconnect/utils" "^2.0.0-alpha.35"
+    enc-utils "^3.0.0"
+    keyvaluestorage "^0.7.1"
+    pino "^6.7.0"
+    pino-pretty "^4.3.0"
+    relay-provider "^1.2.1"
+    safe-json-utils "^1.1.1"
+
 "@walletconnect/client@2.0.0-beta.0":
   version "2.0.0-beta.0"
   resolved "https://registry.yarnpkg.com/@walletconnect/client/-/client-2.0.0-beta.0.tgz#3b990478d7cbd0c373846720fa82495058df84e6"
@@ -3745,24 +3730,6 @@
     pino "^6.7.0"
     pino-pretty "^4.3.0"
     relay-provider "^1.2.1"
-    safe-json-utils "^1.1.1"
-
-"@walletconnect/client@2.0.0-beta.9":
-  version "2.0.0-beta.9"
-  resolved "https://registry.yarnpkg.com/@walletconnect/client/-/client-2.0.0-beta.9.tgz#80c646c996cfe73ce6ecd22e325bdf9db765cf10"
-  integrity sha512-6Jz8uXwMmdNk7GLL92yRXLg6x3VWiPJYe7O9g83DvSvTrqeOFwOFQ4U1etaagdicSIPJpOKafHqeBFwZIj+IHg==
-  dependencies:
-    "@json-rpc-tools/provider" "^2.0.0-beta.3"
-    "@json-rpc-tools/utils" "^2.0.0-beta.3"
-    "@json-rpc-tools/ws-connection" "^2.0.0-beta.3"
-    "@pedrouid/pino-utils" "^1.0.1"
-    "@walletconnect/types" "^2.0.0-beta.9"
-    "@walletconnect/utils" "^2.0.0-beta.9"
-    enc-utils "^3.0.0"
-    keyvaluestorage "^0.7.1"
-    pino "^6.7.0"
-    pino-pretty "^4.3.0"
-    relay-provider "^2.0.0-beta.0"
     safe-json-utils "^1.1.1"
 
 "@walletconnect/crypto@^1.0.1":
@@ -3834,6 +3801,16 @@
   resolved "https://registry.yarnpkg.com/@walletconnect/safe-json/-/safe-json-1.0.0.tgz#12eeb11d43795199c045fafde97e3c91646683b2"
   integrity sha512-QJzp/S/86sUAgWY6eh5MKYmSfZaRpIlmCJdi5uG4DJlKkZrHEF7ye7gA+VtbVzvTtpM/gRwO2plQuiooIeXjfg==
 
+"@walletconnect/types@2.0.0-alpha.35":
+  version "2.0.0-alpha.35"
+  resolved "https://registry.yarnpkg.com/@walletconnect/types/-/types-2.0.0-alpha.35.tgz#277422625a5ad79f4750ecb9386f968e52cc1948"
+  integrity sha512-LvGCisroY6FNZ5xNT1cYwmuDxkut5wvolbcGrG5tjl9pp2iiTDLpnk51azopA+wn1giPRSMfk6qRU2czfQd5kA==
+  dependencies:
+    "@json-rpc-tools/types" "^1.6.4"
+    keyvaluestorage "^0.7.1"
+    pino "^6.7.0"
+    pino-pretty "^4.3.0"
+
 "@walletconnect/types@2.0.0-beta.0":
   version "2.0.0-beta.0"
   resolved "https://registry.yarnpkg.com/@walletconnect/types/-/types-2.0.0-beta.0.tgz#06fdd73767da0a1e41812756bee4fe8f1e1ce301"
@@ -3844,22 +3821,12 @@
     pino "^6.7.0"
     pino-pretty "^4.3.0"
 
-"@walletconnect/types@2.0.0-beta.9":
-  version "2.0.0-beta.9"
-  resolved "https://registry.yarnpkg.com/@walletconnect/types/-/types-2.0.0-beta.9.tgz#12b26009c564dd38d6194b3761ea845f9133d4b0"
-  integrity sha512-dbW1Yt4kPIVGQ502sVwCIih1qPObjB9sYLXqcAuigwzjuS0aN7lb/LALS8Hoj1ejjhN7+YjIk8z1N36yFlr3hg==
-  dependencies:
-    "@json-rpc-tools/types" "^2.0.0-beta.3"
-    keyvaluestorage "^0.7.1"
-    pino "^6.7.0"
-    pino-pretty "^4.3.0"
-
 "@walletconnect/types@^1.6.5":
   version "1.6.5"
   resolved "https://registry.yarnpkg.com/@walletconnect/types/-/types-1.6.5.tgz#31ad1415fc6e1e89e25a10ad5fed6958f56cefa8"
   integrity sha512-S9DsODI35PbIDuOSkIiF8SzTstqCqX/4+kV7n18vyukEFPlpSSHwZMwJUfzo9yJ0pqsqLNZta+jvb88gJRuAaA==
 
-"@walletconnect/types@^2.0.0-beta.0", "@walletconnect/types@^2.0.0-beta.18", "@walletconnect/types@^2.0.0-beta.9":
+"@walletconnect/types@^2.0.0-alpha.35", "@walletconnect/types@^2.0.0-beta.0", "@walletconnect/types@^2.0.0-beta.18":
   version "2.0.0-beta.18"
   resolved "https://registry.yarnpkg.com/@walletconnect/types/-/types-2.0.0-beta.18.tgz#6b5ea4bda55576bfe418368ca2e17d8e97d7f6bf"
   integrity sha512-U9fJtnsa3ov6vRolfjQ6aj5MgLFiy/R+54ShJPsbEff6Pcois+fcpns7mOdI2mNxT8apIPasles0OAYWAbssYw==
@@ -3882,7 +3849,7 @@
     js-sha3 "0.8.0"
     query-string "6.13.5"
 
-"@walletconnect/utils@^2.0.0-beta.0", "@walletconnect/utils@^2.0.0-beta.9":
+"@walletconnect/utils@^2.0.0-alpha.35", "@walletconnect/utils@^2.0.0-beta.0":
   version "2.0.0-beta.18"
   resolved "https://registry.yarnpkg.com/@walletconnect/utils/-/utils-2.0.0-beta.18.tgz#87738dc46e2e4639ac896caf149517da92defe79"
   integrity sha512-C7VMvgzZ5KHUG6oOKJpXjIs2NFjrKsxUhwWqDb6L06ZceaOtkLKK75R7dhrPT8zS0Y+gbB1fSXYSNvOh1zQfog==
@@ -4958,9 +4925,9 @@ bip32@2.0.5:
     typeforce "^1.11.5"
     wif "^2.0.6"
 
-"bip39@git+https://github.com/bitcoinjs/bip39.git#d8ea080a18b40f301d4e2219a2991cd2417e83c2":
+"bip39@https://github.com/bitcoinjs/bip39#d8ea080a18b40f301d4e2219a2991cd2417e83c2":
   version "3.0.3"
-  resolved "git+https://github.com/bitcoinjs/bip39.git#d8ea080a18b40f301d4e2219a2991cd2417e83c2"
+  resolved "https://github.com/bitcoinjs/bip39#d8ea080a18b40f301d4e2219a2991cd2417e83c2"
   dependencies:
     "@types/node" "11.11.6"
     create-hash "^1.1.0"
@@ -4981,9 +4948,9 @@ blakejs@^1.1.0:
   resolved "https://registry.yarnpkg.com/blakejs/-/blakejs-1.1.1.tgz#bf313053978b2cd4c444a48795710be05c785702"
   integrity sha512-bLG6PHOCZJKNshTjGRBvET0vTciwQE6zFKOKKXPDJfwFBd4Ac0yBfPZqcGvGJap50l7ktvlpFqc2jGVaUgbJgg==
 
-"bls12377js@git+https://github.com/celo-org/bls12377js.git#cb38a4cfb643c778619d79b20ca3e5283a2122a6":
+"bls12377js@https://github.com/celo-org/bls12377js#cb38a4cfb643c778619d79b20ca3e5283a2122a6":
   version "0.1.0"
-  resolved "git+https://github.com/celo-org/bls12377js.git#cb38a4cfb643c778619d79b20ca3e5283a2122a6"
+  resolved "https://github.com/celo-org/bls12377js#cb38a4cfb643c778619d79b20ca3e5283a2122a6"
   dependencies:
     "@stablelib/blake2xs" "0.10.4"
     "@types/node" "^12.11.7"
@@ -13746,13 +13713,6 @@ relay-provider@^1.2.1:
     "@json-rpc-tools/provider" "^1.4.0"
     "@json-rpc-tools/utils" "^1.4.0"
 
-relay-provider@^2.0.0-beta.0:
-  version "2.0.0-beta.0"
-  resolved "https://registry.yarnpkg.com/relay-provider/-/relay-provider-2.0.0-beta.0.tgz#59a6ca37e1c40246f71bd50639292e9bfd6ed798"
-  integrity sha512-ni4p+cqlH2U+SwBLjYk7uM9HWOfpR/PXPTh3M5AtzKxUJo5Y6d2u9qaKWfgdGGpQrtI5CIGeaHkzBpoBqXf4gA==
-  dependencies:
-    "@json-rpc-tools/types" "^2.0.0-beta.1"
-
 remove-trailing-separator@^1.0.1:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/remove-trailing-separator/-/remove-trailing-separator-1.1.0.tgz#c24bce2a283adad5bc3f58e0d48249b92379d8ef"
@@ -14071,11 +14031,6 @@ safe-json-utils@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/safe-json-utils/-/safe-json-utils-1.1.1.tgz#0e883874467d95ab914c3f511096b89bfb3e63b1"
   integrity sha512-SAJWGKDs50tAbiDXLf89PDwt9XYkWyANFWVzn4dTXl5QyI8t2o/bW5/OJl3lvc2WVU4MEpTo9Yz5NVFNsp+OJQ==
-
-safe-json-utils@^2.0.0-beta.0:
-  version "2.0.0-beta.0"
-  resolved "https://registry.yarnpkg.com/safe-json-utils/-/safe-json-utils-2.0.0-beta.0.tgz#425c0fca3057caed7a3d8d82e3d673d9dcbfa218"
-  integrity sha512-kaIaayQoR1EoeX0UIQqQyHvWNNWKnQcrNmebCpR80zSjML/EMmulChGJDSoJvFR8eWkVIpDD5kAF0dMuxl1ngg==
 
 safe-regex@^1.1.0:
   version "1.1.0"
