@@ -9,7 +9,7 @@ import useInterval from '../../hooks/useInterval'
 import useIsWindowVisible from '../../hooks/useIsWindowVisible'
 import { AppDispatch } from '../index'
 import { acceptListUpdate } from './actions'
-import { useActiveListUrls } from './hooks'
+// import { useActiveListUrls } from './hooks'
 
 export default function Updater(): null {
   const library = useProvider()
@@ -18,7 +18,7 @@ export default function Updater(): null {
 
   // get all loaded lists, and the active urls
   const lists = useAllLists()
-  const activeListUrls = useActiveListUrls()
+  // const activeListUrls = useActiveListUrls()
 
   // initiate loading
   useAllInactiveTokens()
