@@ -1,5 +1,4 @@
 import { useProvider } from '@celo-tools/use-contractkit'
-import { getVersionUpgrade, minVersionBump, VersionUpgrade } from '@uniswap/token-lists'
 import { useAllInactiveTokens } from 'hooks/Tokens'
 import { useCallback, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
@@ -49,31 +48,35 @@ export default function Updater(): null {
   useEffect(() => {
     Object.keys(lists).forEach((listUrl) => {
       const list = lists[listUrl]
-      if (list.current && list.pendingUpdate) {
-        const bump = getVersionUpgrade(list.current.version, list.pendingUpdate.version)
-        switch (bump) {
-          case VersionUpgrade.NONE:
-            throw new Error('unexpected no version bump')
-          case VersionUpgrade.PATCH:
-          case VersionUpgrade.MINOR: {
-            const min = minVersionBump(list.current.tokens, list.pendingUpdate.tokens)
-            // automatically update minor/patch as long as bump matches the min update
-            if (bump >= min) {
-              dispatch(acceptListUpdate(listUrl))
-            } else {
-              console.error(
-                `List at url ${listUrl} could not automatically update because the version bump was only PATCH/MINOR while the update had breaking changes and should have been MAJOR`
-              )
-            }
-            break
-          }
-          // update any active or inactive lists
-          case VersionUpgrade.MAJOR:
-            dispatch(acceptListUpdate(listUrl))
-        }
+      if (list.pendingUpdate) {
+        dispatch(acceptListUpdate(listUrl))
       }
+      // TODO (bl): Figure out why this keeps breaking
+      // if (list.current && list.pendingUpdate) {
+      //   const bump = getVersionUpgrade(list.current.version, list.pendingUpdate.version)
+      //   switch (bump) {
+      //     case VersionUpgrade.NONE:
+      //       throw new Error('unexpected no version bump')
+      //     case VersionUpgrade.PATCH:
+      //     case VersionUpgrade.MINOR: {
+      //       const min = minVersionBump(list.current.tokens, list.pendingUpdate.tokens)
+      //       // automatically update minor/patch as long as bump matches the min update
+      //       if (bump >= min) {
+      //         dispatch(acceptListUpdate(listUrl))
+      //       } else {
+      //         console.error(
+      //           `List at url ${listUrl} could not automatically update because the version bump was only PATCH/MINOR while the update had breaking changes and should have been MAJOR`
+      //         )
+      //       }
+      //       break
+      //     }
+      //     // update any active or inactive lists
+      //     case VersionUpgrade.MAJOR:
+      //       dispatch(acceptListUpdate(listUrl))
+      //   }
+      // }
     })
-  }, [dispatch, lists, activeListUrls])
+  }, [dispatch, lists])
 
   return null
 }
