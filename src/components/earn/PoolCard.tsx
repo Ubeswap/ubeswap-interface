@@ -147,27 +147,19 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
           <TYPE.white fontWeight={600} fontSize={[18, 24]}>
             {token0.symbol}-{token1.symbol}
           </TYPE.white>
-          {apy &&
-            apy.greaterThan('0') &&
-            (userAprMode ? (
-              <TYPE.small
-                onClick={() => dispatch(updateUserAprMode({ userAprMode: false }))}
-                className="apr"
-                fontWeight={400}
-                fontSize={14}
-              >
-                {apy.denominator.toString() !== '0' ? `${apy}%` : '-'} APR
-              </TYPE.small>
-            ) : (
-              <TYPE.small
-                onClick={() => dispatch(updateUserAprMode({ userAprMode: true }))}
-                className="apr"
-                fontWeight={400}
-                fontSize={14}
-              >
-                {apy.denominator.toString() !== '0' ? `${quarterlyAPY}%` : '-'} APY
-              </TYPE.small>
-            ))}
+          <div onClick={() => dispatch(updateUserAprMode({ userAprMode: !userAprMode }))}>
+            {apy &&
+              apy.greaterThan('0') &&
+              (userAprMode ? (
+                <TYPE.small className="apr" fontWeight={400} fontSize={14}>
+                  {apy.denominator.toString() !== '0' ? `${apy.toFixed(0, { groupSeparator: ',' })}%` : '-'} APR
+                </TYPE.small>
+              ) : (
+                <TYPE.small className="apr" fontWeight={400} fontSize={14}>
+                  {apy.denominator.toString() !== '0' ? `${quarterlyAPY}%` : '-'} APY
+                </TYPE.small>
+              ))}
+          </div>
         </PoolInfo>
 
         <StyledInternalLink
@@ -304,6 +296,7 @@ const PoolInfo = styled.div`
     display: none;
     ${({ theme }) => theme.mediaWidth.upToSmall`
   display: block;
+    color: white;
   `}
   }
 `
