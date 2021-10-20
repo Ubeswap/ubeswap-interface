@@ -117,7 +117,7 @@ export function useApproveCallbackFromTrade(trade?: Trade, allowedSlippage = 0) 
   return useApproveCallback(
     amountToApprove,
     trade instanceof MoolaDirectTrade
-      ? moola?.lendingPoolCore
+      ? moola?.lendingPool
       : trade instanceof MoolaRouterTrade
       ? UBESWAP_MOOLA_ROUTER_ADDRESS
       : ROUTER_ADDRESS
