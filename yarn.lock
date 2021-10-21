@@ -3666,10 +3666,10 @@
   resolved "https://registry.yarnpkg.com/@ubeswap/core/-/core-1.0.2.tgz#506919c723d7f130c7b1a33d9e68f10207a86792"
   integrity sha512-NjVhCrIej5p+0G2AdPGzWZZW96XjY12s+Qq9dkqxziqcPpJy3EMTMfuLINPxP3uzRyjsPp6mUIFwWJGlTX0qog==
 
-"@ubeswap/default-token-list@^4.0.16":
-  version "4.0.16"
-  resolved "https://registry.yarnpkg.com/@ubeswap/default-token-list/-/default-token-list-4.0.16.tgz#9c4f68ba78dc04e3236307a5a2bb9fb5a2826922"
-  integrity sha512-kmhrTUON0RIrrPTdP7I4oMqi4TjFjyOAnLSC9Kulmx/ZW7VfG515m9S0txjd1YdsbBXpLmBURCiC6rFuYEPhaA==
+"@ubeswap/default-token-list@^4.0.19":
+  version "4.0.19"
+  resolved "https://registry.yarnpkg.com/@ubeswap/default-token-list/-/default-token-list-4.0.19.tgz#364021138315a28b97bb9e7e10a41512785b1940"
+  integrity sha512-/69qZ/0g00ki7Inl6e+u5GDTFv8g5b2sFYuZmNaPbPqP5oYufFUwhOuKT48crfzWkYyubaVfyAhh+v3MG9wsqA==
 
 "@ubeswap/injected-connector@^6.1.0":
   version "6.1.0"
@@ -8888,10 +8888,10 @@ i18next-xhr-backend@^3.2.2:
   dependencies:
     "@babel/runtime" "^7.5.5"
 
-i18next@^20.3.1:
-  version "20.6.1"
-  resolved "https://registry.yarnpkg.com/i18next/-/i18next-20.6.1.tgz#535e5f6e5baeb685c7d25df70db63bf3cc0aa345"
-  integrity sha512-yCMYTMEJ9ihCwEQQ3phLo7I/Pwycf8uAx+sRHwwk5U9Aui/IZYgQRyMqXafQOw5QQ7DM1Z+WyEXWIqSuJHhG2A==
+i18next@^21.3.3:
+  version "21.3.3"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-21.3.3.tgz#1065d557328db29a2e1f33526ed37608cdb0242c"
+  integrity sha512-Wv5arCT9pK35nfhOzTdS64T7JpPcoqnkOEidxc4zF0DZ8KetpvmnkO+uWkXy+DFz6zWzPX7U9bIemwBqpFRprw==
   dependencies:
     "@babel/runtime" "^7.12.0"
 
