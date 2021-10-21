@@ -49,7 +49,7 @@ export const MoolaDirectTradeDetails: React.FC<Props> = ({ trade }: Props) => {
     const collateral = cusdPrice
       ? new TokenAmount(celo, userData.totalCollateralETH.toString()).multiply(cusdPrice)
       : null
-    const borrows = cusdPrice ? new TokenAmount(celo, userData.totalDebtETH).multiply(cusdPrice) : null
+    const borrows = cusdPrice ? new TokenAmount(celo, userData.totalDebtETH.toString()).multiply(cusdPrice) : null
 
     userDataArea = (
       <>
