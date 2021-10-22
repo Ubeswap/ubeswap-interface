@@ -44,7 +44,7 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
       setAttempting(true)
       await doTransaction(stakingContract, 'getReward', {
         args: [],
-        summary: `Claim accumulated UBE rewards`,
+        summary: `Claim accumulated ${stakingInfo.rewardTokens.map((token) => token.symbol).join(', ')} rewards`,
       })
         .catch(console.error)
         .finally(() => {
