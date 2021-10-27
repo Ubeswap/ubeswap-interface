@@ -25,6 +25,7 @@ import PoolFinder from './PoolFinder'
 import RemoveLiquidity from './RemoveLiquidity'
 import { RedirectOldRemoveLiquidityPathStructure } from './RemoveLiquidity/redirects'
 import Send from './Send'
+import { Stake } from './Stake'
 import Swap from './Swap'
 import { OpenClaimAddressModalAndRedirectToSwap, RedirectPathToSwapOnly, RedirectToSwap } from './Swap/redirects'
 
@@ -120,6 +121,7 @@ export default function App() {
               <Route exact strict path="/farm/:currencyIdA/:currencyIdB/:stakingAddress" component={Manage} />
               <Route exact strict path="/dualfarm/:currencyIdA/:currencyIdB/:stakingAddress" component={Manage} />
               <Route exact strict path="/bridge" component={Bridge} />
+              <Route exact strict path="/stake" component={Stake} />
               <Route component={RedirectPathToSwapOnly} />
             </Switch>
           </ErrorBoundary>
