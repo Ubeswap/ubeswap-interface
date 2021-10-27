@@ -18,7 +18,7 @@ import { useSingleCallResult } from 'state/multicall/hooks'
 import { tryParseAmount } from 'state/swap/hooks'
 import { useCurrencyBalance } from 'state/wallet/hooks'
 import styled from 'styled-components'
-import { TYPE } from 'theme'
+import { ExternalLink, TYPE } from 'theme'
 
 import { BIG_INT_SECONDS_IN_WEEK } from '../../constants'
 
@@ -118,7 +118,7 @@ export const Stake: React.FC = () => {
         summary: `Change auto-governance selection to ${DelegateIdx[delegateIdx]}`,
       })
     },
-    [doTransaction, getConnectedSigner]
+    [doTransaction, getConnectedSigner, userDelegateIdx]
   )
 
   let button = <ButtonLight onClick={() => connect().catch(console.warn)}>{t('connectWallet')}</ButtonLight>
@@ -186,7 +186,13 @@ export const Stake: React.FC = () => {
                   : '--'}{' '}
                 UBE / week
               </h3>
-              <h3>Your auto-governance selection:</h3>
+              <h3>
+                Your{' '}
+                <ExternalLink href={'https://romulus.page/romulus/0xa7581d8E26007f4D2374507736327f5b46Dd6bA8'}>
+                  auto-governance
+                </ExternalLink>{' '}
+                selection:
+              </h3>
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <StyledButtonRadio active={userDelegateIdx === 1} onClick={() => changeDelegateIdx(1)}>
                   For
@@ -217,22 +223,14 @@ export const Stake: React.FC = () => {
       <BodyWrapper style={{ marginTop: '16px' }}>
         <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'center' }}>
           <div style={{ width: '100px' }}>
-            <StyledButtonRadio
-              style={{ padding: '8px', borderRadius: '4px' }}
-              active={staking}
-              onClick={() => setStaking(true)}
-            >
+            <StyledButtonRadio active={staking} onClick={() => setStaking(true)}>
               Stake
             </StyledButtonRadio>
           </div>
           <div style={{ width: '100px' }}>
-            <ButtonRadio
-              style={{ padding: '8px', borderRadius: '4px' }}
-              active={!staking}
-              onClick={() => setStaking(false)}
-            >
+            <StyledButtonRadio active={!staking} onClick={() => setStaking(false)}>
               Unstake
-            </ButtonRadio>
+            </StyledButtonRadio>
           </div>
         </div>
         <Wrapper>
