@@ -90,6 +90,46 @@ export const multiRewardPools: MultiRewardPool[] = [
     numRewards: 2,
     active: true,
   },
+  // WBTC-mcUSD
+  {
+    address: '0xf3D9E027B131Af5162451601038EddBF456d824B',
+    underlyingPool: '0x0079418D54F887e7859c7A3Ecc16cE96A416527b',
+    basePool: '0x0079418D54F887e7859c7A3Ecc16cE96A416527b',
+    numRewards: 2,
+    active: true,
+  },
+  // WETH-mcUSD
+  {
+    address: '0xD6E28720Fcd1C1aB6da2d1043a6763FDBb67b3aA',
+    underlyingPool: '0x666C59E75271f1fF5a52b58D4563afdc76a53b4e',
+    basePool: '0x666C59E75271f1fF5a52b58D4563afdc76a53b4e',
+    numRewards: 2,
+    active: true,
+  },
+  // SUSHI-mcUSD
+  {
+    address: '0x0E83662A17B8A3a0585DcA34E5BE81ea6bd59556',
+    underlyingPool: '0xA2674f69B2BEf4ca3E75589aD4f4d36F061048a9',
+    basePool: '0xA2674f69B2BEf4ca3E75589aD4f4d36F061048a9',
+    numRewards: 2,
+    active: true,
+  },
+  // CRV-mcUSD
+  {
+    address: '0x85B21208C0058019bc8004D85eFEa881E7598D17',
+    underlyingPool: '0xA92Bb4D6399Be5403d6c8DF3cce4dd991ca8EaFc',
+    basePool: '0xA92Bb4D6399Be5403d6c8DF3cce4dd991ca8EaFc',
+    numRewards: 2,
+    active: true,
+  },
+  // AAVE-mcUSD
+  {
+    address: '0x09c1cF8669f9A026c59EDd4792944a9aCd2d2a2E',
+    underlyingPool: '0xF20448aaF8CC60432FC2E774F9ED965D4bf77cDc',
+    basePool: '0xF20448aaF8CC60432FC2E774F9ED965D4bf77cDc',
+    numRewards: 2,
+    active: true,
+  },
 
   // ** Inactive ** //
   // CELO-MOBI
