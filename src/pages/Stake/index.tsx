@@ -186,10 +186,26 @@ export const Stake: React.FC = () => {
                   : '--'}{' '}
                 UBE / week
               </h3>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <h3>Unclaimed UBE: {userRewardRate ? earned.toFixed(4, { groupSeparator: ',' }) : '--'}</h3>
+                <ButtonEmpty padding="8px" borderRadius="8px" width="fit-content" onClick={onClaimClick}>
+                  {t('claim')}
+                </ButtonEmpty>
+              </div>
+            </>
+          ) : (
+            <h3>
+              Weekly UBE rewards:{' '}
+              {rewardRate ? rewardRate.multiply(BIG_INT_SECONDS_IN_WEEK).toFixed(2, { groupSeparator: ',' }) : '--'} UBE
+              / week
+            </h3>
+          )}
+          {stakeBalance.greaterThan('0') && (
+            <>
               <h3>
                 Your{' '}
                 <ExternalLink href={'https://romulus.page/romulus/0xa7581d8E26007f4D2374507736327f5b46Dd6bA8'}>
-                  auto-governance
+                  governance
                 </ExternalLink>{' '}
                 selection:
               </h3>
@@ -204,19 +220,7 @@ export const Stake: React.FC = () => {
                   Against
                 </StyledButtonRadio>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <h3>Unclaimed UBE: {userRewardRate ? earned.toFixed(4, { groupSeparator: ',' }) : '--'}</h3>
-                <ButtonEmpty padding="8px" borderRadius="8px" width="fit-content" onClick={onClaimClick}>
-                  {t('claim')}
-                </ButtonEmpty>
-              </div>
             </>
-          ) : (
-            <h3>
-              Weekly UBE rewards:{' '}
-              {rewardRate ? rewardRate.multiply(BIG_INT_SECONDS_IN_WEEK).toFixed(2, { groupSeparator: ',' }) : '--'} UBE
-              / week
-            </h3>
           )}
         </div>
       </TopSection>
