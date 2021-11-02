@@ -33,7 +33,7 @@ const StyledButtonRadio = styled(ButtonRadio)({
   borderRadius: '4px',
 })
 
-const VOTABLE_STAKING_REWARDS_ADDRESS = '0x25e18159Ce62cB815df0E3582a6CFCA5735c65F4'
+const VOTABLE_STAKING_REWARDS_ADDRESS = '0xCe74d14163deb82af57f253108F7E5699e62116d'
 
 const TopSection = styled(AutoColumn)({
   maxWidth: '480px',
