@@ -6,6 +6,7 @@ import { ArrowLeft } from 'react-feather'
 import { Text } from 'rebass'
 import styled from 'styled-components'
 import { CloseIcon } from 'theme'
+import { useTranslation } from 'react-i18next'
 
 import { CurrencyModalView } from './CurrencySearchModal'
 import { ManageLists } from './ManageLists'
@@ -57,6 +58,7 @@ export default function Manage({
 }) {
   // toggle between tokens and lists
   const [showLists, setShowLists] = useState(true)
+  const { t } = useTranslation()
 
   return (
     <Wrapper>
@@ -64,7 +66,7 @@ export default function Manage({
         <RowBetween>
           <ArrowLeft style={{ cursor: 'pointer' }} onClick={() => setModalView(CurrencyModalView.search)} />
           <Text fontWeight={500} fontSize={20}>
-            Manage
+            {t('manage')}
           </Text>
           <CloseIcon onClick={onDismiss} />
         </RowBetween>
@@ -73,10 +75,10 @@ export default function Manage({
       <PaddedColumn style={{ paddingBottom: 0 }}>
         <ToggleWrapper>
           <ToggleOption onClick={() => setShowLists(!showLists)} active={showLists}>
-            Lists
+            {t('Lists')}
           </ToggleOption>
           <ToggleOption onClick={() => setShowLists(!showLists)} active={!showLists}>
-            Tokens
+            {t('Tokens')}
           </ToggleOption>
         </ToggleWrapper>
       </PaddedColumn>

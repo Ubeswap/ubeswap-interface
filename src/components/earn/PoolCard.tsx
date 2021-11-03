@@ -1,16 +1,10 @@
-import { gql, useQuery } from '@apollo/client'
-import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId, cUSD, Percent, TokenAmount } from '@ubeswap/sdk'
+import { Percent } from '@ubeswap/sdk'
 import QuestionHelper from 'components/QuestionHelper'
 import { useStakingPoolValue } from 'pages/Earn/useStakingPoolValue'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { useDispatch } from 'react-redux'
 import { useAnnualRewardDollars } from 'state/stake/useAnnualRewardDollars'
-import { updateUserAprMode } from 'state/user/actions'
-import { useIsAprMode } from 'state/user/hooks'
 import styled from 'styled-components'
-import { toWei } from 'web3-utils'
 
 import { BIG_INT_SECONDS_IN_WEEK } from '../../constants'
 import { useColor } from '../../hooks/useColor'
@@ -77,26 +71,9 @@ interface Props {
   stakingInfo: StakingInfo
 }
 
-const pairDataGql = gql`
-  query getPairHourData($id: String!) {
-    pair(id: $id) {
-      pairHourData(first: 24, orderBy: hourStartUnix, orderDirection: desc) {
-        hourStartUnix
-        hourlyVolumeUSD
-      }
-    }
-  }
-`
-
 export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
   const { t } = useTranslation()
-  const { network } = useContractKit()
-  const userAprMode = useIsAprMode()
-  const dispatch = useDispatch()
   const [token0, token1] = stakingInfo.tokens
-  const { data, loading, error } = useQuery(pairDataGql, {
-    variables: { id: stakingInfo.stakingToken.address.toLowerCase() },
-  })
 
   const isStaking = Boolean(stakingInfo.stakedAmount && stakingInfo.stakedAmount.greaterThan('0'))
 
@@ -111,45 +88,25 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
     userAmountTokenA,
     userAmountTokenB,
   } = useStakingPoolValue(stakingInfo)
-  const annualFarmRewards = useAnnualRewardDollars(stakingInfo.rewardTokens, stakingInfo.totalRewardRates)
-  let annualSwapFees
-  if (!loading && !error && data) {
-    const lastDayVolumeUsd = data.pair.pairHourData.reduce(
-      (acc: number, curr: { hourlyVolumeUSD: string }) => acc + Number(curr.hourlyVolumeUSD),
-      0
-    )
-    const yearlyVolumeUsd = lastDayVolumeUsd * 365
-    annualSwapFees = new TokenAmount(
-      cUSD[network.chainId as unknown as ChainId],
-      toWei(Math.floor(yearlyVolumeUsd * 0.0025).toString())
-    )
-  }
+  const dollarRewardPerYear = useAnnualRewardDollars(stakingInfo.rewardTokens, stakingInfo.totalRewardRates)
   const apyFraction =
     stakingInfo.active && valueOfTotalStakedAmountInCUSD && !valueOfTotalStakedAmountInCUSD.equalTo('0')
-      ? annualFarmRewards?.divide(valueOfTotalStakedAmountInCUSD)
-      : undefined
-  const swapApyFraction =
-    stakingInfo.active && valueOfTotalStakedAmountInCUSD && !valueOfTotalStakedAmountInCUSD.equalTo('0')
-      ? annualSwapFees?.divide(valueOfTotalStakedAmountInCUSD)
+      ? dollarRewardPerYear?.divide(valueOfTotalStakedAmountInCUSD)
       : undefined
   const apy = apyFraction ? new Percent(apyFraction.numerator, apyFraction.denominator) : undefined
-  const swapApy = swapApyFraction ? new Percent(swapApyFraction.numerator, swapApyFraction.denominator) : undefined
 
-  const dpy = apy
-    ? new Percent(Math.floor(parseFloat(apy.divide('365').toFixed(10)) * 1_000_000).toFixed(0), '1000000')
-    : undefined
   // let weeklyAPY: React.ReactNode | undefined = <>🤯</>
   let quarterlyAPY: React.ReactNode | undefined = <>🤯</>
   try {
     // weeklyAPY = apy
     //   ? new Percent(
-    //       Math.floor(parseFloat(apy.divide('52').add('1').toFixed(10)) ** 52 * 1_000_000 - 1_000_000).toFixed(0),
+    //       Math.floor(parseFloat(apy.divide('52').add('1').toFixed(10)) ** 52 * 1_000_000).toFixed(0),
     //       '1000000'
     //     ).toFixed(0, { groupSeparator: ',' })
     //   : undefined
     quarterlyAPY = apy
       ? new Percent(
-          Math.floor(parseFloat(apy.divide('2').add('1').toFixed(10)) ** 2 * 1_000_000 - 1_000_000).toFixed(0),
+          Math.floor(parseFloat(apy.divide('2').add('1').toFixed(10)) ** 2 * 1_000_000).toFixed(0),
           '1000000'
         ).toFixed(0, { groupSeparator: ',' })
       : undefined
@@ -182,19 +139,11 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
           <TYPE.white fontWeight={600} fontSize={[18, 24]}>
             {token0.symbol}-{token1.symbol}
           </TYPE.white>
-          <div onClick={() => dispatch(updateUserAprMode({ userAprMode: !userAprMode }))}>
-            {apy &&
-              apy.greaterThan('0') &&
-              (userAprMode ? (
-                <TYPE.small className="apr" fontWeight={400} fontSize={14}>
-                  {apy.denominator.toString() !== '0' ? `${apy.toFixed(0, { groupSeparator: ',' })}%` : '-'} APR
-                </TYPE.small>
-              ) : (
-                <TYPE.small className="apr" fontWeight={400} fontSize={14}>
-                  {apy.denominator.toString() !== '0' ? `${quarterlyAPY}%` : '-'} APY
-                </TYPE.small>
-              ))}
-          </div>
+          {apy && apy.greaterThan('0') && (
+            <TYPE.small className="apr" fontWeight={400} fontSize={14}>
+              {apy.denominator.toString() !== '0' ? `${quarterlyAPY}%` : '-'} APY
+            </TYPE.small>
+          )}
         </PoolInfo>
 
         <StyledInternalLink
@@ -223,46 +172,24 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
             return (
               <React.Fragment key={idx}>
                 <PoolStatRow
-                  statName={totalRewardRate.token.symbol + ` ${t('rate')}`}
+                  statName={totalRewardRate.token.symbol + ` ${t('Rate')}`}
                   statValue={
                     stakingInfo.active
                       ? `${totalRewardRate?.multiply(BIG_INT_SECONDS_IN_WEEK)?.toFixed(0, { groupSeparator: ',' })} ${
                           totalRewardRate.token.symbol
-                        } / week`
-                      : `0 ${totalRewardRate.token.symbol} / week`
+                        } / ${t('Week')}`
+                      : `0 ${totalRewardRate.token.symbol} / ${t('Week')}`
                   }
                 />
               </React.Fragment>
             )
           })}
-        {swapApy && (
-          <PoolStatRow
-            helperText={'Projected APR from last 24 hour trading fees'}
-            statName={'Swap APR'}
-            statValue={swapApy.denominator.toString() !== '0' ? `${swapApy.toFixed(0, { groupSeparator: ',' })}%` : '-'}
-          />
-        )}
         {apy && apy.greaterThan('0') && (
-          <div onClick={() => dispatch(updateUserAprMode({ userAprMode: !userAprMode }))}>
-            <PoolStatRow
-              helperText={
-                userAprMode ? (
-                  <>
-                    Yield/day: {dpy?.toSignificant(4)}%<br />
-                    APY (semi-annually compounded): {quarterlyAPY}%
-                  </>
-                ) : (
-                  <>Compounded semi-annually</>
-                )
-              }
-              statName={`${stakingInfo.rewardTokens.length > 1 ? 'Combined ' : ''}${userAprMode ? 'APR' : 'APY'}`}
-              statValue={
-                apy.denominator.toString() !== '0'
-                  ? `${userAprMode ? apy.toFixed(0, { groupSeparator: ',' }) : quarterlyAPY}%`
-                  : '-'
-              }
-            />
-          </div>
+          <PoolStatRow
+            helperText={<>Compounded semiannually</>}
+            statName={stakingInfo.rewardTokens.length > 1 ? String(t('CombinedApy')) : 'APY'}
+            statValue={apy.denominator.toString() !== '0' ? `${quarterlyAPY}%` : '-'}
+          />
         )}
 
         {/*
@@ -304,7 +231,7 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
                           }`
                       )
                       .join(' + ')
-                  : '-') + ' / week'}
+                  : '-') + ` / ${t('Week')}`}
               </TYPE.black>
             </RowBetween>
             {userValueCUSD && (
@@ -338,7 +265,6 @@ const PoolInfo = styled.div`
     display: none;
     ${({ theme }) => theme.mediaWidth.upToSmall`
   display: block;
-    color: white;
   `}
   }
 `

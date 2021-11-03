@@ -86,8 +86,8 @@ export function CurrencySearch({
   useEffect(() => {
     if (isAddressSearch) {
       ReactGA.event({
-        category: 'Currency Select',
-        action: 'Search by address',
+        category: `${t('CurrencySelect')}`,
+        action: `${t('SearchByAddress')}`,
         label: isAddressSearch,
       })
     }
@@ -197,7 +197,7 @@ export function CurrencySearch({
       <PaddedColumn gap="16px">
         <RowBetween>
           <Text fontWeight={500} fontSize={16}>
-            Select a token
+            {t('selectToken')}
           </Text>
           <CloseIcon onClick={onDismiss} />
         </RowBetween>
@@ -249,7 +249,7 @@ export function CurrencySearch({
       ) : (
         <Column style={{ padding: '20px', height: '100%' }}>
           <TYPE.main color={theme.text3} textAlign="center" mb="20px">
-            No results found in active lists.
+            {t('NoResultsFoundInActiveLists')}.
           </TYPE.main>
           {inactiveTokens &&
             inactiveTokens.length > 0 &&
@@ -265,8 +265,8 @@ export function CurrencySearch({
                   onClick={() => setShowExpanded(!showExpanded)}
                 >
                   {!showExpanded
-                    ? `Show ${inactiveTokens.length} more inactive ${inactiveTokens.length === 1 ? 'token' : 'tokens'}`
-                    : 'Hide expanded search'}
+                    ? `${t('Show')} ${inactiveTokens.length} ${t('MoreInactive')} ${inactiveTokens.length === 1 ? t('Token') : t('Tokens')}`
+                    : `${t('HideExpandedSearch')}`}
                 </ButtonLight>
               </Row>
             )}
@@ -287,8 +287,8 @@ export function CurrencySearch({
               onClick={() => setShowExpanded(!showExpanded)}
             >
               {!showExpanded
-                ? `Show ${inactiveTokens.length} more inactive ${inactiveTokens.length === 1 ? 'token' : 'tokens'}`
-                : 'Hide expanded search'}
+                ? `${t('Show')} ${inactiveTokens.length} ${t('MoreInactive')} ${inactiveTokens.length === 1 ? t('Token') : t('Tokens')}`
+                : `${t('HideExpandedSearch')}`}
             </ButtonLight>
           </Row>
         )}
@@ -299,7 +299,7 @@ export function CurrencySearch({
               <IconWrapper size="16px" marginRight="6px">
                 <Edit />
               </IconWrapper>
-              <TYPE.main color={theme.blue1}>Manage</TYPE.main>
+              <TYPE.main color={theme.blue1}>{t('manage')}</TYPE.main>
             </RowFixed>
           </ButtonText>
         </Row>

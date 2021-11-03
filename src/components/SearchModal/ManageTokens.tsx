@@ -10,6 +10,7 @@ import { useRemoveUserAddedToken, useUserAddedTokens } from 'state/user/hooks'
 import styled from 'styled-components'
 import { ButtonText, ExternalLink, ExternalLinkIcon, TrashIcon, TYPE } from 'theme'
 import { isAddress } from 'utils'
+import { useTranslation } from 'react-i18next'
 
 import useTheme from '../../hooks/useTheme'
 import { CurrencyModalView } from './CurrencySearchModal'
@@ -47,6 +48,7 @@ export default function ManageTokens({
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const theme = useTheme()
+  const { t } = useTranslation()
 
   // manage focus on modal show
   const inputRef = useRef<HTMLInputElement>()
@@ -109,7 +111,7 @@ export default function ManageTokens({
               onChange={handleInput}
             />
           </Row>
-          {searchQuery !== '' && !isAddressSearch && <TYPE.error error={true}>Enter valid token address</TYPE.error>}
+          {searchQuery !== '' && !isAddressSearch && <TYPE.error error={true}>{t('EnterValidTokenAddress')}</TYPE.error>}
           {searchToken && (
             <Card backgroundColor={theme.bg2} padding="10px 0">
               <ImportRow
@@ -125,11 +127,11 @@ export default function ManageTokens({
         <PaddedColumn gap="lg">
           <RowBetween>
             <TYPE.main fontWeight={600}>
-              {userAddedTokens?.length} Custom {userAddedTokens.length === 1 ? 'Token' : 'Tokens'}
+              {userAddedTokens?.length} {t('Custom')} {userAddedTokens.length === 1 ? 'Token' : 'Tokens'}
             </TYPE.main>
             {userAddedTokens.length > 0 && (
               <ButtonText onClick={handleRemoveAll}>
-                <TYPE.blue>Clear all</TYPE.blue>
+                <TYPE.blue>{t('ClearAll')}</TYPE.blue>
               </ButtonText>
             )}
           </RowBetween>
@@ -137,7 +139,7 @@ export default function ManageTokens({
         </PaddedColumn>
       </Column>
       <Footer>
-        <TYPE.darkGray>Tip: Custom tokens are stored locally in your browser</TYPE.darkGray>
+        <TYPE.darkGray>{t('TipCustomTokensAreStoredLocallyInYourBrowser')}</TYPE.darkGray>
       </Footer>
     </Wrapper>
   )
