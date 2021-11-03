@@ -1,8 +1,8 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId } from '@ubeswap/sdk'
 import React, { useCallback, useContext } from 'react'
-import styled, { ThemeContext } from 'styled-components'
 import { useTranslation } from 'react-i18next'
+import styled, { ThemeContext } from 'styled-components'
 
 import useENS from '../../hooks/useENS'
 import { ExternalLink, TYPE } from '../../theme'

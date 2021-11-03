@@ -1,8 +1,8 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { useDoTransaction } from 'components/swap/routing'
 import React, { useState } from 'react'
-import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
+import styled from 'styled-components'
 
 import { useStakingContract } from '../../hooks/useContract'
 import { StakingInfo } from '../../state/stake/hooks'
@@ -89,7 +89,9 @@ export default function UnstakingModal({ isOpen, onDismiss, stakingInfo }: Staki
                   <TYPE.body fontWeight={600} fontSize={36}>
                     {<FormattedCurrencyAmount currencyAmount={earnedAmount} />}
                   </TYPE.body>
-                  <TYPE.body>{t('Unclaimed')} {earnedAmount.token.symbol}</TYPE.body>
+                  <TYPE.body>
+                    {t('Unclaimed')} {earnedAmount.token.symbol}
+                  </TYPE.body>
                 </React.Fragment>
               )
             })}

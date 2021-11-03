@@ -1,8 +1,8 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import React, { useEffect, useState } from 'react'
 import { isMobile } from 'react-device-detect'
-import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
+import styled from 'styled-components'
 
 import { ReactComponent as Close } from '../../assets/images/x.svg'
 import { ApplicationModal } from '../../state/application/actions'

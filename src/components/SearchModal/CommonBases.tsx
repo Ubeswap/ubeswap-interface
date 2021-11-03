@@ -1,9 +1,9 @@
 import { ChainId, Token } from '@ubeswap/sdk'
 import { useAllTokens } from 'hooks/Tokens'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
 import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
 
 import { SUGGESTED_BASES } from '../../constants'
 import { AutoColumn } from '../Column'

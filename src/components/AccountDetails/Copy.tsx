@@ -1,7 +1,7 @@
 import React from 'react'
 import { CheckCircle, Copy } from 'react-feather'
-import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
+import styled from 'styled-components'
 
 import useCopyClipboard from '../../hooks/useCopyClipboard'
 import { LinkStyledButton } from '../../theme'

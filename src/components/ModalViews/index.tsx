@@ -2,8 +2,8 @@ import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId } from '@ubeswap/sdk'
 import React, { useContext } from 'react'
 import { ArrowUpCircle } from 'react-feather'
-import styled, { ThemeContext } from 'styled-components'
 import { useTranslation } from 'react-i18next'
+import styled, { ThemeContext } from 'styled-components'
 
 import Circle from '../../assets/images/blue-loader.svg'
 import { CloseIcon, CustomLightSpinner, TYPE } from '../../theme'
@@ -22,7 +22,7 @@ const ConfirmedIcon = styled(ColumnCenter)`
 
 export function LoadingView({ children, onDismiss }: { children: any; onDismiss: () => void }) {
   const { t } = useTranslation()
-  
+
   return (
     <ConfirmOrLoadingWrapper>
       <RowBetween>

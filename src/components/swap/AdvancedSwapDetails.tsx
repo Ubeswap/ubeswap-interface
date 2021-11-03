@@ -1,7 +1,7 @@
 import { Trade } from '@ubeswap/sdk'
 import React, { useContext } from 'react'
-import styled, { ThemeContext } from 'styled-components'
 import { useTranslation } from 'react-i18next'
+import styled, { ThemeContext } from 'styled-components'
 
 import { useUserSlippageTolerance } from '../../state/user/hooks'
 import { ExternalLink, TYPE } from '../../theme'

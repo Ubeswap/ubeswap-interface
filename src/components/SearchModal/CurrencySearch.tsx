@@ -265,7 +265,9 @@ export function CurrencySearch({
                   onClick={() => setShowExpanded(!showExpanded)}
                 >
                   {!showExpanded
-                    ? `${t('Show')} ${inactiveTokens.length} ${t('MoreInactive')} ${inactiveTokens.length === 1 ? t('Token') : t('Tokens')}`
+                    ? `${t('Show')} ${inactiveTokens.length} ${t('MoreInactive')} ${
+                        inactiveTokens.length === 1 ? t('Token') : t('Tokens')
+                      }`
                     : `${t('HideExpandedSearch')}`}
                 </ButtonLight>
               </Row>
@@ -287,7 +289,9 @@ export function CurrencySearch({
               onClick={() => setShowExpanded(!showExpanded)}
             >
               {!showExpanded
-                ? `${t('Show')} ${inactiveTokens.length} ${t('MoreInactive')} ${inactiveTokens.length === 1 ? t('Token') : t('Tokens')}`
+                ? `${t('Show')} ${inactiveTokens.length} ${t('MoreInactive')} ${
+                    inactiveTokens.length === 1 ? t('Token') : t('Tokens')
+                  }`
                 : `${t('HideExpandedSearch')}`}
             </ButtonLight>
           </Row>

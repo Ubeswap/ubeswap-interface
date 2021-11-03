@@ -294,7 +294,8 @@ export default function FullPositionCard({ pair, border, stakedBalance }: Positi
                 style={{ width: '100%', textAlign: 'center' }}
                 href={`https://info.ubeswap.org/account/${account}`}
               >
-                {t('ViewAccruedFeesAndAnalytics')}<span style={{ fontSize: '11px' }}>↗</span>
+                {t('ViewAccruedFeesAndAnalytics')}
+                <span style={{ fontSize: '11px' }}>↗</span>
               </ExternalLink>
             </ButtonSecondary>
             {userDefaultPoolBalance && JSBI.greaterThan(userDefaultPoolBalance.raw, BIG_INT_ZERO) && (

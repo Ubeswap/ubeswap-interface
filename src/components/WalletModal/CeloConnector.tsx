@@ -1,7 +1,7 @@
 import { ChainId } from '@ubeswap/sdk'
 import React from 'react'
-import { Button } from 'theme'
 import { useTranslation } from 'react-i18next'
+import { Button } from 'theme'
 
 import { NETWORK_CHAIN_ID } from '../../connectors'
 

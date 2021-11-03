@@ -1,10 +1,10 @@
 import { diffTokenLists, TokenList } from '@uniswap/token-lists'
 import React, { useCallback, useMemo } from 'react'
 import ReactGA from 'react-ga'
+import { useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'
 import { Text } from 'rebass'
 import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
 
 import { AppDispatch } from '../../state'
 import { useRemovePopup } from '../../state/application/hooks'
@@ -67,14 +67,14 @@ export default function ListUpdatePopup({
       <AutoColumn style={{ flex: '1' }} gap="8px">
         {auto ? (
           <TYPE.body fontWeight={500}>
-            {t('TheTokenList')}{' '}&quot;{oldList.name}&quot;{' '}{t('HasBeenUpdatedTo')}{' '}
+            {t('TheTokenList')} &quot;{oldList.name}&quot; {t('HasBeenUpdatedTo')}{' '}
             <strong>{listVersionLabel(newList.version)}</strong>.
           </TYPE.body>
         ) : (
           <>
             <div>
               <Text>
-              {t('AnUpdateIsAvailableForTheTokenList')}{' '}&quot;{oldList.name}&quot; (
+                {t('AnUpdateIsAvailableForTheTokenList')} &quot;{oldList.name}&quot; (
                 {listVersionLabel(oldList.version)} to {listVersionLabel(newList.version)}).
               </Text>
               <ChangesList>
@@ -100,7 +100,11 @@ export default function ListUpdatePopup({
                     {t('Removed')}
                   </li>
                 ) : null}
-                {numTokensChanged > 0 ? <li>{numTokensChanged}{' '}{t('TokensUpdated')}</li> : null}
+                {numTokensChanged > 0 ? (
+                  <li>
+                    {numTokensChanged} {t('TokensUpdated')}
+                  </li>
+                ) : null}
               </ChangesList>
             </div>
             <AutoRow>

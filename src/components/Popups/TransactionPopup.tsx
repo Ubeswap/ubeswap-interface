@@ -2,8 +2,8 @@ import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId } from '@ubeswap/sdk'
 import React, { useContext } from 'react'
 import { AlertCircle, CheckCircle } from 'react-feather'
-import styled, { ThemeContext } from 'styled-components'
 import { useTranslation } from 'react-i18next'
+import styled, { ThemeContext } from 'styled-components'
 
 import { TYPE } from '../../theme'
 import { ExternalLink } from '../../theme/components'
@@ -35,7 +35,9 @@ export default function TransactionPopup({
         {success ? <CheckCircle color={theme.green1} size={24} /> : <AlertCircle color={theme.red1} size={24} />}
       </div>
       <AutoColumn gap="8px">
-        <TYPE.body fontWeight={500}>{summary ?? `${t('Hash')}: ` + hash.slice(0, 8) + '...' + hash.slice(58, 65)}</TYPE.body>
+        <TYPE.body fontWeight={500}>
+          {summary ?? `${t('Hash')}: ` + hash.slice(0, 8) + '...' + hash.slice(58, 65)}
+        </TYPE.body>
         {chainId && <ExternalLink href={`${network.explorer}/tx/${hash}`}>{t('ViewOnCeloExplorer')}</ExternalLink>}
       </AutoColumn>
     </RowNoFlex>

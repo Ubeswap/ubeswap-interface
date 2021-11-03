@@ -2,10 +2,10 @@ import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
 import { ChainId } from '@ubeswap/sdk'
 import React, { useCallback, useContext } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
+import { useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'
 import { useCloseModals } from 'state/application/hooks'
 import styled, { ThemeContext } from 'styled-components'
-import { useTranslation } from 'react-i18next'
 
 import { ReactComponent as Close } from '../../assets/images/x.svg'
 import { AppDispatch } from '../../state'
@@ -228,7 +228,11 @@ export default function AccountDetails({
     }
     // TODO(igm): should be valora??
     // const name = walletType === WalletTypes.? SupportedProviders.Valora : SupportedProviders[walletType]
-    return <WalletName>{t('ConnectedWith')} {walletType}</WalletName>
+    return (
+      <WalletName>
+        {t('ConnectedWith')} {walletType}
+      </WalletName>
+    )
   }
 
   function getStatusIcon() {
@@ -310,7 +314,7 @@ export default function AccountDetails({
                         {chainId && address && (
                           <AddressLink hasENS={!!ENSName} isENS={true} href={`${network.explorer}/address/${address}`}>
                             <LinkIcon size={16} />
-                            <span style={{ marginLeft: '4px' }}>{t('ViewOnCeloExplorer')}/span>
+                            <span style={{ marginLeft: '4px' }}>{t('ViewOnCeloExplorer')}</span>
                           </AddressLink>
                         )}
                       </div>

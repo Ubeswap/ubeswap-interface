@@ -11,11 +11,11 @@ import useTheme from 'hooks/useTheme'
 import { transparentize } from 'polished'
 import React, { useState } from 'react'
 import { AlertTriangle, ArrowLeft } from 'react-feather'
+import { useTranslation } from 'react-i18next'
 import { useCombinedInactiveList } from 'state/lists/hooks'
 import { useAddUserToken } from 'state/user/hooks'
 import styled from 'styled-components'
 import { CloseIcon, TYPE } from 'theme'
-import { useTranslation } from 'react-i18next'
 
 import { ExternalLink } from '../../theme/components'
 import { Checkbox, PaddedColumn } from './styleds'
@@ -71,7 +71,9 @@ export function ImportToken({ tokens, onBack, onDismiss, handleCurrencySelect }:
       <PaddedColumn gap="14px" style={{ width: '100%', flex: '1 1' }}>
         <RowBetween>
           {onBack ? <ArrowLeft style={{ cursor: 'pointer' }} onClick={onBack} /> : <div></div>}
-          <TYPE.mediumHeader>{t('Import')} {tokens.length > 1 ? `${t('Tokens')}` : `${t('Token')}`}</TYPE.mediumHeader>
+          <TYPE.mediumHeader>
+            {t('Import')} {tokens.length > 1 ? `${t('Tokens')}` : `${t('Token')}`}
+          </TYPE.mediumHeader>
           {onDismiss ? <CloseIcon onClick={onDismiss} /> : <div></div>}
         </RowBetween>
       </PaddedColumn>

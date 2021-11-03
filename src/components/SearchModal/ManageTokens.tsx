@@ -6,11 +6,11 @@ import CurrencyLogo from 'components/CurrencyLogo'
 import Row, { RowBetween, RowFixed } from 'components/Row'
 import { useToken } from 'hooks/Tokens'
 import React, { RefObject, useCallback, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useRemoveUserAddedToken, useUserAddedTokens } from 'state/user/hooks'
 import styled from 'styled-components'
 import { ButtonText, ExternalLink, ExternalLinkIcon, TrashIcon, TYPE } from 'theme'
 import { isAddress } from 'utils'
-import { useTranslation } from 'react-i18next'
 
 import useTheme from '../../hooks/useTheme'
 import { CurrencyModalView } from './CurrencySearchModal'
@@ -111,7 +111,9 @@ export default function ManageTokens({
               onChange={handleInput}
             />
           </Row>
-          {searchQuery !== '' && !isAddressSearch && <TYPE.error error={true}>{t('EnterValidTokenAddress')}</TYPE.error>}
+          {searchQuery !== '' && !isAddressSearch && (
+            <TYPE.error error={true}>{t('EnterValidTokenAddress')}</TYPE.error>
+          )}
           {searchToken && (
             <Card backgroundColor={theme.bg2} padding="10px 0">
               <ImportRow

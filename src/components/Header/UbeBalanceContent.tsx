@@ -3,9 +3,9 @@ import { ChainId as UbeswapChainId, TokenAmount } from '@ubeswap/sdk'
 import Loader from 'components/Loader'
 import React from 'react'
 import { X } from 'react-feather'
+import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import { useCUSDPrice } from 'utils/useCUSDPrice'
-import { useTranslation } from 'react-i18next'
 
 import tokenLogo from '../../assets/images/token-logo.png'
 import { UBE } from '../../constants'
@@ -112,7 +112,9 @@ export default function UbeBalanceContent({ setShowUbeBalanceModal }: { setShowU
               <TYPE.white color="white">{totalSupply?.toFixed(0, { groupSeparator: ',' }) ?? <Loader />}</TYPE.white>
             </RowBetween>
             {ube && ube.chainId === UbeswapChainId.MAINNET ? (
-              <ExternalLink href={`https://info.ubeswap.org/token/${ube.address}`}>{t('ViewUbeAnalytics')}</ExternalLink>
+              <ExternalLink href={`https://info.ubeswap.org/token/${ube.address}`}>
+                {t('ViewUbeAnalytics')}
+              </ExternalLink>
             ) : null}
           </AutoColumn>
         </CardSection>

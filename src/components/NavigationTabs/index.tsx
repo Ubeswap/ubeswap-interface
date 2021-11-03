@@ -101,7 +101,9 @@ export function AddRemoveTabs({ adding, creating }: { adding: boolean; creating:
         >
           <StyledArrowLeft />
         </HistoryLink>
-        <ActiveText>{creating ? `${t('createPair')}` : adding ? `${t('addLiquidity')}` : `${t('removeLiquidity')}`}</ActiveText>
+        <ActiveText>
+          {creating ? `${t('createPair')}` : adding ? `${t('addLiquidity')}` : `${t('removeLiquidity')}`}
+        </ActiveText>
         <Settings />
       </RowBetween>
     </Tabs>
