@@ -58,7 +58,7 @@ export const multiRewardPools: MultiRewardPool[] = [
   },
   // TFBX-UBE
   {
-    address: '0x09FC92C0534c9F67d791B4b3F37cB0AEf3368D8B',
+    address: '0x501ba7c59BA8afC1427F75D310A862BA0D2adcD2',
     underlyingPool: '0x3DAc201Ec1b3a037bC9124906A2ae0A6a09ACC1d',
     basePool: '0x3DAc201Ec1b3a037bC9124906A2ae0A6a09ACC1d',
     numRewards: 2,
