@@ -1,6 +1,7 @@
 import { useContractKit, useGetConnectedSigner } from '@celo-tools/use-contractkit'
 import { TokenAmount } from '@ubeswap/sdk'
 import { ButtonEmpty, ButtonLight, ButtonPrimary, ButtonRadio } from 'components/Button'
+import { GreyCard, YellowCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'
 import CurrencyInputPanel from 'components/CurrencyInputPanel'
 import { CardNoise, CardSection, DataCard } from 'components/earn/styled'
@@ -20,7 +21,7 @@ import { useCurrencyBalance } from 'state/wallet/hooks'
 import styled from 'styled-components'
 import { ExternalLink, TYPE } from 'theme'
 
-import { BIG_INT_SECONDS_IN_WEEK } from '../../constants'
+import { BIG_INT_SECONDS_IN_WEEK, BIG_INT_SECONDS_IN_YEAR } from '../../constants'
 
 enum DelegateIdx {
   ABSTAIN,
@@ -77,6 +78,8 @@ export const Stake: React.FC = () => {
   const earned = new TokenAmount(ube, useSingleCallResult(contract, 'earned', [address ?? undefined]).result?.[0] ?? 0)
   const totalSupply = new TokenAmount(ube, useSingleCallResult(contract, 'totalSupply', []).result?.[0] ?? 0)
   const rewardRate = new TokenAmount(ube, useSingleCallResult(contract, 'rewardRate', []).result?.[0] ?? 0)
+
+  const apy = totalSupply.greaterThan('0') ? rewardRate.multiply(BIG_INT_SECONDS_IN_YEAR).divide(totalSupply) : null
   const userRewardRate = totalSupply.greaterThan('0') ? stakeBalance.multiply(rewardRate).divide(totalSupply) : null
 
   const doTransaction = useDoTransaction()
@@ -178,9 +181,9 @@ export const Stake: React.FC = () => {
         <div style={{ textAlign: 'center' }}>
           <h2>Your UBE stake: {stakeBalance ? stakeBalance.toFixed(2, { groupSeparator: ',' }) : '--'} UBE</h2>
           {userRewardRate?.greaterThan('0') ? (
-            <>
+            <YellowCard style={{ marginBottom: '16px' }}>
               <h3>
-                Your weekly UBE rewards:{' '}
+                Your weekly rewards:{' '}
                 {userRewardRate
                   ? userRewardRate.multiply(BIG_INT_SECONDS_IN_WEEK).toFixed(2, { groupSeparator: ',' })
                   : '--'}{' '}
@@ -192,17 +195,17 @@ export const Stake: React.FC = () => {
                   {t('claim')}
                 </ButtonEmpty>
               </div>
-            </>
+            </YellowCard>
           ) : (
             <h3>
-              Weekly UBE rewards:{' '}
+              Weekly rewards:{' '}
               {rewardRate ? rewardRate.multiply(BIG_INT_SECONDS_IN_WEEK).toFixed(2, { groupSeparator: ',' }) : '--'} UBE
-              / week
+              / week ({apy?.toFixed(2, { groupSeparator: ',' }) ?? '--'}% APY)
             </h3>
           )}
           {stakeBalance.greaterThan('0') && (
-            <>
-              <h3>
+            <GreyCard>
+              <h3 style={{ margin: '0px 0px 12px 0px' }}>
                 Your{' '}
                 <ExternalLink href={'https://romulus.page/romulus/0xa7581d8E26007f4D2374507736327f5b46Dd6bA8'}>
                   governance
@@ -220,7 +223,7 @@ export const Stake: React.FC = () => {
                   Against
                 </StyledButtonRadio>
               </div>
-            </>
+            </GreyCard>
           )}
         </div>
       </TopSection>
@@ -247,9 +250,9 @@ export const Stake: React.FC = () => {
               showMaxButton
               onMax={() => {
                 if (staking) {
-                  ubeBalance && setAmount(ubeBalance.toSignificant(6))
+                  ubeBalance && setAmount(ubeBalance.toSignificant(18))
                 } else {
-                  stakeBalance && setAmount(stakeBalance.toSignificant(6))
+                  stakeBalance && setAmount(stakeBalance.toSignificant(18))
                 }
               }}
               currency={ube}
