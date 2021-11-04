@@ -56,6 +56,14 @@ export const multiRewardPools: MultiRewardPool[] = [
     numRewards: 2,
     active: true,
   },
+  // TFBX-UBE
+  {
+    address: '0x09FC92C0534c9F67d791B4b3F37cB0AEf3368D8B',
+    underlyingPool: '0x3DAc201Ec1b3a037bC9124906A2ae0A6a09ACC1d',
+    basePool: '0x3DAc201Ec1b3a037bC9124906A2ae0A6a09ACC1d',
+    numRewards: 2,
+    active: true,
+  },
 
   // ** D4P ** //
   // UBE-CELO
