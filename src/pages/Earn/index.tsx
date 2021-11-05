@@ -14,7 +14,6 @@ import { PoolCard } from '../../components/earn/PoolCard'
 import { CardNoise, CardSection, DataCard } from '../../components/earn/styled'
 import Loader from '../../components/Loader'
 import { RowBetween } from '../../components/Row'
-import { BIG_INT_ZERO } from '../../constants'
 import { StakingInfo } from '../../state/stake/hooks'
 import { ExternalLink, TYPE } from '../../theme'
 import { DualPoolCard } from './DualPoolCard'
@@ -46,13 +45,6 @@ flex-direction: column;
 `};
 `
 
-const isStakedPool = (pool: StakingInfo, logit = false) => {
-  if (pool.stakedAmount && JSBI.greaterThan(pool.stakedAmount.raw, BIG_INT_ZERO)) {
-    console.log('staked pool')
-  }
-  return Boolean(pool.stakedAmount && JSBI.greaterThan(pool.stakedAmount.raw, BIG_INT_ZERO))
-}
-
 export default function Earn() {
   const { t } = useTranslation()
   const isSupportedNetwork = useIsSupportedNetwork()
@@ -71,7 +63,10 @@ export default function Earn() {
     [stakingInfos]
   )
 
+  // stakedPools and unstakedPools excludes any multipools
   const { stakedMultiPools, unstakedMultiPools, stakedPools, unstakedPools } = useOwnerStakedPools(allPools)
+
+  const [activeStakedPools, inactiveStakedPools] = partition(stakedPools, (pool) => pool.active)
 
   const [activePools] = partition(unstakedPools, (pool) => pool.active)
 
@@ -141,9 +136,7 @@ export default function Earn() {
       {stakedTripleRewards.length > 0 && (
         <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
           <DataRow style={{ alignItems: 'baseline' }}>
-            <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>
-              {t('Your')} {t('triple')} {t('rewardPools')}
-            </TYPE.mediumHeader>
+            <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{t('yourTriplePools')}</TYPE.mediumHeader>
             <div>{/* TODO(igm): show TVL here */}</div>
           </DataRow>
           <PoolSection>
@@ -167,9 +160,7 @@ export default function Earn() {
       {stakedDualRewards.length > 0 && (
         <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
           <DataRow style={{ alignItems: 'baseline' }}>
-            <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>
-              {t('Your')} {t('double')} {t('rewardPools')}
-            </TYPE.mediumHeader>
+            <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{t('yourDoublePools')}</TYPE.mediumHeader>
             <div>{/* TODO(igm): show TVL here */}</div>
           </DataRow>
           <PoolSection>
@@ -189,14 +180,14 @@ export default function Earn() {
           </PoolSection>
         </AutoColumn>
       )}
-      {stakedPools.length > 0 && (
+      {activeStakedPools.length > 0 && (
         <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
           <DataRow style={{ alignItems: 'baseline' }}>
             <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{t('yourPools')}</TYPE.mediumHeader>
             <div>{/* TODO(igm): show TVL here */}</div>
           </DataRow>
           <PoolSection>
-            {stakedPools.map((pool) => (
+            {activeStakedPools.map((pool) => (
               <ErrorBoundary key={pool.stakingRewardAddress}>
                 <PoolCard stakingInfo={pool} />
               </ErrorBoundary>
@@ -204,7 +195,53 @@ export default function Earn() {
           </PoolSection>
         </AutoColumn>
       )}
+      {inactiveStakedTripleRewards.length + inactiveStakedDualRewards.length + inactiveStakedPools.length > 0 && (
+        <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
+          <DataRow style={{ alignItems: 'baseline' }}>
+            <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>
+              {t('Your')} {t('inactivePools')}
+            </TYPE.mediumHeader>
+            <div>{/* TODO(igm): show TVL here */}</div>
+          </DataRow>
 
+          <PoolSection>
+            {inactiveStakedTripleRewards.map((x, i) => {
+              return (
+                x[1] && (
+                  <PoolSection key={i}>
+                    <ErrorBoundary>
+                      <TriplePoolCard
+                        poolAddress={x[0].address}
+                        dualPoolAddress={x[0].underlyingPool}
+                        underlyingPool={x[1]}
+                        active={x[0].active}
+                      />
+                    </ErrorBoundary>
+                  </PoolSection>
+                )
+              )
+            })}
+            {inactiveStakedDualRewards.map((x, i) => {
+              return (
+                x[1] && (
+                  <PoolSection key={i}>
+                    <ErrorBoundary>
+                      <DualPoolCard poolAddress={x[0].address} underlyingPool={x[1]} active={x[0].active} />
+                    </ErrorBoundary>
+                  </PoolSection>
+                )
+              )
+            })}
+            {inactiveStakedPools.map((pool, i) => (
+              <PoolSection key={i}>
+                <ErrorBoundary key={pool.stakingRewardAddress}>
+                  <PoolCard stakingInfo={pool} />
+                </ErrorBoundary>
+              </PoolSection>
+            ))}
+          </PoolSection>
+        </AutoColumn>
+      )}
       <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
         <DataRow style={{ alignItems: 'baseline' }}>
           <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>
