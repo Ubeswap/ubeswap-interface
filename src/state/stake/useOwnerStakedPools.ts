@@ -27,7 +27,7 @@ export const useOwnerStakedPools = (allPools: StakingInfo[]) => {
       multiRewardPools.map((multiPool) => {
         return [multiPool, allPools.find((pool) => pool.poolInfo.poolAddress === multiPool.basePool)]
       }) as [MultiRewardPool, StakingInfo | undefined][],
-    [allPools, multiRewardPools]
+    [allPools]
   )
 
   // TODO: Add balance information to multiRewardPools so we do not have to fetch again
