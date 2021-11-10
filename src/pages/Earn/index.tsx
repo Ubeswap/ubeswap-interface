@@ -46,6 +46,14 @@ const TRIPLE_POOL_CARD_HEIGHT = isMobile ? 90 : 300
 const DUAL_POOL_CARD_HEIGHT = isMobile ? 90 : 270
 const SINGLE_POOL_CARD_HEIGHT = isMobile ? 90 : 236
 
+const Header: React.FC = ({ children }) => {
+  return (
+    <DataRow style={{ alignItems: 'baseline' }}>
+      <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{children}</TYPE.mediumHeader>
+    </DataRow>
+  )
+}
+
 export default function Earn() {
   const { t } = useTranslation()
   const isSupportedNetwork = useIsSupportedNetwork()
@@ -130,11 +138,7 @@ export default function Earn() {
   ]
   if (stakedTripleRewards.length > 0) {
     rows.push({
-      element: (
-        <DataRow style={{ alignItems: 'baseline' }}>
-          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{t('yourTriplePools')}</TYPE.mediumHeader>
-        </DataRow>
-      ),
+      element: <Header>{t('yourTriplePools')}</Header>,
       size: POOL_SECTION_HEADER_HEIGHT,
     })
     listRef?.current?.resetAfterIndex(rows.length - 1)
@@ -158,11 +162,7 @@ export default function Earn() {
   }
   if (stakedDualRewards.length > 0) {
     rows.push({
-      element: (
-        <DataRow style={{ alignItems: 'baseline' }}>
-          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{t('yourDoublePools')}</TYPE.mediumHeader>
-        </DataRow>
-      ),
+      element: <Header>{t('yourDoublePools')}</Header>,
       size: POOL_SECTION_HEADER_HEIGHT,
     })
     listRef?.current?.resetAfterIndex(rows.length - 1)
@@ -185,12 +185,7 @@ export default function Earn() {
   }
   if (activeStakedPools.length > 0) {
     rows.push({
-      element: (
-        <DataRow style={{ alignItems: 'baseline' }}>
-          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{t('yourPools')}</TYPE.mediumHeader>
-          <div>{/* TODO(igm): show TVL here */}</div>
-        </DataRow>
-      ),
+      element: <Header>{t('yourPools')}</Header>,
       size: POOL_SECTION_HEADER_HEIGHT,
     })
     listRef?.current?.resetAfterIndex(rows.length - 1)
@@ -209,12 +204,9 @@ export default function Earn() {
   if (inactiveStakedTripleRewards.length + inactiveStakedDualRewards.length + inactiveStakedPools.length > 0) {
     rows.push({
       element: (
-        <DataRow style={{ alignItems: 'baseline' }}>
-          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>
-            {t('Your')} {t('inactivePools')}
-          </TYPE.mediumHeader>
-          <div>{/* TODO(igm): show TVL here */}</div>
-        </DataRow>
+        <Header>
+          {t('Your')} {t('inactivePools')}
+        </Header>
       ),
       size: POOL_SECTION_HEADER_HEIGHT,
     })
@@ -261,11 +253,9 @@ export default function Earn() {
   if (tripleRewards.length > 0) {
     rows.push({
       element: (
-        <DataRow style={{ alignItems: 'baseline' }}>
-          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>
-            {t('triple')} {t('rewardPools')}
-          </TYPE.mediumHeader>
-        </DataRow>
+        <Header>
+          {t('triple')} {t('rewardPools')}
+        </Header>
       ),
       size: POOL_SECTION_HEADER_HEIGHT,
     })
@@ -290,11 +280,9 @@ export default function Earn() {
   if (dualRewards.length > 0) {
     rows.push({
       element: (
-        <DataRow style={{ alignItems: 'baseline' }}>
-          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>
-            {t('double')} {t('rewardPools')}
-          </TYPE.mediumHeader>
-        </DataRow>
+        <Header>
+          {t('double')} {t('rewardPools')}
+        </Header>
       ),
       size: POOL_SECTION_HEADER_HEIGHT,
     })
@@ -313,11 +301,7 @@ export default function Earn() {
   }
   if (activePools.length > 0) {
     rows.push({
-      element: (
-        <DataRow style={{ alignItems: 'baseline' }}>
-          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{t('availablePools')}</TYPE.mediumHeader>
-        </DataRow>
-      ),
+      element: <Header>{t('availablePools')}</Header>,
       size: POOL_SECTION_HEADER_HEIGHT,
     })
     listRef?.current?.resetAfterIndex(rows.length - 1)
