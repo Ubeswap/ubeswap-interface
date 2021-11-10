@@ -98,7 +98,36 @@ export default function Earn() {
   )
 
   const listRef = React.useRef<any>()
-  const rows: { element: React.ReactNode; size: number }[] = []
+  const rows: { element: React.ReactNode; size: number }[] = [
+    {
+      element: (
+        <TopSection gap="md">
+          <DataCard>
+            <CardNoise />
+            <CardSection>
+              <AutoColumn gap="md">
+                <RowBetween>
+                  <TYPE.white fontWeight={600}>Ubeswap {t('liquidityMining')}</TYPE.white>
+                </RowBetween>
+                <RowBetween>
+                  <TYPE.white fontSize={14}>{t('liquidityMiningDesc')}</TYPE.white>
+                </RowBetween>{' '}
+                <ExternalLink
+                  style={{ color: 'white', textDecoration: 'underline' }}
+                  href="https://docs.ubeswap.org/faq"
+                  target="_blank"
+                >
+                  <TYPE.white fontSize={14}>{t('liquidityMiningReadMore')}</TYPE.white>
+                </ExternalLink>
+              </AutoColumn>
+            </CardSection>
+            <CardNoise />
+          </DataCard>
+        </TopSection>
+      ),
+      size: 150,
+    },
+  ]
   if (stakedTripleRewards.length > 0) {
     rows.push({
       element: (
@@ -319,34 +348,10 @@ export default function Earn() {
   }
 
   return (
-    <PageWrapper gap="lg" justify="center">
-      <TopSection gap="md">
-        <DataCard>
-          <CardNoise />
-          <CardSection>
-            <AutoColumn gap="md">
-              <RowBetween>
-                <TYPE.white fontWeight={600}>Ubeswap {t('liquidityMining')}</TYPE.white>
-              </RowBetween>
-              <RowBetween>
-                <TYPE.white fontSize={14}>{t('liquidityMiningDesc')}</TYPE.white>
-              </RowBetween>{' '}
-              <ExternalLink
-                style={{ color: 'white', textDecoration: 'underline' }}
-                href="https://docs.ubeswap.org/faq"
-                target="_blank"
-              >
-                <TYPE.white fontSize={14}>{t('liquidityMiningReadMore')}</TYPE.white>
-              </ExternalLink>
-            </AutoColumn>
-          </CardSection>
-          <CardNoise />
-        </DataCard>
-      </TopSection>
-
+    <PageWrapper gap="sm" justify="center">
       <List
         className="no-scrollbars"
-        height={height / 1.6}
+        height={height / 1.3}
         itemCount={rows.length}
         itemSize={getItemSize}
         width={Math.min(width - 40, 640)}
