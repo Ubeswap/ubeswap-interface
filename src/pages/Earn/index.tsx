@@ -38,13 +38,13 @@ flex-direction: column;
 `
 
 const POOL_SECTION_HEADER_HEIGHT = 48
-const STAKED_TRIPLE_POOL_CARD_HEIGHT = isMobile ? 210 : 380
-const STAKED_DUAL_POOL_CARD_HEIGHT = isMobile ? 200 : 350
-const STAKED_SINGLE_POOL_CARD_HEIGHT = isMobile ? 180 : 320
-const INACTIVE_POOL_CARD_HEIGHT = isMobile ? 180 : 210
-const TRIPLE_POOL_CARD_HEIGHT = isMobile ? 90 : 300
-const DUAL_POOL_CARD_HEIGHT = isMobile ? 90 : 270
-const SINGLE_POOL_CARD_HEIGHT = isMobile ? 90 : 236
+const STAKED_TRIPLE_POOL_CARD_HEIGHT = isMobile ? 210 : 200
+const STAKED_DUAL_POOL_CARD_HEIGHT = isMobile ? 200 : 200
+const STAKED_SINGLE_POOL_CARD_HEIGHT = isMobile ? 180 : 200
+const INACTIVE_POOL_CARD_HEIGHT = isMobile ? 180 : 200
+const TRIPLE_POOL_CARD_HEIGHT = isMobile ? 90 : 150
+const DUAL_POOL_CARD_HEIGHT = isMobile ? 90 : 150
+const SINGLE_POOL_CARD_HEIGHT = isMobile ? 90 : 150
 
 const Header: React.FC = ({ children }) => {
   return (
