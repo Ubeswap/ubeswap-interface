@@ -9,10 +9,9 @@ import { useDispatch } from 'react-redux'
 import { useAnnualRewardDollars } from 'state/stake/useAnnualRewardDollars'
 import { updateUserAprMode } from 'state/user/actions'
 import { useIsAprMode } from 'state/user/hooks'
-import styled from 'styled-components'
+import styled, { useTheme } from 'styled-components'
 import { toWei } from 'web3-utils'
 
-import { useColor } from '../../hooks/useColor'
 import { StakingInfo } from '../../state/stake/hooks'
 import { StyledInternalLink, TYPE } from '../../theme'
 import { currencyId } from '../../utils/currencyId'
@@ -96,12 +95,9 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
   const { data, loading, error } = useQuery(pairDataGql, {
     variables: { id: stakingInfo.stakingToken.address.toLowerCase() },
   })
+  const theme = useTheme()
 
   const isStaking = Boolean(stakingInfo.stakedAmount && stakingInfo.stakedAmount.greaterThan('0'))
-
-  // get the color of the token
-  const token = token0.symbol?.startsWith('m') ? token1 : token0
-  const backgroundColor = useColor(token)
 
   // get the USD value of staked WETH
   const {
@@ -179,7 +175,7 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
   //   (!stakingInfo.active && stakingInfo.nextPeriodRewards.greaterThan('0'))
 
   return (
-    <Wrapper showBackground={isStaking} bgColor={backgroundColor}>
+    <Wrapper showBackground={isStaking} bgColor={theme.primary1}>
       <CardNoise />
 
       <TopSection>
