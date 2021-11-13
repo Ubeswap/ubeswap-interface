@@ -44,7 +44,7 @@ function unique(farmSummaries: FarmSummary[]): FarmSummary[] {
     return { ...byLpAddress, [farm.lpAddress]: likeFarms }
   }, cache)
 
-  return Object.entries(farmsGroupedByLp).map(([_, familyFarms]) => {
+  return Object.entries(farmsGroupedByLp).map(([, familyFarms]) => {
     if (familyFarms.length === 1) {
       return familyFarms[0]
     } else {
