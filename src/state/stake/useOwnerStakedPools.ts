@@ -1,10 +1,10 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { Interface } from '@ethersproject/abi'
-import BigNumber from 'bignumber.js'
 import { partition } from 'lodash'
 import { FarmSummary } from 'pages/Earn/useFarmRegistry'
 import { useMemo } from 'react'
 import { useMultipleContractSingleData } from 'state/multicall/hooks'
+import { toBN } from 'web3-utils'
 
 import DUAL_REWARDS_ABI from '../../constants/abis/moola/MoolaStakingRewards.json'
 
@@ -24,33 +24,24 @@ export const useOwnerStakedPools = (farmSummaries: FarmSummary[]) => {
     return acc
   }, {})
 
-  const [stakedFarms, unstakedFarms] = useMemo(() => {
-    return partition(farmSummaries, (farmSummary) => isStaked[farmSummary.stakingAddress])
+  const [stakedFarms, uniqueUnstakedFarms] = useMemo(() => {
+    const [staked, unstaked] = partition(farmSummaries, (farmSummary) => isStaked[farmSummary.stakingAddress])
+    return [staked, unique(unstaked)]
   }, [farmSummaries, isStaked])
-
-  const uniqueUnstakedFarms = useMemo(() => unique(unstakedFarms), [unstakedFarms])
 
   return { stakedFarms, unstakedFarms: uniqueUnstakedFarms }
 }
 
 function unique(farmSummaries: FarmSummary[]): FarmSummary[] {
-  const cache: Record<string, FarmSummary[]> = {}
-
-  const farmsGroupedByLp = farmSummaries.reduce((byLpAddress, farm) => {
-    const previous = byLpAddress[farm.lpAddress] || []
-
-    const likeFarms = [...previous, farm]
-
-    return { ...byLpAddress, [farm.lpAddress]: likeFarms }
-  }, cache)
-
-  return Object.entries(farmsGroupedByLp).map(([, familyFarms]) => {
-    if (familyFarms.length === 1) {
-      return familyFarms[0]
-    } else {
-      return familyFarms.sort((a, b) => {
-        return new BigNumber(a.rewardsUSDPerYear).isGreaterThan(new BigNumber(b.rewardsUSDPerYear)) ? -1 : 1
-      })[0]
+  const bestFarms: Record<string, FarmSummary> = {}
+  farmSummaries.forEach((fs) => {
+    if (!bestFarms[fs.lpAddress]) {
+      bestFarms[fs.lpAddress] = fs
+    }
+    const currentBest = bestFarms[fs.lpAddress]
+    if (toBN(fs.rewardsUSDPerYear).gt(toBN(currentBest.rewardsUSDPerYear))) {
+      bestFarms[fs.lpAddress] = fs
     }
   })
+  return Object.values(bestFarms)
 }
