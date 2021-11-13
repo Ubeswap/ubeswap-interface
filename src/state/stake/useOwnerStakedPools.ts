@@ -1,5 +1,6 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { Interface } from '@ethersproject/abi'
+import BigNumber from 'bignumber.js'
 import { partition } from 'lodash'
 import { FarmSummary } from 'pages/Earn/useFarmRegistry'
 import { useMemo } from 'react'
@@ -27,5 +28,29 @@ export const useOwnerStakedPools = (farmSummaries: FarmSummary[]) => {
     return partition(farmSummaries, (farmSummary) => isStaked[farmSummary.stakingAddress])
   }, [farmSummaries, isStaked])
 
-  return { stakedFarms, unstakedFarms }
+  const uniqueUnstakedFarms = useMemo(() => unique(unstakedFarms), [unstakedFarms])
+
+  return { stakedFarms, unstakedFarms: uniqueUnstakedFarms }
+}
+
+function unique(farmSummaries: FarmSummary[]): FarmSummary[] {
+  const cache: Record<string, FarmSummary[]> = {}
+
+  const farmsGroupedByLp = farmSummaries.reduce((byLpAddress, farm) => {
+    const previous = byLpAddress[farm.lpAddress] || []
+
+    const likeFarms = [...previous, farm]
+
+    return { ...byLpAddress, [farm.lpAddress]: likeFarms }
+  }, cache)
+
+  return Object.entries(farmsGroupedByLp).map(([_, familyFarms]) => {
+    if (familyFarms.length === 1) {
+      return familyFarms[0]
+    } else {
+      return familyFarms.sort((a, b) => {
+        return new BigNumber(a.rewardsUSDPerYear).isGreaterThan(new BigNumber(b.rewardsUSDPerYear)) ? -1 : 1
+      })[0]
+    }
+  })
 }
