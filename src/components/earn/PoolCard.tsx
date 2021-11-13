@@ -103,7 +103,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
   const stakedAmount = useSingleCallResult(stakingContract, 'balanceOf', [address || undefined]).result?.[0]
   const isStaking = Boolean(stakedAmount && stakedAmount.gt('0'))
 
-  const { userValueCUSD, userAmountTokenA, userAmountTokenB } = useLPValue(stakedAmount, farmSummary)
+  const { userValueCUSD, userAmountTokenA, userAmountTokenB } = useLPValue(stakedAmount ?? 0, farmSummary)
   let swapRewardsUSDPerYear
   if (!loading && !error && data) {
     const lastDayVolumeUsd = data.pair.pairHourData.reduce(
