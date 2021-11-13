@@ -1,7 +1,7 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { ethers } from 'ethers'
 import React, { useEffect } from 'react'
-import { AbiItem } from 'web3-utils'
+import { AbiItem, fromWei, toBN } from 'web3-utils'
 
 import farmRegistryAbi from '../../constants/abis/FarmRegistry.json'
 
@@ -65,6 +65,7 @@ export const useFarmRegistry = () => {
         rewardsUSDPerYear: farmData[e.returnValues.stakingAddress].rewardsUSDPerYear,
       })
     })
+    farmSummaries.sort((a, b) => Number(fromWei(toBN(b.tvlUSD).sub(toBN(a.tvlUSD)))))
     setFarmSummaries(farmSummaries)
   }, [kit.web3.eth])
 
