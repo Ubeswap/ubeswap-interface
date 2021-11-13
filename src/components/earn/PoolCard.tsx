@@ -13,7 +13,7 @@ import { useSingleCallResult } from 'state/multicall/hooks'
 import { updateUserAprMode } from 'state/user/actions'
 import { useIsAprMode } from 'state/user/hooks'
 import styled, { useTheme } from 'styled-components'
-import { fromWei, toWei } from 'web3-utils'
+import { fromWei, toBN, toWei } from 'web3-utils'
 
 import { StyledInternalLink, TYPE } from '../../theme'
 import { ButtonPrimary } from '../Button'
@@ -104,7 +104,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
   const isStaking = Boolean(stakedAmount && stakedAmount.gt('0'))
 
   const { userValueCUSD, userAmountTokenA, userAmountTokenB } = useLPValue(stakedAmount ?? 0, farmSummary)
-  let swapRewardsUSDPerYear
+  let swapRewardsUSDPerYear = 0
   if (!loading && !error && data) {
     const lastDayVolumeUsd = data.pair.pairHourData.reduce(
       (acc: number, curr: { hourlyVolumeUSD: string }) => acc + Number(curr.hourlyVolumeUSD),
@@ -113,8 +113,11 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
     swapRewardsUSDPerYear = Math.floor(lastDayVolumeUsd * 365 * 0.0025)
   }
   const rewardApy = new Percent(farmSummary.rewardsUSDPerYear, farmSummary.tvlUSD)
-  const swapApy = new Percent(toWei(swapRewardsUSDPerYear?.toString() ?? '0'), farmSummary.tvlUSD)
-  const apy = rewardApy.add(swapApy)
+  const swapApy = new Percent(toWei(swapRewardsUSDPerYear.toString()), farmSummary.tvlUSD)
+  const apy = new Percent(
+    toBN(toWei(swapRewardsUSDPerYear.toString())).add(toBN(farmSummary.rewardsUSDPerYear)).toString(),
+    farmSummary.tvlUSD
+  )
 
   let quarterlyAPY: React.ReactNode | undefined = <>🤯</>
   try {
@@ -178,6 +181,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
               helperText={
                 <>
                   Reward APR: {rewardApy?.toSignificant(4)}%<br />
+                  Swap APR: {swapApy?.toSignificant(4)}%<br />
                 </>
               }
               statName={`${userAprMode ? 'APR' : 'APY'}`}

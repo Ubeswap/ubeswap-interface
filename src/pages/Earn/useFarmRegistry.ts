@@ -20,6 +20,9 @@ export type FarmSummary = {
   token1Address: string
 }
 
+const CREATION_BLOCK = 9840049
+const LAST_N_BLOCKS = 720
+
 export const useFarmRegistry = () => {
   const { kit } = useContractKit()
   const [farmSummaries, setFarmSummaries] = React.useState<FarmSummary[]>([])
@@ -28,9 +31,16 @@ export const useFarmRegistry = () => {
       farmRegistryAbi as AbiItem[],
       '0xa2bf67e12EeEDA23C7cA1e5a34ae2441a17789Ec'
     )
-    const farmInfoEvents = await farmRegistry.getPastEvents('FarmInfo', { fromBlock: 0, toBlock: 'latest' })
-    const lpInfoEvents = await farmRegistry.getPastEvents('LPInfo', { fromBlock: 0, toBlock: 'latest' })
-    const farmDataEvents = await farmRegistry.getPastEvents('FarmData', { fromBlock: 0, toBlock: 'latest' })
+    const lastBlock = await kit.web3.eth.getBlockNumber()
+    const farmInfoEvents = await farmRegistry.getPastEvents('FarmInfo', {
+      fromBlock: CREATION_BLOCK,
+      toBlock: lastBlock,
+    })
+    const lpInfoEvents = await farmRegistry.getPastEvents('LPInfo', { fromBlock: CREATION_BLOCK, toBlock: lastBlock })
+    const farmDataEvents = await farmRegistry.getPastEvents('FarmData', {
+      fromBlock: lastBlock - LAST_N_BLOCKS,
+      toBlock: lastBlock,
+    })
 
     const lps: Record<string, [string, string]> = {}
     lpInfoEvents.forEach((e) => {
