@@ -66,7 +66,7 @@ export const useFarmRegistry = () => {
       })
     })
     setFarmSummaries(farmSummaries)
-  }, [kit.web3.eth.Contract])
+  }, [kit.web3.eth])
 
   useEffect(() => {
     call()
