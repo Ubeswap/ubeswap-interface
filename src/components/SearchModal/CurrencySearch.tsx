@@ -91,7 +91,7 @@ export function CurrencySearch({
         label: isAddressSearch,
       })
     }
-  }, [isAddressSearch])
+  }, [t, isAddressSearch])
 
   const showETH: boolean = useMemo(() => {
     const s = searchQuery.toLowerCase().trim()
