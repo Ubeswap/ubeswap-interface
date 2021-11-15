@@ -56,6 +56,14 @@ export const multiRewardPools: MultiRewardPool[] = [
     numRewards: 2,
     active: true,
   },
+  // TFBX-UBE
+  {
+    address: '0x501ba7c59BA8afC1427F75D310A862BA0D2adcD2',
+    underlyingPool: '0x3DAc201Ec1b3a037bC9124906A2ae0A6a09ACC1d',
+    basePool: '0x3DAc201Ec1b3a037bC9124906A2ae0A6a09ACC1d',
+    numRewards: 2,
+    active: true,
+  },
 
   // ** D4P ** //
   // UBE-CELO
@@ -127,6 +135,46 @@ export const multiRewardPools: MultiRewardPool[] = [
     address: '0x09c1cF8669f9A026c59EDd4792944a9aCd2d2a2E',
     underlyingPool: '0xF20448aaF8CC60432FC2E774F9ED965D4bf77cDc',
     basePool: '0xF20448aaF8CC60432FC2E774F9ED965D4bf77cDc',
+    numRewards: 2,
+    active: true,
+  },
+  // FTM-mcUSD
+  {
+    address: '0x3C29593674c5c760172d354acE88Da4D9d3EB64f',
+    underlyingPool: '0x5704F21cF5C7e6556cBD1ceEbbD23752B68e4845',
+    basePool: '0x5704F21cF5C7e6556cBD1ceEbbD23752B68e4845',
+    numRewards: 2,
+    active: true,
+  },
+  // AVAX-mcUSD
+  {
+    address: '0x750bB68Fa18F06d9696af85Ecc312f178E75fCfD',
+    underlyingPool: '0x9584870281DD0d764748a2a234e2218AE544C614',
+    basePool: '0x9584870281DD0d764748a2a234e2218AE544C614',
+    numRewards: 2,
+    active: true,
+  },
+  // BNB-mcUSD
+  {
+    address: '0xCD2d4024A42109593301fF11967c16eA180DD381',
+    underlyingPool: '0x522be12487d0640337abCfC7201066eC8F787AC5',
+    basePool: '0x522be12487d0640337abCfC7201066eC8F787AC5',
+    numRewards: 2,
+    active: true,
+  },
+  // WMATIC-mcUSD
+  {
+    address: '0x00C4aCee9eB84B1a6Cdc741AeEd19BF84CbE7bF5',
+    underlyingPool: '0x80ED8Da2d3cd269B0ccbc6ddF8DA2807BF583307',
+    basePool: '0x80ED8Da2d3cd269B0ccbc6ddF8DA2807BF583307',
+    numRewards: 2,
+    active: true,
+  },
+  // SOL-CELO
+  {
+    address: '0x83470506ba97dB33Df0EBe01E876C6718C762Df6',
+    underlyingPool: '0x33cD870547DD6F30db86e7EE7707DC78e7825289',
+    basePool: '0x33cD870547DD6F30db86e7EE7707DC78e7825289',
     numRewards: 2,
     active: true,
   },

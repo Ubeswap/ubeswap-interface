@@ -3,7 +3,7 @@ import '@celo-tools/use-contractkit/lib/styles.css'
 import './index.css'
 
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client'
-import { CeloMainnet, ContractKitProvider } from '@celo-tools/use-contractkit'
+import { Alfajores, CeloMainnet, ContractKitProvider } from '@celo-tools/use-contractkit'
 import * as Sentry from '@sentry/react'
 import { Integrations } from '@sentry/tracing'
 import { ChainId } from '@ubeswap/sdk'
@@ -29,7 +29,7 @@ if (window.celo) {
 }
 
 const client = new ApolloClient({
-  uri: 'https://api.thegraph.com/subgraphs/name/ubeswap/ubeswap-backup',
+  uri: 'https://api.thegraph.com/subgraphs/name/ubeswap/ubeswap',
   cache: new InMemoryCache(),
 })
 
@@ -120,6 +120,7 @@ ReactDOM.render(
         icon: 'https://info.ubeswap.org/favicon.png',
       }}
       network={CeloMainnet}
+      networks={[CeloMainnet, Alfajores]}
       connectModal={{
         reactModalProps: {
           style: {

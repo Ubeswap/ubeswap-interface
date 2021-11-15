@@ -30,7 +30,7 @@ export const STAKING_GENESIS = 1619100000
 
 export interface StakingInfo {
   // the address of the reward contract
-  readonly stakingRewardAddress: string
+  readonly stakingRewardAddress: string | undefined
   // the token of the liquidity pool
   readonly stakingToken: Token
   // the tokens involved in this pair
@@ -61,29 +61,29 @@ export interface StakingInfo {
   readonly rewardTokens: Token[]
 }
 
-export const usePairDualStakingInfo = (
+export const usePairMultiStakingInfo = (
   stakingInfo: StakingInfo | undefined,
   stakingAddress: string
 ): StakingInfo | null => {
   const multiRewardPool = multiRewardPools
     .filter((x) => x.address.toLowerCase() === stakingAddress.toLowerCase())
     .find((x) => x.basePool === stakingInfo?.poolInfo.poolAddress)
-  return useMultiStakeRewards(multiRewardPool?.address ?? '', stakingInfo, 2, multiRewardPool?.active || false)
-}
 
-export const usePairTripleStakingInfo = (
-  stakingInfo: StakingInfo | undefined,
-  stakingAddress: string
-): StakingInfo | null => {
-  const multiRewardPool = multiRewardPools
-    .filter((x) => x.address.toLowerCase() === stakingAddress.toLowerCase())
-    .find((x) => x.basePool === stakingInfo?.poolInfo.poolAddress)
-  const dualPool = useMultiStakeRewards(multiRewardPool?.underlyingPool ?? '', stakingInfo, 2, true)
-  const triplePool = useMultiStakeRewards(multiRewardPool?.address ?? '', dualPool, 3, multiRewardPool?.active || false)
-  if (multiRewardPool?.numRewards === 2) {
-    return null
-  }
-  return triplePool
+  const isTriple = multiRewardPool?.numRewards === 3
+
+  const dualPool = useMultiStakeRewards(
+    isTriple ? multiRewardPool?.underlyingPool : multiRewardPool?.address,
+    stakingInfo,
+    2,
+    isTriple ? true : multiRewardPool?.active ?? false
+  )
+  const triplePool = useMultiStakeRewards(
+    isTriple ? multiRewardPool?.address : undefined,
+    dualPool,
+    3,
+    multiRewardPool?.active ?? false
+  )
+  return triplePool || dualPool
 }
 
 interface UnclaimedInfo {
@@ -265,6 +265,14 @@ const EXTERNAL_POOLS: IRawPool[] = [
     stakingToken: '0x573bcEBD09Ff805eD32df2cb1A968418DC74DCf7',
     rewardToken: '0x18414Ce6dAece0365f935F3e78A7C1993e77d8Cd',
     rewardTokenSymbol: 'LAPIS',
+    weight: 0,
+  },
+  {
+    index: -1,
+    poolAddress: '0x478b8D37eE976228d17704d95B5430Cd93a31b87',
+    stakingToken: '0x12E42ccf14B283Ef0a36A791892D18BF75Da5c80',
+    rewardToken: '0x94140c2eA9D208D8476cA4E3045254169791C59e',
+    rewardTokenSymbol: 'PREMIO',
     weight: 0,
   },
 ]

@@ -1,16 +1,21 @@
+import { gql, useQuery } from '@apollo/client'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { Percent } from '@ubeswap/sdk'
 import QuestionHelper from 'components/QuestionHelper'
-import { useStakingPoolValue } from 'pages/Earn/useStakingPoolValue'
+import { useToken } from 'hooks/Tokens'
+import { useStakingContract } from 'hooks/useContract'
+import { FarmSummary } from 'pages/Earn/useFarmRegistry'
+import { useLPValue } from 'pages/Earn/useLPValue'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAnnualRewardDollars } from 'state/stake/useAnnualRewardDollars'
-import styled from 'styled-components'
+import { useDispatch } from 'react-redux'
+import { useSingleCallResult } from 'state/multicall/hooks'
+import { updateUserAprMode } from 'state/user/actions'
+import { useIsAprMode } from 'state/user/hooks'
+import styled, { useTheme } from 'styled-components'
+import { fromWei, toBN, toWei } from 'web3-utils'
 
-import { BIG_INT_SECONDS_IN_WEEK } from '../../constants'
-import { useColor } from '../../hooks/useColor'
-import { StakingInfo } from '../../state/stake/hooks'
 import { StyledInternalLink, TYPE } from '../../theme'
-import { currencyId } from '../../utils/currencyId'
 import { ButtonPrimary } from '../Button'
 import { AutoColumn } from '../Column'
 import DoubleCurrencyLogo from '../DoubleLogo'
@@ -68,42 +73,54 @@ const BottomSection = styled.div<{ showBackground: boolean }>`
 `
 
 interface Props {
-  stakingInfo: StakingInfo
+  farmSummary: FarmSummary
 }
 
-export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
+const pairDataGql = gql`
+  query getPairHourData($id: String!) {
+    pair(id: $id) {
+      pairHourData(first: 24, orderBy: hourStartUnix, orderDirection: desc) {
+        hourStartUnix
+        hourlyVolumeUSD
+      }
+    }
+  }
+`
+
+export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
   const { t } = useTranslation()
-  const [token0, token1] = stakingInfo.tokens
+  const { address } = useContractKit()
+  const userAprMode = useIsAprMode()
+  const dispatch = useDispatch()
+  const token0 = useToken(farmSummary.token0Address) || undefined
+  const token1 = useToken(farmSummary.token1Address) || undefined
+  const { data, loading, error } = useQuery(pairDataGql, {
+    variables: { id: farmSummary.lpAddress.toLowerCase() },
+  })
+  const theme = useTheme()
 
-  const isStaking = Boolean(stakingInfo.stakedAmount && stakingInfo.stakedAmount.greaterThan('0'))
+  const stakingContract = useStakingContract(farmSummary.stakingAddress)
+  const stakedAmount = useSingleCallResult(stakingContract, 'balanceOf', [address || undefined]).result?.[0]
+  const isStaking = Boolean(stakedAmount && stakedAmount.gt('0'))
 
-  // get the color of the token
-  const token = token0.symbol?.startsWith('m') ? token1 : token0
-  const backgroundColor = useColor(token)
+  const { userValueCUSD, userAmountTokenA, userAmountTokenB } = useLPValue(stakedAmount ?? 0, farmSummary)
+  let swapRewardsUSDPerYear = 0
+  if (!loading && !error && data) {
+    const lastDayVolumeUsd = data.pair.pairHourData.reduce(
+      (acc: number, curr: { hourlyVolumeUSD: string }) => acc + Number(curr.hourlyVolumeUSD),
+      0
+    )
+    swapRewardsUSDPerYear = Math.floor(lastDayVolumeUsd * 365 * 0.0025)
+  }
+  const rewardApy = new Percent(farmSummary.rewardsUSDPerYear, farmSummary.tvlUSD)
+  const swapApy = new Percent(toWei(swapRewardsUSDPerYear.toString()), farmSummary.tvlUSD)
+  const apy = new Percent(
+    toBN(toWei(swapRewardsUSDPerYear.toString())).add(toBN(farmSummary.rewardsUSDPerYear)).toString(),
+    farmSummary.tvlUSD
+  )
 
-  // get the USD value of staked WETH
-  const {
-    valueCUSD: valueOfTotalStakedAmountInCUSD,
-    userValueCUSD,
-    userAmountTokenA,
-    userAmountTokenB,
-  } = useStakingPoolValue(stakingInfo)
-  const dollarRewardPerYear = useAnnualRewardDollars(stakingInfo.rewardTokens, stakingInfo.totalRewardRates)
-  const apyFraction =
-    stakingInfo.active && valueOfTotalStakedAmountInCUSD && !valueOfTotalStakedAmountInCUSD.equalTo('0')
-      ? dollarRewardPerYear?.divide(valueOfTotalStakedAmountInCUSD)
-      : undefined
-  const apy = apyFraction ? new Percent(apyFraction.numerator, apyFraction.denominator) : undefined
-
-  // let weeklyAPY: React.ReactNode | undefined = <>🤯</>
   let quarterlyAPY: React.ReactNode | undefined = <>🤯</>
   try {
-    // weeklyAPY = apy
-    //   ? new Percent(
-    //       Math.floor(parseFloat(apy.divide('52').add('1').toFixed(10)) ** 52 * 1_000_000).toFixed(0),
-    //       '1000000'
-    //     ).toFixed(0, { groupSeparator: ',' })
-    //   : undefined
     quarterlyAPY = apy
       ? new Percent(
           Math.floor(parseFloat(apy.divide('2').add('1').toFixed(10)) ** 2 * 1_000_000).toFixed(0),
@@ -114,30 +131,15 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
     console.error('Weekly apy overflow', e)
   }
 
-  // TODO: add back in
-  // const showNextPoolRate =
-  //   (stakingInfo.active && stakingInfo.nextPeriodRewards.equalTo('0')) ||
-  //   (stakingInfo.active &&
-  //     // If the next rate is >=1_000 change from previous rate, then show it
-  //     Math.abs(
-  //       parseFloat(
-  //         stakingInfo.totalRewardRate
-  //           ?.multiply(BIG_INT_SECONDS_IN_WEEK)
-  //           .subtract(stakingInfo.nextPeriodRewards)
-  //           .toFixed(0) ?? 0
-  //       )
-  //     ) >= 1_000) ||
-  //   (!stakingInfo.active && stakingInfo.nextPeriodRewards.greaterThan('0'))
-
   return (
-    <Wrapper showBackground={isStaking} bgColor={backgroundColor}>
+    <Wrapper showBackground={isStaking} bgColor={theme.primary1}>
       <CardNoise />
 
       <TopSection>
         <DoubleCurrencyLogo currency0={token0} currency1={token1} size={24} />
         <PoolInfo style={{ marginLeft: '8px' }}>
           <TYPE.white fontWeight={600} fontSize={[18, 24]}>
-            {token0.symbol}-{token1.symbol}
+            {token0?.symbol}-{token1?.symbol}
           </TYPE.white>
           {apy && apy.greaterThan('0') && (
             <TYPE.small className="apr" fontWeight={400} fontSize={14}>
@@ -147,7 +149,7 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
         </PoolInfo>
 
         <StyledInternalLink
-          to={`/farm/${currencyId(token0)}/${currencyId(token1)}/${stakingInfo.stakingRewardAddress}`}
+          to={`/farm/${token0?.address}/${token1?.address}/${farmSummary.stakingAddress}`}
           style={{ width: '100%' }}
         >
           <ButtonPrimary padding="8px" borderRadius="8px">
@@ -159,81 +161,36 @@ export const PoolCard: React.FC<Props> = ({ stakingInfo }: Props) => {
       <StatContainer>
         <PoolStatRow
           statName={t('totalDeposited')}
-          statValue={
-            valueOfTotalStakedAmountInCUSD
-              ? `$${valueOfTotalStakedAmountInCUSD.toFixed(0, {
-                  groupSeparator: ',',
-                })}`
-              : '-'
-          }
-        />
-        {stakingInfo.active &&
-          stakingInfo.totalRewardRates.map((totalRewardRate, idx) => {
-            return (
-              <React.Fragment key={idx}>
-                <PoolStatRow
-                  statName={totalRewardRate.token.symbol + ` ${t('Rate')}`}
-                  statValue={
-                    stakingInfo.active
-                      ? `${totalRewardRate?.multiply(BIG_INT_SECONDS_IN_WEEK)?.toFixed(0, { groupSeparator: ',' })} ${
-                          totalRewardRate.token.symbol
-                        } / ${t('Week')}`
-                      : `0 ${totalRewardRate.token.symbol} / ${t('Week')}`
-                  }
-                />
-              </React.Fragment>
-            )
+          statValue={Number(fromWei(farmSummary.tvlUSD)).toLocaleString(undefined, {
+            style: 'currency',
+            currency: 'USD',
+            maximumFractionDigits: 0,
           })}
+        />
         {apy && apy.greaterThan('0') && (
-          <PoolStatRow
-            helperText={<>Compounded semiannually</>}
-            statName={stakingInfo.rewardTokens.length > 1 ? String(t('CombinedApy')) : 'APY'}
-            statValue={apy.denominator.toString() !== '0' ? `${quarterlyAPY}%` : '-'}
-          />
+          <div onClick={() => dispatch(updateUserAprMode({ userAprMode: !userAprMode }))}>
+            <PoolStatRow
+              helperText={
+                <>
+                  Reward APR: {rewardApy?.toSignificant(4)}%<br />
+                  Swap APR: {swapApy?.toSignificant(4)}%<br />
+                </>
+              }
+              statName={`${userAprMode ? 'APR' : 'APY'}`}
+              statValue={
+                apy.denominator.toString() !== '0'
+                  ? `${userAprMode ? apy.toFixed(0, { groupSeparator: ',' }) : quarterlyAPY}%`
+                  : '-'
+              }
+            />
+          </div>
         )}
-
-        {/*
-          TODO: Add back in
-          showNextPoolRate && (
-          <RowBetween>
-            <RowFixed>
-              <TYPE.white>Next pool rate</TYPE.white>
-              <LightQuestionHelper text="The rate of emissions this pool will receive on the next rewards refresh." />
-            </RowFixed>
-            <TYPE.white>
-              {`${stakingInfo.nextPeriodRewards.toFixed(0, {
-                groupSeparator: ',',
-              })} ${stakingInfo.nextPeriodRewards.token.symbol} / week`}
-            </TYPE.white>
-          </RowBetween>
-        )*/}
       </StatContainer>
 
       {isStaking && (
         <>
           <Break />
           <BottomSection showBackground={true}>
-            <RowBetween>
-              <TYPE.black color={'white'} fontWeight={500}>
-                <span>Your rate</span>
-              </TYPE.black>
-
-              <TYPE.black style={{ textAlign: 'right' }} color={'white'} fontWeight={500}>
-                <span role="img" aria-label="wizard-icon" style={{ marginRight: '0.5rem' }}>
-                  ⚡
-                </span>
-                {(stakingInfo.rewardRates
-                  ? stakingInfo.rewardRates
-                      .map(
-                        (rewardRate) =>
-                          `${rewardRate.multiply(BIG_INT_SECONDS_IN_WEEK).toSignificant(4, { groupSeparator: ',' })} ${
-                            rewardRate.token.symbol
-                          }`
-                      )
-                      .join(' + ')
-                  : '-') + ` / ${t('Week')}`}
-              </TYPE.black>
-            </RowBetween>
             {userValueCUSD && (
               <RowBetween>
                 <TYPE.black color={'white'} fontWeight={500}>
