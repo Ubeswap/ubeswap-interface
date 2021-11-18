@@ -15,7 +15,7 @@
     "@types/lodash": "^4.14.170",
     "@types/lodash.flatmap": "^4.5.6",
     "@types/multicodec": "^2.1.0",
-    "@types/node": "^14.14.37",
+    "@types/node": "^16.11.8",
     "@types/qs": "^6.9.6",
     "@types/react": "^17.0.11",
     "@types/react-dom": "^17.0.8",
@@ -114,7 +114,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.4.16",
-    "@celo-tools/use-contractkit": "npm:@poofcash/use-contractkit@^1.0.9",
+    "@celo-tools/use-contractkit": "npm:@poofcash/use-contractkit@^1.0.10",
     "@celo/base": "^1.2.1",
     "@celo/connect": "^1.2.0",
     "@celo/contractkit": "^1.2.0",
