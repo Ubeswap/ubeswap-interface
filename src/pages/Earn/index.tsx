@@ -99,13 +99,11 @@ export default function Earn() {
           </DataCard>
         </TopSection>
       )}
-      <div id="token-select" style={{ position: 'sticky', top: 50 }}>
-        <TopSection gap="md">
-          <AutoColumn>
-            <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
-          </AutoColumn>
-        </TopSection>
-      </div>
+      <TopSection gap="md">
+        <AutoColumn>
+          <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
+        </AutoColumn>
+      </TopSection>
       <ColumnCenter>
         {farmSummaries.length > 0 && filteredFarms.length == 0 && `No Farms for ${filteringToken?.symbol}`}
         {farmSummaries.length === 0 && <Loader size="48px" />}
