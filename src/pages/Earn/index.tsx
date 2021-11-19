@@ -45,19 +45,15 @@ const Header: React.FC = ({ children }) => {
   )
 }
 
-function useTokenFilter(): [Token | null, (t: Token) => void, (t: null) => void] {
+function useTokenFilter(): [Token | null, (t: Token | null) => void] {
   const [token, setToken] = useState<Token | null>(null)
-  function clearToken() {
-    setToken(null)
-  }
-  return [token, setToken, clearToken]
+  return [token, setToken]
 }
 
 export default function Earn() {
   const { t } = useTranslation()
   const isSupportedNetwork = useIsSupportedNetwork()
-  // staking info for connected account
-  const [filteringToken, setFilteringToken, clearFilteringToken] = useTokenFilter()
+  const [filteringToken, setFilteringToken] = useTokenFilter()
   const farmSummaries = useFarmRegistry()
 
   const filteredFarms = useMemo(() => {
