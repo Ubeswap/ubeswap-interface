@@ -1,13 +1,15 @@
 import { ErrorBoundary } from '@sentry/react'
+import { Token } from '@ubeswap/sdk'
 import ChangeNetworkModal from 'components/ChangeNetworkModal'
+import TokenSelect from 'components/CurrencyInputPanel/TokenSelect'
 import Loader from 'components/Loader'
 import { useIsSupportedNetwork } from 'hooks/useIsSupportedNetwork'
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useOwnerStakedPools } from 'state/stake/useOwnerStakedPools'
 import styled from 'styled-components'
 
-import { AutoColumn } from '../../components/Column'
+import { AutoColumn, ColumnCenter } from '../../components/Column'
 import { PoolCard } from '../../components/earn/PoolCard'
 import { CardNoise, CardSection, DataCard } from '../../components/earn/styled'
 import { RowBetween } from '../../components/Row'
@@ -43,13 +45,32 @@ const Header: React.FC = ({ children }) => {
   )
 }
 
+function useTokenFilter(): [Token | null, (t: Token) => void, (t: null) => void] {
+  const [token, setToken] = useState<Token | null>(null)
+  function clearToken() {
+    setToken(null)
+  }
+  return [token, setToken, clearToken]
+}
+
 export default function Earn() {
   const { t } = useTranslation()
   const isSupportedNetwork = useIsSupportedNetwork()
   // staking info for connected account
+  const [filteringToken, setFilteringToken, clearFilteringToken] = useTokenFilter()
   const farmSummaries = useFarmRegistry()
 
-  const { stakedFarms, unstakedFarms } = useOwnerStakedPools(farmSummaries)
+  const filteredFarms = useMemo(() => {
+    if (filteringToken === null) {
+      return farmSummaries
+    } else {
+      return farmSummaries.filter(
+        (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
+      )
+    }
+  }, [filteringToken, farmSummaries])
+
+  const { stakedFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms)
 
   if (!isSupportedNetwork) {
     return <ChangeNetworkModal />
@@ -57,32 +78,42 @@ export default function Earn() {
 
   return (
     <PageWrapper>
-      <TopSection gap="md">
-        <DataCard>
-          <CardNoise />
-          <CardSection>
-            <AutoColumn gap="md">
-              <RowBetween>
-                <TYPE.white fontWeight={600}>Ubeswap {t('liquidityMining')}</TYPE.white>
-              </RowBetween>
-              <RowBetween>
-                <TYPE.white fontSize={14}>{t('liquidityMiningDesc')}</TYPE.white>
-              </RowBetween>{' '}
-              <ExternalLink
-                style={{ color: 'white', textDecoration: 'underline' }}
-                href="https://docs.ubeswap.org/faq"
-                target="_blank"
-              >
-                <TYPE.white fontSize={14}>{t('liquidityMiningReadMore')}</TYPE.white>
-              </ExternalLink>
-            </AutoColumn>
-          </CardSection>
-          <CardNoise />
-        </DataCard>
-      </TopSection>
-
-      {farmSummaries.length === 0 && <Loader />}
-
+      {stakedFarms.length === 0 && (
+        <TopSection gap="md">
+          <DataCard>
+            <CardNoise />
+            <CardSection>
+              <AutoColumn gap="md">
+                <RowBetween>
+                  <TYPE.white fontWeight={600}>Ubeswap {t('liquidityMining')}</TYPE.white>
+                </RowBetween>
+                <RowBetween>
+                  <TYPE.white fontSize={14}>{t('liquidityMiningDesc')}</TYPE.white>
+                </RowBetween>{' '}
+                <ExternalLink
+                  style={{ color: 'white', textDecoration: 'underline' }}
+                  href="https://docs.ubeswap.org/faq"
+                  target="_blank"
+                >
+                  <TYPE.white fontSize={14}>{t('liquidityMiningReadMore')}</TYPE.white>
+                </ExternalLink>
+              </AutoColumn>
+            </CardSection>
+            <CardNoise />
+          </DataCard>
+        </TopSection>
+      )}
+      <div id="token-select" style={{ position: 'sticky', top: 50 }}>
+        <TopSection gap="md">
+          <AutoColumn>
+            <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
+          </AutoColumn>
+        </TopSection>
+      </div>
+      <ColumnCenter>
+        {farmSummaries.length > 0 && filteredFarms.length == 0 && `No Farms for ${filteringToken?.symbol}`}
+        {farmSummaries.length === 0 && <Loader size="48px" />}
+      </ColumnCenter>
       {stakedFarms.length > 0 && (
         <>
           <Header>{t('yourPools')}</Header>
