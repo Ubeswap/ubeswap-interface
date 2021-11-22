@@ -125,7 +125,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
     quarterlyAPY = annualizedPercentageYield(apr, 4)
   } catch (e) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    console.error('Qarterly apy overflow', farmSummary.farmName, e)
+    console.error('Quarterly apy overflow', farmSummary.farmName, e)
   }
 
   const displayedPercentageReturn =
