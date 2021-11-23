@@ -120,9 +120,9 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
   )
 
   // im not sure why quarterly but thats what is was so sticking with it, we should mention that assumption somehwere in UI
-  let quarterlyAPY: React.ReactNode | undefined = <>🤯</>
+  let compoundedAPY: React.ReactNode | undefined = <>🤯</>
   try {
-    quarterlyAPY = annualizedPercentageYield(apr, 4)
+    compoundedAPY = annualizedPercentageYield(apr, 2)
   } catch (e) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     console.error('Quarterly apy overflow', farmSummary.farmName, e)
@@ -130,7 +130,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
 
   const displayedPercentageReturn =
     apr.denominator.toString() !== '0'
-      ? `${userAprMode ? apr.toFixed(0, { groupSeparator: ',' }) : quarterlyAPY}%`
+      ? `${userAprMode ? apr.toFixed(0, { groupSeparator: ',' }) : compoundedAPY}%`
       : '-'
 
   return (
