@@ -86,6 +86,7 @@ const pairDataGql = gql`
     }
   }
 `
+const COMPOUNDS_PER_YEAR = 2
 
 export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
   const { t } = useTranslation()
@@ -119,10 +120,9 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
     farmSummary.tvlUSD
   )
 
-  // im not sure why quarterly but thats what is was so sticking with it, we should mention that assumption somehwere in UI
   let compoundedAPY: React.ReactNode | undefined = <>🤯</>
   try {
-    compoundedAPY = annualizedPercentageYield(apr, 2)
+    compoundedAPY = annualizedPercentageYield(apr, COMPOUNDS_PER_YEAR)
   } catch (e) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     console.error('apy calc overflow', farmSummary.farmName, e)
@@ -186,6 +186,8 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
                   <>
                     Reward APR: {rewardApr?.greaterThan('0') && rewardApr?.toSignificant(4)}%<br />
                     Swap APR: {swapApr?.greaterThan('0') && swapApr?.toSignificant(4)}%<br />
+                    <small>APY assumes compounding {COMPOUNDS_PER_YEAR}/year</small>
+                    <br />
                   </>
                 )
               }
