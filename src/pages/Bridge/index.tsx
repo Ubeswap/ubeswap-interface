@@ -51,7 +51,8 @@ const ChainSelect = styled.div({
   },
 })
 
-export const Bridge: React.FC = () => {
+// Deprecated, Bridge page no longer being used.
+const Bridge: React.FC = () => {
   const { t } = useTranslation()
   const { address, network, updateNetwork, connect } = useContractKit()
   const getConnectedSigner = useGetConnectedSigner()
