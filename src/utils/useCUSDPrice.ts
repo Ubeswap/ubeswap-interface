@@ -27,13 +27,13 @@ export function useCUSDPrices(tokens?: Token[]): (Price | undefined)[] | undefin
         .flat() as TokenPair[],
     [CUSD, celo, tokens]
   )
-  const celoPairs = usePairs(tokenPairs)
+  const thesePairs = usePairs(tokenPairs)
 
   return useMemo(() => {
     if (!tokens || !chainId) {
       return undefined
     }
-    const pairs = celoPairs.map((x) => x[1])
+    const pairs = thesePairs.map((x) => x[1])
 
     return tokens.map((token, idx) => {
       const start = idx * 3
@@ -54,7 +54,7 @@ export function useCUSDPrices(tokens?: Token[]): (Price | undefined)[] | undefin
 
       return undefined
     })
-  }, [chainId, tokens, CUSD, celo, celoPairs])
+  }, [chainId, tokens, CUSD, celo, thesePairs])
 }
 
 /**
