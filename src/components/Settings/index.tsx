@@ -126,7 +126,7 @@ export default function SettingsTab() {
   const node = useRef<HTMLDivElement>()
   const open = useModalOpen(ApplicationModal.SETTINGS)
   const toggle = useToggleSettingsMenu()
-  const t = useTranslation()
+  const { t } = useTranslation()
   const theme = useContext(ThemeContext)
   const [userSlippageTolerance, setUserslippageTolerance] = useUserSlippageTolerance()
   const [minApprove, setMinApprove] = useUserMinApprove()

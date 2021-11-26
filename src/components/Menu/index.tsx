@@ -107,7 +107,7 @@ export default function Menu() {
   const open = useModalOpen(ApplicationModal.MENU)
   const toggle = useToggleModal(ApplicationModal.MENU)
   useOnClickOutside(node, open ? toggle : undefined)
-  const t = useTranslation()
+  const { t } = useTranslation()
 
   return (
     // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/30451
