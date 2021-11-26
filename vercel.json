@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/*.chunk.css",
+      "source": "/static/:foo/(.*).chunk.css",
       "headers": [
         {
           "key": "Cache-Control",
@@ -10,7 +10,7 @@
       ]
     },
     {
-      "source": "/*.chunk.js",
+      "source": "/static/:foo/(.*).chunk.js",
       "headers": [
         {
           "key": "Cache-Control",
