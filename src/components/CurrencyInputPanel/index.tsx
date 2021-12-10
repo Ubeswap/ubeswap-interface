@@ -1,6 +1,5 @@
 import { ChainId, useContractKit } from '@celo-tools/use-contractkit'
 import { Pair, Token, TokenAmount } from '@ubeswap/sdk'
-import ButtonGroup from '@uiw/react-button-group'
 import { darken } from 'polished'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -94,6 +93,8 @@ const StyledControlButton = styled.button`
     margin-right: 0.2rem;
   `};
 `
+const ButtonGroup = styled.div``
+
 interface CurrencyInputPanelProps {
   value: string
   onUserInput: (value: string) => void

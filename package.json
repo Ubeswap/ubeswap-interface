@@ -134,8 +134,6 @@
     "@ubeswap/default-token-list": "^4.0.19",
     "@ubeswap/moola": "^0.2.0",
     "@ubeswap/sdk": "^2.1.1",
-    "@uiw/react-button": "^4.9.7",
-    "@uiw/react-button-group": "^4.9.7",
     "@uniswap/default-token-list": "^2.0.0",
     "eventemitter3": "^4.0.7",
     "graphql": "^15.6.1",

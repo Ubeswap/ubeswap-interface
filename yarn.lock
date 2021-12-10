@@ -3623,39 +3623,6 @@
     tiny-warning "^1.0.3"
     toformat "^2.0.0"
 
-"@uiw/icons@^2.5.0":
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/@uiw/icons/-/icons-2.5.3.tgz#3b8a16bbb495d684672a843797abbea9afed8a19"
-  integrity sha512-fYtNcW0TAGhZAz4C8T5b4Xxf7y3s6nC7nAW4gtgHd2kw2BlrxqIOIx5FVG0RWfaZP/m582PPE6JS/4OfJ9+5XA==
-
-"@uiw/react-button-group@^4.9.7":
-  version "4.9.7"
-  resolved "https://registry.yarnpkg.com/@uiw/react-button-group/-/react-button-group-4.9.7.tgz#9045c850e3c02b8717879daf9239a546b6b0aad1"
-  integrity sha512-y8B5b1fImJnmuIRPO+eIzKlG9Oxg6/g35jf4p1wm0/9MAi5NKB3fj5t8GEMx+yEkemJueYwZMewRcJxvnS+Yyw==
-  dependencies:
-    "@uiw/react-button" "^4.9.7"
-    "@uiw/utils" "^4.9.7"
-
-"@uiw/react-button@^4.9.7":
-  version "4.9.7"
-  resolved "https://registry.yarnpkg.com/@uiw/react-button/-/react-button-4.9.7.tgz#a996f7db8f9eec8a8b8a3cd6990fe6ce58a376b2"
-  integrity sha512-k+MaM/QYNSjC3ROOUyzSd40Zic1bIodjhrusIhi93djwa2HX97x7EnWhTuXe463NJinhoCxZi87uSV3ZWuZY7Q==
-  dependencies:
-    "@uiw/react-icon" "^4.9.7"
-    "@uiw/utils" "^4.9.7"
-
-"@uiw/react-icon@^4.9.7":
-  version "4.9.7"
-  resolved "https://registry.yarnpkg.com/@uiw/react-icon/-/react-icon-4.9.7.tgz#32ec31788904f5e048167cbe601ecf7b41760c71"
-  integrity sha512-13y9jsjuqImScMP2VlNyTjBuVlLQJUHHcVu2X2SQgVGAnZzND487y6je2DyIHosPXh+fpe6fiymyUXE8+raZyg==
-  dependencies:
-    "@uiw/icons" "^2.5.0"
-
-"@uiw/utils@^4.9.7":
-  version "4.9.7"
-  resolved "https://registry.yarnpkg.com/@uiw/utils/-/utils-4.9.7.tgz#982fd12b594fb5ad2bc5c9bacd9f3d74f9aa5b9b"
-  integrity sha512-4W+SWnSVhPPjmmngb7XXENBb9YEXECPk7vUe4751f3HLS1ikimitJ5Q0lo6q/z7zdO787ayi1hpFWylnQIFfxg==
-
 "@uniswap/default-token-list@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@uniswap/default-token-list/-/default-token-list-2.0.0.tgz#095b4c22635e532c817c3ba70e8838d8bd699716"
