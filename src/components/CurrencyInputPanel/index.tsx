@@ -125,8 +125,8 @@ interface CurrencyInputPanelProps {
   onUserInput: (value: string) => void
   onMax?: () => void
   onHalf?: () => void
-  showMaxButton: boolean
-  showHalfButton: boolean
+  showMaxButton?: boolean
+  showHalfButton?: boolean
   label?: string
   onCurrencySelect?: (currency: Token) => void
   currency?: Token | null
