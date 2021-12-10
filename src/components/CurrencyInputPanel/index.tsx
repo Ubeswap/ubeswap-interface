@@ -1,5 +1,7 @@
 import { ChainId, useContractKit } from '@celo-tools/use-contractkit'
 import { Pair, Token, TokenAmount } from '@ubeswap/sdk'
+import Button from '@uiw/react-button'
+import ButtonGroup from '@uiw/react-button-group'
 import { darken } from 'polished'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -70,8 +72,33 @@ const StyledTokenName = styled.span<{ active?: boolean }>`
   font-size:  ${({ active }) => (active ? '20px' : '16px')};
 `
 
-const StyledBalanceMax = styled.button`
-  height: 28px;
+// const StyledControlButton = styled.button`
+//   height: 28px;
+//   background-color: ${({ theme }) => theme.primary5};
+//   border: 1px solid ${({ theme }) => theme.primary5};
+//   border-radius: 0.5rem;
+//   font-size: 0.875rem;
+
+//   font-weight: 500;
+//   cursor: pointer;
+//   margin-right: 0.5rem;
+//   color: ${({ theme }) => theme.primaryText1};
+//   :hover {
+//     border: 1px solid ${({ theme }) => theme.primary1};
+//   }
+//   :focus {
+//     border: 1px solid ${({ theme }) => theme.primary1};
+//     outline: none;
+//   }
+
+//   ${({ theme }) => theme.mediaWidth.upToExtraSmall`
+//     margin-right: 0.5rem;
+//   `};
+// `
+
+const StyledButtonGroup = styled(ButtonGroup)``
+
+const StyledControlButton = styled(Button)`
   background-color: ${({ theme }) => theme.primary5};
   border: 1px solid ${({ theme }) => theme.primary5};
   border-radius: 0.5rem;
@@ -79,26 +106,27 @@ const StyledBalanceMax = styled.button`
 
   font-weight: 500;
   cursor: pointer;
-  margin-right: 0.5rem;
   color: ${({ theme }) => theme.primaryText1};
   :hover {
+    background-color: ${({ theme }) => theme.primary5};
     border: 1px solid ${({ theme }) => theme.primary1};
+    color: ${({ theme }) => theme.primaryText1};
   }
   :focus {
+    background-color: ${({ theme }) => theme.primary5};
     border: 1px solid ${({ theme }) => theme.primary1};
+    color: ${({ theme }) => theme.primaryText1};
     outline: none;
   }
-
-  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
-    margin-right: 0.5rem;
-  `};
 `
 
 interface CurrencyInputPanelProps {
   value: string
   onUserInput: (value: string) => void
   onMax?: () => void
+  onHalf?: () => void
   showMaxButton: boolean
+  showHalfButton: boolean
   label?: string
   onCurrencySelect?: (currency: Token) => void
   currency?: Token | null
@@ -118,7 +146,9 @@ export default function CurrencyInputPanel({
   value,
   onUserInput,
   onMax,
+  onHalf,
   showMaxButton,
+  showHalfButton,
   label = 'Input',
   onCurrencySelect,
   currency,
@@ -181,8 +211,19 @@ export default function CurrencyInputPanel({
                   onUserInput(val)
                 }}
               />
-              {account && currency && showMaxButton && label !== 'To' && (
-                <StyledBalanceMax onClick={onMax}>MAX</StyledBalanceMax>
+              {account && currency && label !== 'To' && (
+                <StyledButtonGroup>
+                  {showHalfButton && (
+                    <StyledControlButton size="small" onClick={onHalf}>
+                      50%
+                    </StyledControlButton>
+                  )}
+                  {showMaxButton && (
+                    <StyledControlButton size="small" onClick={onMax}>
+                      MAX
+                    </StyledControlButton>
+                  )}
+                </StyledButtonGroup>
               )}
             </>
           )}
