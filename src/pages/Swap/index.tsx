@@ -279,7 +279,7 @@ export default function Swap() {
   const handleHalfInput = useCallback(() => {
     if (maxAmountInput) {
       if (currencies?.INPUT?.address === CELO[chainId].address) {
-        onUserInput(Field.INPUT, Math.max(Number(maxAmountInput.toExact()) * 0.5 - 0.01, 0).toString())
+        onUserInput(Field.INPUT, Math.max(Number(maxAmountInput.toExact()) * 0.5, 0).toString())
       } else {
         onUserInput(Field.INPUT, (Number(maxAmountInput.toExact()) * 0.5).toString())
       }

@@ -1,6 +1,5 @@
 import { ChainId, useContractKit } from '@celo-tools/use-contractkit'
 import { Pair, Token, TokenAmount } from '@ubeswap/sdk'
-import Button from '@uiw/react-button'
 import ButtonGroup from '@uiw/react-button-group'
 import { darken } from 'polished'
 import React, { useCallback, useState } from 'react'
@@ -72,33 +71,8 @@ const StyledTokenName = styled.span<{ active?: boolean }>`
   font-size:  ${({ active }) => (active ? '20px' : '16px')};
 `
 
-// const StyledControlButton = styled.button`
-//   height: 28px;
-//   background-color: ${({ theme }) => theme.primary5};
-//   border: 1px solid ${({ theme }) => theme.primary5};
-//   border-radius: 0.5rem;
-//   font-size: 0.875rem;
-
-//   font-weight: 500;
-//   cursor: pointer;
-//   margin-right: 0.5rem;
-//   color: ${({ theme }) => theme.primaryText1};
-//   :hover {
-//     border: 1px solid ${({ theme }) => theme.primary1};
-//   }
-//   :focus {
-//     border: 1px solid ${({ theme }) => theme.primary1};
-//     outline: none;
-//   }
-
-//   ${({ theme }) => theme.mediaWidth.upToExtraSmall`
-//     margin-right: 0.5rem;
-//   `};
-// `
-
-const StyledButtonGroup = styled(ButtonGroup)``
-
-const StyledControlButton = styled(Button)`
+const StyledControlButton = styled.button`
+  height: 28px;
   background-color: ${({ theme }) => theme.primary5};
   border: 1px solid ${({ theme }) => theme.primary5};
   border-radius: 0.5rem;
@@ -106,20 +80,20 @@ const StyledControlButton = styled(Button)`
 
   font-weight: 500;
   cursor: pointer;
+  margin-right: 0.2rem;
   color: ${({ theme }) => theme.primaryText1};
   :hover {
-    background-color: ${({ theme }) => theme.primary5};
     border: 1px solid ${({ theme }) => theme.primary1};
-    color: ${({ theme }) => theme.primaryText1};
   }
   :focus {
-    background-color: ${({ theme }) => theme.primary5};
     border: 1px solid ${({ theme }) => theme.primary1};
-    color: ${({ theme }) => theme.primaryText1};
     outline: none;
   }
-`
 
+  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
+    margin-right: 0.2rem;
+  `};
+`
 interface CurrencyInputPanelProps {
   value: string
   onUserInput: (value: string) => void
@@ -212,18 +186,10 @@ export default function CurrencyInputPanel({
                 }}
               />
               {account && currency && label !== 'To' && (
-                <StyledButtonGroup>
-                  {showHalfButton && (
-                    <StyledControlButton size="small" onClick={onHalf}>
-                      50%
-                    </StyledControlButton>
-                  )}
-                  {showMaxButton && (
-                    <StyledControlButton size="small" onClick={onMax}>
-                      MAX
-                    </StyledControlButton>
-                  )}
-                </StyledButtonGroup>
+                <ButtonGroup>
+                  {showHalfButton && <StyledControlButton onClick={onHalf}>50%</StyledControlButton>}
+                  {showMaxButton && <StyledControlButton onClick={onMax}>MAX</StyledControlButton>}
+                </ButtonGroup>
               )}
             </>
           )}
