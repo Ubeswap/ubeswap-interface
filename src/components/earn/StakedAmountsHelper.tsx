@@ -7,10 +7,7 @@ interface Props {
   userAmountTokenB: TokenAmount | undefined
 }
 
-export default React.memo(function StakedAmountsHelper({
-  userAmountTokenA,
-  userAmountTokenB,
-}: Props) {
+export default React.memo(function StakedAmountsHelper({ userAmountTokenA, userAmountTokenB }: Props) {
   return <QuestionHelper text={`${formatStakedAmount(userAmountTokenA)} | ${formatStakedAmount(userAmountTokenB)}`} />
 })
 
