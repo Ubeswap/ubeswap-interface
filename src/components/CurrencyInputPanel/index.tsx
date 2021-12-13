@@ -90,7 +90,8 @@ const StyledControlButton = styled.button`
   }
 
   ${({ theme }) => theme.mediaWidth.upToExtraSmall`
-    margin-right: 0.2rem;
+    margin-left: 0.4rem;
+    margin-right: 0.1rem;
   `};
 `
 const ButtonGroup = styled.div``
