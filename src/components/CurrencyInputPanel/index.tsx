@@ -79,6 +79,7 @@ const StyledControlButton = styled.button`
 
   font-weight: 500;
   cursor: pointer;
+  margin-left: 0.3rem;
   margin-right: 0.2rem;
   color: ${({ theme }) => theme.primaryText1};
   :hover {
