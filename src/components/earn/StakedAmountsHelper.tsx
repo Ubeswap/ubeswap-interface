@@ -7,9 +7,9 @@ interface Props {
   userAmountTokenB: TokenAmount | undefined
 }
 
-export default React.memo(function StakedAmountsHelper({ userAmountTokenA, userAmountTokenB }: Props) {
+export default function StakedAmountsHelper({ userAmountTokenA, userAmountTokenB }: Props) {
   return <QuestionHelper text={`${formatStakedAmount(userAmountTokenA)} | ${formatStakedAmount(userAmountTokenB)}`} />
-})
+}
 
 // Format amount based on the size, when under 1 show significant digits, when 1 to 10 show 1 decimal, over 10 round
 function formatStakedAmount(tokenAmmount?: TokenAmount) {
