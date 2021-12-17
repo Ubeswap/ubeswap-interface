@@ -48,7 +48,7 @@ export default function LiquidityWarning() {
   const v2Pairs = usePairs(liquidityTokensWithBalances)
 
   const farmSummaries = useFarmRegistry()
-  const { unstakedFarms } = useOwnerStakedPools(farmSummaries)
+  const { unstakedFarms, stakedFarms } = useOwnerStakedPools(farmSummaries)
 
   const warnings: WarningInfo[] = useMemo(() => {
     const localWarnings: WarningInfo[] = []
@@ -57,13 +57,14 @@ export default function LiquidityWarning() {
       const token1 = pair?.token1.symbol
       const poolName = token0 + '-' + token1
       const unstakedFarm = unstakedFarms.find((farm) => farm.farmName === poolName)
-      if (unstakedFarm) {
+      const stakedFarm = stakedFarms.find((farm) => farm.farmName === poolName)
+      if (stakedFarm || unstakedFarm) {
         const url = `/farm/${unstakedFarm?.token0Address}/${unstakedFarm?.token1Address}/${unstakedFarm?.stakingAddress}`
         localWarnings.push({ poolName: poolName, link: url })
       }
     })
     return localWarnings
-  }, [v2Pairs, unstakedFarms])
+  }, [v2Pairs, unstakedFarms, stakedFarms])
 
   const { t } = useTranslation()
 
