@@ -2,7 +2,6 @@ import { useContractKit } from '@celo-tools/use-contractkit'
 import React, { useContext, useMemo } from 'react'
 import { AlertTriangle } from 'react-feather'
 import { Trans, useTranslation } from 'react-i18next'
-import { useOwnerStakedPools } from 'state/stake/useOwnerStakedPools'
 import styled, { ThemeContext } from 'styled-components'
 
 import { AutoColumn, TopSection } from '../../components/Column'
@@ -48,7 +47,6 @@ export default function LiquidityWarning() {
   const v2Pairs = usePairs(liquidityTokensWithBalances)
 
   const farmSummaries = useFarmRegistry()
-  const { unstakedFarms, stakedFarms } = useOwnerStakedPools(farmSummaries)
 
   const warnings: WarningInfo[] = useMemo(() => {
     const localWarnings: WarningInfo[] = []
@@ -56,15 +54,14 @@ export default function LiquidityWarning() {
       const token0 = pair?.token0.symbol
       const token1 = pair?.token1.symbol
       const poolName = token0 + '-' + token1
-      const unstakedFarm = unstakedFarms.find((farm) => farm.farmName === poolName)
-      const stakedFarm = stakedFarms.find((farm) => farm.farmName === poolName)
-      if (stakedFarm || unstakedFarm) {
-        const url = `/farm/${unstakedFarm?.token0Address}/${unstakedFarm?.token1Address}/${unstakedFarm?.stakingAddress}`
+      const farm = farmSummaries.find((farm) => farm.farmName === poolName)
+      if (farm) {
+        const url = `/farm/${farm?.token0Address}/${farm?.token1Address}/${farm?.stakingAddress}`
         localWarnings.push({ poolName: poolName, link: url })
       }
     })
     return localWarnings
-  }, [v2Pairs, unstakedFarms, stakedFarms])
+  }, [v2Pairs, farmSummaries])
 
   const { t } = useTranslation()
 
