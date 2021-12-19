@@ -94,3 +94,17 @@ export const useFarmRegistry = () => {
 
   return farmSummaries
 }
+
+export const useHigherFarmSummaries = () => {
+  const farmSummaries = useFarmRegistry()
+
+  return farmSummaries.reduce((prev: FarmSummary[], current) => {
+    const similar = prev.find((farm) => farm.farmName === current.farmName)
+    if (!similar) return [...prev, current]
+    if (Number(fromWei(toBN(current.rewardsUSDPerYear).sub(toBN(similar.rewardsUSDPerYear)))) > 0) {
+      const filteredPrev = prev.filter((farm) => farm.farmName !== current.farmName)
+      return [...filteredPrev, current]
+    }
+    return prev
+  }, [])
+}

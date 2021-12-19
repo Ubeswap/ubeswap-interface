@@ -11,7 +11,7 @@ import { usePairs } from '../../data/Reserves'
 import { toV2LiquidityToken, useTrackedTokenPairs } from '../../state/user/hooks'
 import { useTokenBalancesWithLoadingIndicator } from '../../state/wallet/hooks'
 import { StyledInternalLink, TYPE } from '../../theme'
-import { useFarmRegistry, WarningInfo } from '../Earn/useFarmRegistry'
+import { useHigherFarmSummaries, WarningInfo } from '../Earn/useFarmRegistry'
 
 export const LiquidityWarningCard = styled(AutoColumn)<{ disabled?: boolean }>`
   background-color: ${(props) => props.theme.bg1};
@@ -46,7 +46,7 @@ export default function LiquidityWarning() {
 
   const v2Pairs = usePairs(liquidityTokensWithBalances)
 
-  const farmSummaries = useFarmRegistry()
+  const farmSummaries = useHigherFarmSummaries()
 
   const warnings: WarningInfo[] = useMemo(() => {
     const localWarnings: WarningInfo[] = []
