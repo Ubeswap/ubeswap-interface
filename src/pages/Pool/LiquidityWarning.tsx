@@ -55,8 +55,8 @@ export default function LiquidityWarning() {
       if (lpTokenAddress && farmSummaries[lpTokenAddress]) {
         const farm = farmSummaries[lpTokenAddress]
         const poolName = `${pair?.token0.symbol}-${pair?.token1.symbol}`
-        const url = `/farm/${farm?.token0Address}/${farm?.token1Address}/${farm?.stakingAddress}`
-        localWarnings.push({ poolName: poolName, link: url })
+        const link = `/farm/${farm?.token0Address}/${farm?.token1Address}/${farm?.stakingAddress}`
+        localWarnings.push({ poolName, link })
       }
     })
     return localWarnings
