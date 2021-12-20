@@ -11,7 +11,7 @@ import { usePairs } from '../../data/Reserves'
 import { toV2LiquidityToken, useTrackedTokenPairs } from '../../state/user/hooks'
 import { useTokenBalancesWithLoadingIndicator } from '../../state/wallet/hooks'
 import { StyledInternalLink, TYPE } from '../../theme'
-import { useHigherFarmSummaries, WarningInfo } from '../Earn/useFarmRegistry'
+import { useUniqueBestFarms, WarningInfo } from '../Earn/useFarmRegistry'
 
 export const LiquidityWarningCard = styled(AutoColumn)<{ disabled?: boolean }>`
   background-color: ${(props) => props.theme.bg1};
@@ -46,18 +46,16 @@ export default function LiquidityWarning() {
 
   const v2Pairs = usePairs(liquidityTokensWithBalances)
 
-  const farmSummaries = useHigherFarmSummaries()
+  const farmSummaries = useUniqueBestFarms()
 
   const warnings: WarningInfo[] = useMemo(() => {
     const localWarnings: WarningInfo[] = []
     v2Pairs.forEach(([, pair]) => {
-      const token0 = pair?.token0.symbol
-      const token1 = pair?.token1.symbol
-      const poolName = token0 + '-' + token1
-      const farm = farmSummaries.find((farm) => farm.farmName === poolName)
-      if (farm) {
+      const lpTokenAddress = pair?.liquidityToken.address
+      if (lpTokenAddress && farmSummaries[lpTokenAddress]) {
+        const farm = farmSummaries[lpTokenAddress]
         const url = `/farm/${farm?.token0Address}/${farm?.token1Address}/${farm?.stakingAddress}`
-        localWarnings.push({ poolName: poolName, link: url })
+        localWarnings.push({ poolName: farm.farmName, link: url })
       }
     })
     return localWarnings
