@@ -98,7 +98,7 @@ export const useFarmRegistry = () => {
 export const useUniqueBestFarms = () => {
   const farmSummaries = useFarmRegistry()
 
-  const farmsUniqueByBestFarm = farmSummaries.reduce((prev: any, current) => {
+  const farmsUniqueByBestFarm = farmSummaries.reduce((prev: Record<string, FarmSummary>, current) => {
     if (!prev[current.lpAddress]) {
       prev[current.lpAddress] = current
     } else if (
