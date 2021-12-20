@@ -95,16 +95,19 @@ export const useFarmRegistry = () => {
   return farmSummaries
 }
 
-export const useHigherFarmSummaries = () => {
+export const useUniqueBestFarms = () => {
   const farmSummaries = useFarmRegistry()
 
-  return farmSummaries.reduce((prev: FarmSummary[], current) => {
-    const similar = prev.find((farm) => farm.farmName === current.farmName)
-    if (!similar) return [...prev, current]
-    if (Number(fromWei(toBN(current.rewardsUSDPerYear).sub(toBN(similar.rewardsUSDPerYear)))) > 0) {
-      const filteredPrev = prev.filter((farm) => farm.farmName !== current.farmName)
-      return [...filteredPrev, current]
+  const farmsUniqueByBestFarm = farmSummaries.reduce((prev: any, current) => {
+    if (!prev[current.lpAddress]) {
+      prev[current.lpAddress] = current
+    } else if (
+      Number(fromWei(current.rewardsUSDPerYear)) > Number(fromWei(prev[current.lpAddress].rewardsUSDPerYear))
+    ) {
+      prev[current.lpAddress] = current
     }
     return prev
-  }, [])
+  }, {})
+
+  return farmsUniqueByBestFarm
 }
