@@ -17,7 +17,6 @@ import {
   RedirectOldAddLiquidityPathStructure,
   RedirectToAddLiquidity,
 } from './AddLiquidity/redirects'
-import { Bridge } from './Bridge'
 import Earn from './Earn'
 import Manage from './Earn/Manage'
 import Pool from './Pool'
@@ -25,6 +24,7 @@ import PoolFinder from './PoolFinder'
 import RemoveLiquidity from './RemoveLiquidity'
 import { RedirectOldRemoveLiquidityPathStructure } from './RemoveLiquidity/redirects'
 import Send from './Send'
+import { Stake } from './Stake'
 import Swap from './Swap'
 import { OpenClaimAddressModalAndRedirectToSwap, RedirectPathToSwapOnly, RedirectToSwap } from './Swap/redirects'
 
@@ -46,7 +46,7 @@ const BodyWrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding-top: 100px;
+  padding-top: 40px;
   align-items: center;
   flex: 1;
   overflow-y: auto;
@@ -55,7 +55,6 @@ const BodyWrapper = styled.div`
 
   ${({ theme }) => theme.mediaWidth.upToSmall`
     padding: 16px;
-    padding-top: 2rem;
   `};
 
   z-index: 1;
@@ -119,7 +118,7 @@ export default function App() {
               <Route exact strict path="/farm" component={Earn} />
               <Route exact strict path="/farm/:currencyIdA/:currencyIdB/:stakingAddress" component={Manage} />
               <Route exact strict path="/dualfarm/:currencyIdA/:currencyIdB/:stakingAddress" component={Manage} />
-              <Route exact strict path="/Bridge" component={Bridge} />
+              <Route exact strict path="/stake" component={Stake} />
               <Route component={RedirectPathToSwapOnly} />
             </Switch>
           </ErrorBoundary>

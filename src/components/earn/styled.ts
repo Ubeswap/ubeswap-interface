@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 
 import uImage from '../../assets/images/big_unicorn.png'
-import noise from '../../assets/images/noise.png'
+import noise from '../../assets/images/noise.webp'
 import xlUnicorn from '../../assets/images/xl_uni.png'
 import { AutoColumn } from '../Column'
 
@@ -70,7 +70,6 @@ export const CardNoise = styled.span`
   left: 0;
   pointer-events: none;
 `
-
 export const CardSection = styled(AutoColumn)<{ disabled?: boolean }>`
   padding: 1rem;
   z-index: 1;
