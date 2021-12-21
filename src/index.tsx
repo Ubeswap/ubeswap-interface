@@ -50,7 +50,7 @@ const environment = window.location.hostname.includes('app-staging')
   ? 'staging'
   : window.location.hostname.includes('ubeswap.org')
   ? 'production'
-  : process.env.REACT_APP_VERCEL_ENV ?? null
+  : process.env.REACT_APP_SENTRY_ENVIRONMENT ?? process.env.REACT_APP_VERCEL_ENV ?? null
 
 // google analytics
 const analyticsEnv: 'staging' | 'production' | null = environment
@@ -72,10 +72,12 @@ if (GOOGLE_ANALYTICS_ID) {
 
 if (process.env.REACT_APP_SENTRY_DSN) {
   const sentryCfg = {
-    environment: `${process.env.REACT_APP_VERCEL_ENV ?? 'unknown'}`,
-    release: `${process.env.REACT_APP_VERCEL_GIT_COMMIT_REF?.replace(/\//g, '--') ?? 'unknown'}-${
-      process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA ?? 'unknown'
-    }`,
+    environment: process.env.REACT_APP_SENTRY_ENVIRONMENT ?? `${process.env.REACT_APP_VERCEL_ENV ?? 'unknown'}`,
+    release:
+      process.env.REACT_APP_SENTRY_RELEASE ??
+      `${process.env.REACT_APP_VERCEL_GIT_COMMIT_REF?.replace(/\//g, '--') ?? 'unknown'}-${
+        process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA ?? 'unknown'
+      }`,
   }
   Sentry.init({
     dsn: process.env.REACT_APP_SENTRY_DSN,

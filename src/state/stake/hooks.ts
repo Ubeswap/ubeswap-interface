@@ -6,7 +6,7 @@ import { UBE } from 'constants/tokens'
 import { PoolManager } from 'generated/'
 import { useAllTokens } from 'hooks/Tokens'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
-import { zip } from 'lodash'
+import zip from 'lodash/zip'
 // Hooks
 import { useMemo } from 'react'
 
@@ -67,7 +67,7 @@ export const usePairMultiStakingInfo = (
 ): StakingInfo | null => {
   const multiRewardPool = multiRewardPools
     .filter((x) => x.address.toLowerCase() === stakingAddress.toLowerCase())
-    .find((x) => x.basePool === stakingInfo?.poolInfo.poolAddress)
+    .find((x) => x.basePool.toLowerCase() === stakingInfo?.poolInfo.poolAddress.toLowerCase())
 
   const isTriple = multiRewardPool?.numRewards === 3
 
@@ -373,8 +373,12 @@ export function usePairDataFromAddresses(
       const name = names[index].result?.[0] === 'Celo Gold' ? 'Celo' : names[index].result?.[0]
       const symbol = symbols[index].result?.[0] === 'cGLD' ? 'CELO' : symbols[index].result?.[0] // todo - remove hardcoded symbol swap for CELO
 
-      const token = new Token(chainId, address, decimals, symbol, name)
-      return [...memo, token]
+      // Sometimes, decimals/name/symbol can be undefined, causing an error. TODO: Look into a root cause
+      if (chainId && address && decimals && symbol && name) {
+        const token = new Token(chainId, address, decimals, symbol, name)
+        return [...memo, token]
+      }
+      return memo
     }, [])
   }, [chainId, tokenAddressesNeededToFetch, names, symbols, tokenDecimals])
 
