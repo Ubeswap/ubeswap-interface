@@ -431,7 +431,6 @@ export function useFilteredStakingInfo(stakingAddresses: string[]): readonly Sta
   const { chainId } = network
   const ube = chainId ? UBE[chainId as unknown as UbeswapChainId] : undefined
   const stakingInfos = useStakingInfo()
-  console.log(stakingAddresses)
   return useMemo(() => {
     if (!ube) return
     return stakingInfos.filter(

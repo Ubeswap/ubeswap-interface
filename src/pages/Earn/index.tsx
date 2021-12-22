@@ -70,7 +70,7 @@ export default function Earn() {
 
   return (
     <PageWrapper>
-      {stakedFarms.length > 0 && <ClaimAllRewardPanel stakedFarms={stakedFarms} />}
+      <ClaimAllRewardPanel stakedFarms={stakedFarms} />
       <LiquidityWarning />
       {stakedFarms.length === 0 && (
         <TopSection gap="md">
