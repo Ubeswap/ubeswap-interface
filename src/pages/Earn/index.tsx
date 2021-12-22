@@ -2,6 +2,7 @@ import { ErrorBoundary } from '@sentry/react'
 import { Token } from '@ubeswap/sdk'
 import ChangeNetworkModal from 'components/ChangeNetworkModal'
 import TokenSelect from 'components/CurrencyInputPanel/TokenSelect'
+import ClaimAllRewardPanel from 'components/earn/ClaimAllRewardPanel'
 import Loader from 'components/Loader'
 import { useIsSupportedNetwork } from 'hooks/useIsSupportedNetwork'
 import React, { useMemo, useState } from 'react'
@@ -69,6 +70,7 @@ export default function Earn() {
 
   return (
     <PageWrapper>
+      {stakedFarms.length > 0 && <ClaimAllRewardPanel stakedFarms={stakedFarms} />}
       <LiquidityWarning />
       {stakedFarms.length === 0 && (
         <TopSection gap="md">
