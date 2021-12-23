@@ -227,6 +227,6 @@
   "unstakedLPTokens": "You have unstaked {{poolName}} LP tokens",
   "stakeIntoFarmingPool": "Farm into the {{poolName}} farming pool to an additional rewards on your LP tokens",
   "farmUBE": "Farm UBE",
-  "youHaveUnclaimedRewards": "You have {{count}} pools of unclaimed",
+  "youHaveUnclaimedRewards": "You have {{count}} farms with unclaimed rewards",
   "claimAllRewards": "Claim all rewards"
 }
