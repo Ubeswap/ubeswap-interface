@@ -2,7 +2,7 @@ import { AutoColumn, TopSection } from 'components/Column'
 import Loader from 'components/Loader'
 import { RowCenter, RowStart } from 'components/Row'
 import { FarmSummary } from 'pages/Earn/useFarmRegistry'
-import React, { useContext, useMemo, useState } from 'react'
+import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { AlertCircle } from 'react-feather'
 import { Trans, useTranslation } from 'react-i18next'
 import { useFilteredStakingInfo } from 'state/stake/hooks'
@@ -27,12 +27,17 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
   const [pendingIndex, setPendingIndex] = useState<number>(0)
   const [pending, setPending] = useState<boolean>(false)
   const [finished, setFinished] = useState<boolean>(false)
+  const [display, setDisplay] = useState<boolean>(false)
 
   const stakingAddresses = useMemo(() => {
     return stakedFarms.map((farm) => farm.lpAddress)
   }, [stakedFarms])
 
   const stakingInfos = useFilteredStakingInfo(stakingAddresses)
+
+  useEffect(() => {
+    setDisplay(stakingInfos?.length != undefined && stakingInfos?.length > 0)
+  }, [stakingInfos])
 
   const reportFinish = () => {
     if (pendingIndex === stakingInfos?.length) {
@@ -46,7 +51,7 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
     setPending(true)
   }
 
-  if (stakingInfos?.length == 0 || finished) return <></>
+  if (!display || finished) return <></>
 
   return (
     <TopSection gap="md">
