@@ -1,6 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { useDoTransaction } from 'components/swap/routing'
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useStakingContract } from '../../hooks/useContract'
@@ -23,12 +22,11 @@ export default function ClaimAllRewardItem({
 }: ClaimAllRewardItemProps) {
   const { t } = useTranslation()
 
-  const { address: account } = useContractKit()
   const doTransaction = useDoTransaction()
 
   const stakingContract = useStakingContract(stakingInfo.stakingRewardAddress)
 
-  async function reward() {
+  const reward = useCallback(async () => {
     if (stakingContract && stakingInfo?.stakedAmount) {
       await doTransaction(stakingContract, 'getReward', {
         args: [],
@@ -39,11 +37,11 @@ export default function ClaimAllRewardItem({
           report()
         })
     }
-  }
+  }, [stakingContract, stakingInfo, doTransaction, report, t])
 
   useEffect(() => {
     if (pending && pendingIndex === index) reward()
-  }, [pendingIndex, pending])
+  }, [pendingIndex, pending, index, reward])
 
   return <></>
 }
