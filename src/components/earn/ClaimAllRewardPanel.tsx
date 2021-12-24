@@ -36,10 +36,13 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
   const [memoizedStakingInfos, setMemoizedStakingInfos] = useState<readonly StakingInfo[] | undefined>(undefined)
   const [pending, setPending] = useState<boolean>(false)
   const [pendingIndex, setPendingIndex] = useState<number>(0)
+  const [finished, setFinished] = useState<boolean>(false)
 
   const reportFinish = useCallback(() => {
-    if (pendingIndex === memoizedStakingInfos?.length) setPending(false)
-    else setPendingIndex(pendingIndex + 1)
+    if (pendingIndex === memoizedStakingInfos?.length) {
+      setFinished(true)
+      setPending(false)
+    } else setPendingIndex(pendingIndex + 1)
   }, [pendingIndex, memoizedStakingInfos])
 
   const claimReward = useCallback(
@@ -62,7 +65,7 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
     setPendingIndex(1)
   }
 
-  if (!stakingInfos || stakingInfos?.length == 0) return <></>
+  if (!stakingInfos || stakingInfos?.length == 0 || finished) return <></>
 
   return (
     <TopSection gap="md">
