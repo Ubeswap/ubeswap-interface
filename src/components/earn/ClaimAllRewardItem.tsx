@@ -1,6 +1,5 @@
-import { useDoTransaction } from 'components/swap/routing'
-import React, { useCallback, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import { StakingRewards } from 'generated'
+import React, { useEffect } from 'react'
 
 import { useStakingContract } from '../../hooks/useContract'
 import { StakingInfo } from '../../state/stake/hooks'
@@ -10,7 +9,7 @@ export interface ClaimAllRewardItemProps {
   pending: boolean
   pendingIndex: number
   stakingInfo: StakingInfo
-  report(): void
+  claimReward(stakingContract: StakingRewards): void
 }
 
 export default function ClaimAllRewardItem({
@@ -18,30 +17,13 @@ export default function ClaimAllRewardItem({
   pending,
   pendingIndex,
   stakingInfo,
-  report,
+  claimReward,
 }: ClaimAllRewardItemProps) {
-  const { t } = useTranslation()
-
-  const doTransaction = useDoTransaction()
-
   const stakingContract = useStakingContract(stakingInfo.stakingRewardAddress)
 
-  const reward = useCallback(async () => {
-    if (stakingContract && stakingInfo?.stakedAmount) {
-      await doTransaction(stakingContract, 'getReward', {
-        args: [],
-        summary: `${t('ClaimAccumulatedUbeRewards')}`,
-      })
-        .catch(console.error)
-        .finally(() => {
-          report()
-        })
-    }
-  }, [stakingContract, stakingInfo, doTransaction, report, t])
-
   useEffect(() => {
-    if (pending && pendingIndex === index) reward()
-  }, [pendingIndex, pending, index, reward])
+    if (pending && pendingIndex === index && stakingContract) claimReward(stakingContract)
+  }, [pendingIndex, pending, index, stakingContract, claimReward])
 
   return <></>
 }

@@ -1,11 +1,13 @@
 import { AutoColumn, TopSection } from 'components/Column'
 import Loader from 'components/Loader'
 import { RowCenter, RowStart } from 'components/Row'
+import { useDoTransaction } from 'components/swap/routing'
+import { StakingRewards } from 'generated'
 import { FarmSummary } from 'pages/Earn/useFarmRegistry'
-import React, { useContext, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useMemo, useState } from 'react'
 import { AlertCircle } from 'react-feather'
 import { Trans, useTranslation } from 'react-i18next'
-import { useFilteredStakingInfo } from 'state/stake/hooks'
+import { StakingInfo, useFilteredStakingInfo } from 'state/stake/hooks'
 import styled, { ThemeContext } from 'styled-components'
 import { StyledLink, TYPE } from 'theme'
 
@@ -24,34 +26,43 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
   const theme = useContext(ThemeContext)
   const { t } = useTranslation()
 
-  const [pendingIndex, setPendingIndex] = useState<number>(0)
-  const [pending, setPending] = useState<boolean>(false)
-  const [finished, setFinished] = useState<boolean>(false)
-  const [display, setDisplay] = useState<boolean>(false)
-
   const stakingAddresses = useMemo(() => {
     return stakedFarms.map((farm) => farm.lpAddress)
   }, [stakedFarms])
 
   const stakingInfos = useFilteredStakingInfo(stakingAddresses)
+  const doTransaction = useDoTransaction()
 
-  useEffect(() => {
-    setDisplay(stakingInfos?.length != undefined && stakingInfos?.length > 0)
-  }, [stakingInfos])
+  const [memoizedStakingInfos, setMemoizedStakingInfos] = useState<readonly StakingInfo[] | undefined>(undefined)
+  const [pending, setPending] = useState<boolean>(false)
+  const [pendingIndex, setPendingIndex] = useState<number>(0)
 
-  const reportFinish = () => {
-    if (pendingIndex === stakingInfos?.length) {
-      setPending(false)
-      setFinished(true)
-    } else setPendingIndex(pendingIndex + 1)
-  }
+  const reportFinish = useCallback(() => {
+    if (pendingIndex === memoizedStakingInfos?.length) setPending(false)
+    else setPendingIndex(pendingIndex + 1)
+  }, [pendingIndex, memoizedStakingInfos])
 
-  const onClaim = () => {
-    setPendingIndex(1)
+  const claimReward = useCallback(
+    async (stakingContract: StakingRewards) => {
+      await doTransaction(stakingContract, 'getReward', {
+        args: [],
+        summary: `${t('ClaimAccumulatedUbeRewards')}`,
+      })
+        .catch(console.error)
+        .finally(() => {
+          reportFinish()
+        })
+    },
+    [doTransaction, reportFinish, t]
+  )
+
+  const onClaimRewards = () => {
+    setMemoizedStakingInfos(stakingInfos)
     setPending(true)
+    setPendingIndex(1)
   }
 
-  if (!display || finished) return <></>
+  if (!stakingInfos || stakingInfos?.length == 0) return <></>
 
   return (
     <TopSection gap="md">
@@ -69,22 +80,22 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
               </RowCenter>
               {pending && (
                 <RowCenter>
-                  <TYPE.black fontWeight={600}>{`${pendingIndex} / ${stakingInfos?.length}`}</TYPE.black>
+                  <TYPE.black fontWeight={600}>{`${pendingIndex} / ${memoizedStakingInfos?.length}`}</TYPE.black>
                   <Space />
                   <Loader size="15px" />
                 </RowCenter>
               )}
-              <StyledLink onClick={onClaim}>{t('claimAllRewards')}</StyledLink>
+              {!pending && <StyledLink onClick={onClaimRewards}>{t('claimAllRewards')}</StyledLink>}
             </AutoColumn>
           </RowStart>
-          {stakingInfos?.map((stakingInfo, idx) => (
+          {memoizedStakingInfos?.map((stakingInfo, idx) => (
             <ClaimAllRewardItem
               key={idx}
               index={idx + 1}
               pending={pending}
               pendingIndex={pendingIndex}
               stakingInfo={stakingInfo}
-              report={reportFinish}
+              claimReward={claimReward}
             />
           ))}
         </CardSection>
