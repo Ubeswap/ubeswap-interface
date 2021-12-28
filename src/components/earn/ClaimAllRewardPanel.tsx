@@ -3,16 +3,19 @@ import Loader from 'components/Loader'
 import { RowCenter, RowStart } from 'components/Row'
 import { useDoTransaction } from 'components/swap/routing'
 import { StakingRewards } from 'generated'
+import { useStakingContracts } from 'hooks/useContract'
 import { FarmSummary } from 'pages/Earn/useFarmRegistry'
-import React, { useCallback, useContext, useMemo, useState } from 'react'
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle } from 'react-feather'
 import { Trans, useTranslation } from 'react-i18next'
-import { StakingInfo, useFilteredStakingInfo } from 'state/stake/hooks'
+import { useFilteredStakingInfo } from 'state/stake/hooks'
 import styled, { ThemeContext } from 'styled-components'
 import { StyledLink, TYPE } from 'theme'
 
-import ClaimAllRewardItem from './ClaimAllRewardItem'
 import { CardSection, TopBorderCard } from './styled'
+
+const CooldownLimit = 24 * 60 * 60 * 1000
+const CoolDownKey = 'LastClaimedTime'
 
 export const Space = styled.span`
   width: 10px;
@@ -30,42 +33,57 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
     return stakedFarms.map((farm) => farm.lpAddress)
   }, [stakedFarms])
 
-  const stakingInfos = useFilteredStakingInfo(stakingAddresses)
   const doTransaction = useDoTransaction()
+  const stakingInfos = useFilteredStakingInfo(stakingAddresses)
+  const contracts = useStakingContracts(stakingInfos)
 
-  const [memoizedStakingInfos, setMemoizedStakingInfos] = useState<readonly StakingInfo[] | undefined>(undefined)
+  const memoizedContracts = useRef<StakingRewards[] | null>(null)
   const [pending, setPending] = useState<boolean>(false)
-  const [pendingIndex, setPendingIndex] = useState<number>(0)
-  const [finished, setFinished] = useState<boolean>(false)
+  const [lastClaimedTime, setLastClaimedTime] = useState<number>(0)
 
-  const reportFinish = useCallback(() => {
-    if (pendingIndex === memoizedStakingInfos?.length) {
-      setFinished(true)
-      setPending(false)
-    } else setPendingIndex(pendingIndex + 1)
-  }, [pendingIndex, memoizedStakingInfos])
+  useEffect(() => {
+    const claimedTime = localStorage.getItem(CoolDownKey)
+    if (claimedTime) setLastClaimedTime(Number(claimedTime))
+  }, [])
 
-  const claimReward = useCallback(
-    async (stakingContract: StakingRewards) => {
-      await doTransaction(stakingContract, 'getReward', {
+  const startTransactions = () => {
+    setPending(true)
+    claimRewards()
+  }
+
+  const finishTransactions = () => {
+    setPending(false)
+    const currentTime = Date.now()
+    setLastClaimedTime(currentTime)
+    localStorage.setItem(CoolDownKey, currentTime.toString())
+  }
+
+  const claimRewards = async () => {
+    if (!memoizedContracts.current) return
+    for (const contract of memoizedContracts.current) {
+      await doTransaction(contract, 'getReward', {
         args: [],
         summary: `${t('ClaimAccumulatedUbeRewards')}`,
       })
         .catch(console.error)
         .finally(() => {
-          reportFinish()
+          console.info('success')
         })
-    },
-    [doTransaction, reportFinish, t]
-  )
-
-  const onClaimRewards = () => {
-    setMemoizedStakingInfos(stakingInfos)
-    setPending(true)
-    setPendingIndex(1)
+    }
+    finishTransactions()
   }
 
-  if (!stakingInfos || stakingInfos?.length == 0 || finished) return <></>
+  const onClaimRewards = () => {
+    memoizedContracts.current = contracts
+    startTransactions()
+  }
+
+  const cooldownCheck = useMemo(() => {
+    const deltaTime = Date.now() - lastClaimedTime
+    return deltaTime >= CooldownLimit
+  }, [lastClaimedTime])
+
+  if (!cooldownCheck || !contracts || contracts?.length == 0) return <></>
 
   return (
     <TopSection gap="md">
@@ -78,29 +96,16 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
             <AutoColumn gap="md">
               <RowCenter>
                 <TYPE.black fontWeight={600}>
-                  <Trans i18nKey="youHaveUnclaimedRewards" values={{ count: stakingInfos?.length }} />
+                  <Trans i18nKey="youHaveUnclaimedRewards" values={{ count: contracts?.length }} />
                 </TYPE.black>
               </RowCenter>
-              {pending && (
-                <RowCenter>
-                  <TYPE.black fontWeight={600}>{`${pendingIndex} / ${memoizedStakingInfos?.length}`}</TYPE.black>
-                  <Space />
-                  <Loader size="15px" />
-                </RowCenter>
+              {pending ? (
+                <Loader size="25px" />
+              ) : (
+                <StyledLink onClick={onClaimRewards}>{t('claimAllRewards')}</StyledLink>
               )}
-              {!pending && <StyledLink onClick={onClaimRewards}>{t('claimAllRewards')}</StyledLink>}
             </AutoColumn>
           </RowStart>
-          {memoizedStakingInfos?.map((stakingInfo, idx) => (
-            <ClaimAllRewardItem
-              key={idx}
-              index={idx + 1}
-              pending={pending}
-              pendingIndex={pendingIndex}
-              stakingInfo={stakingInfo}
-              claimReward={claimReward}
-            />
-          ))}
         </CardSection>
       </TopBorderCard>
     </TopSection>
