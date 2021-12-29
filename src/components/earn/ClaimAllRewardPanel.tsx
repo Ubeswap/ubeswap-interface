@@ -39,6 +39,7 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
 
   const memoizedContracts = useRef<StakingRewards[] | null>(null)
   const [pending, setPending] = useState<boolean>(false)
+  const [pendingIndex, setPendingIndex] = useState<number>(0)
   const [lastClaimedTime, setLastClaimedTime] = useState<number>(0)
 
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
 
   const startTransactions = () => {
     setPending(true)
+    setPendingIndex(1)
     claimRewards()
   }
 
@@ -60,6 +62,7 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
 
   const claimRewards = async () => {
     if (!memoizedContracts.current) return
+    let currentIndex = 1
     for (const contract of memoizedContracts.current) {
       await doTransaction(contract, 'getReward', {
         args: [],
@@ -67,8 +70,9 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
       })
         .catch(console.error)
         .finally(() => {
-          console.info('success')
+          console.log(currentIndex, ' index of transaction is completed')
         })
+      setPendingIndex(++currentIndex)
     }
     finishTransactions()
   }
@@ -99,11 +103,14 @@ export default function ClaimAllRewardPanel({ stakedFarms }: ClaimAllRewardsProp
                   <Trans i18nKey="youHaveUnclaimedRewards" values={{ count: contracts?.length }} />
                 </TYPE.black>
               </RowCenter>
-              {pending ? (
-                <Loader size="25px" />
-              ) : (
-                <StyledLink onClick={onClaimRewards}>{t('claimAllRewards')}</StyledLink>
+              {pending && (
+                <RowCenter>
+                  <TYPE.black fontWeight={600}>{`${pendingIndex} / ${memoizedContracts?.current?.length}`}</TYPE.black>
+                  <Space />
+                  <Loader size="15px" />
+                </RowCenter>
               )}
+              {!pending && <StyledLink onClick={onClaimRewards}>{t('claimAllRewards')}</StyledLink>}
             </AutoColumn>
           </RowStart>
         </CardSection>
