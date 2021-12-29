@@ -137,11 +137,11 @@ function Web3StatusInner() {
   const hasPendingTransactions = !!pending.length
   const toggleWalletModal = useWalletModalToggle()
   let accountName
-  if (account && !isAddress(account)) {
+  if (nom) {
+    accountName = nom
+  } else if (account && !isAddress(account)) {
     // Phone numbers show up under `account`, so we need to check if it is an address
     accountName = account
-  } else if (nom) {
-    accountName = nom
   } else if (address) {
     accountName = shortenAddress(address)
   }
