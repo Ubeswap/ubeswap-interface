@@ -47,7 +47,7 @@ function useTokenFilter(): [Token | null, (t: Token | null) => void] {
 export default function Earn() {
   const { t } = useTranslation()
   const [filteringToken, setFilteringToken] = useTokenFilter()
-  const farmSummaries = useFarmRegistry()
+  const [farmSummaries, featuredFarmSummaries] = useFarmRegistry()
 
   const filteredFarms = useMemo(() => {
     if (filteringToken === null) {
@@ -59,7 +59,17 @@ export default function Earn() {
     }
   }, [filteringToken, farmSummaries])
 
-  const { stakedFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms)
+  const filteredFeaturedFarms = useMemo(() => {
+    if (filteringToken === null) {
+      return featuredFarmSummaries
+    } else {
+      return featuredFarmSummaries.filter(
+        (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
+      )
+    }
+  }, [filteringToken, featuredFarmSummaries])
+
+  const { stakedFarms, featuredFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms, filteredFeaturedFarms)
 
   return (
     <PageWrapper>
@@ -103,6 +113,18 @@ export default function Earn() {
         <>
           <Header>{t('yourPools')}</Header>
           {stakedFarms.map((farmSummary) => (
+            <PoolWrapper key={farmSummary.stakingAddress}>
+              <ErrorBoundary>
+                <PoolCard farmSummary={farmSummary} />
+              </ErrorBoundary>
+            </PoolWrapper>
+          ))}
+        </>
+      )}
+      {featuredFarms.length > 0 && (
+        <>
+          <Header>{t('featuredPools')}</Header>
+          {featuredFarms.map((farmSummary) => (
             <PoolWrapper key={farmSummary.stakingAddress}>
               <ErrorBoundary>
                 <PoolCard farmSummary={farmSummary} />

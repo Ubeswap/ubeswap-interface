@@ -9,7 +9,7 @@ import { toBN } from 'web3-utils'
 import DUAL_REWARDS_ABI from '../../constants/abis/moola/MoolaStakingRewards.json'
 
 // get all staked pools
-export const useOwnerStakedPools = (farmSummaries: FarmSummary[]) => {
+export const useOwnerStakedPools = (farmSummaries: FarmSummary[], featuredFarmSummaries: FarmSummary[]) => {
   const { address: owner } = useContractKit()
 
   const data = useMultipleContractSingleData(
@@ -24,12 +24,12 @@ export const useOwnerStakedPools = (farmSummaries: FarmSummary[]) => {
     return acc
   }, {})
 
-  const [stakedFarms, uniqueUnstakedFarms] = useMemo(() => {
+  const [stakedFarms, featuredFarms, uniqueUnstakedFarms] = useMemo(() => {
     const [staked, unstaked] = partition(farmSummaries, (farmSummary) => isStaked[farmSummary.stakingAddress])
-    return [staked, unique(unstaked)]
-  }, [farmSummaries, isStaked])
+    return [staked, unique(featuredFarmSummaries), unique(unstaked)]
+  }, [farmSummaries, featuredFarmSummaries, isStaked])
 
-  return { stakedFarms, unstakedFarms: uniqueUnstakedFarms }
+  return { stakedFarms, featuredFarms, unstakedFarms: uniqueUnstakedFarms }
 }
 
 function unique(farmSummaries: FarmSummary[]): FarmSummary[] {
