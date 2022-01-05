@@ -19,7 +19,7 @@ import { WrappedTokenInfo } from 'state/lists/hooks'
 import { useSingleCallResult } from 'state/multicall/hooks'
 import { tryParseAmount } from 'state/swap/hooks'
 import { useCurrencyBalance } from 'state/wallet/hooks'
-import styled from 'styled-components'
+import styled, { useTheme } from 'styled-components'
 import { ExternalLink, TYPE } from 'theme'
 
 import { BIG_INT_SECONDS_IN_WEEK, BIG_INT_SECONDS_IN_YEAR } from '../../constants'
@@ -63,8 +63,27 @@ const ube = new WrappedTokenInfo(
   []
 )
 
+const CommunityWrapper = styled(AutoColumn)<{ showBackground: boolean; bgColor: any }>`
+  border-radius: 12px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  padding: 1.25rem;
+  display: grid;
+  grid-gap: 24px;
+  margin-bottom: 1rem;
+  background: ${({ bgColor }) => `radial-gradient(91.85% 100% at 1.84% 0%, ${bgColor} 0%, #212429 100%) `};
+  color: ${({ theme, showBackground }) => (showBackground ? theme.white : theme.text1)} !important;
+  ${({ showBackground }) =>
+    showBackground &&
+    `  box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04),
+    0px 24px 32px rgba(0, 0, 0, 0.01);`}
+`
+
 export const Stake: React.FC = () => {
   const { t } = useTranslation()
+  const theme = useTheme()
+
   const { address, connect } = useContractKit()
   const getConnectedSigner = useGetConnectedSigner()
   const [amount, setAmount] = useState('')
@@ -77,6 +96,7 @@ export const Stake: React.FC = () => {
     ube,
     useSingleCallResult(contract, 'balanceOf', [address ?? undefined]).result?.[0] ?? 0
   )
+
   // 0 - Abstain
   // 1 - For
   // 2 - Against
@@ -87,7 +107,6 @@ export const Stake: React.FC = () => {
 
   const apy = totalSupply.greaterThan('0') ? rewardRate.multiply(BIG_INT_SECONDS_IN_YEAR).divide(totalSupply) : null
   const userRewardRate = totalSupply.greaterThan('0') ? stakeBalance.multiply(rewardRate).divide(totalSupply) : null
-  console.log('tttttt', userRewardRate)
   const doTransaction = useDoTransaction()
   const onStakeClick = useCallback(async () => {
     const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, await getConnectedSigner())
@@ -177,15 +196,15 @@ export const Stake: React.FC = () => {
               </RowBetween>
               <RowBetween>
                 <TYPE.white fontSize={14}>
-                  Stake UBE to automatically participate in governance and earn UBE rewards. You can&nbsp;
+                  Stake UBE to automatically participate in governance and earn UBE rewards. You can check all
+                  governance proposals&nbsp;
                   <ExternalLink
                     style={{ color: 'white', textDecoration: 'underline' }}
                     target="_blank"
                     href="https://romulus.page/romulus/0xa7581d8E26007f4D2374507736327f5b46Dd6bA8"
                   >
-                    update
+                    here
                   </ExternalLink>
-                  &nbsp;your governance selection at anytime
                 </TYPE.white>
               </RowBetween>
             </AutoColumn>
@@ -195,29 +214,61 @@ export const Stake: React.FC = () => {
         <div style={{ textAlign: 'center' }}>
           {/* <h2>Your UBE stake: {stakeBalance ? stakeBalance.toFixed(2, { groupSeparator: ',' }) : '--'} UBE</h2> */}
           {userRewardRate?.greaterThan('0') ? (
-            <YellowCard style={{ marginBottom: '16px' }}>
-              <DescriptionWrapper>
-                <h3>Your weekly rewards</h3>
-                <h3>
-                  {userRewardRate
-                    ? userRewardRate.multiply(BIG_INT_SECONDS_IN_WEEK).toFixed(2, { groupSeparator: ',' })
-                    : '--'}{' '}
-                </h3>
-              </DescriptionWrapper>
-              <DescriptionWrapper>
-                <h3>Annual stake APR</h3>
-                <h3>{apy?.multiply('100').toFixed(2, { groupSeparator: ',' }) ?? '--'}%</h3>
-              </DescriptionWrapper>
-              <DescriptionWrapper>
-                <h3>Unclaimed Rewards</h3>
-                <div style={{ display: 'flex' }}>
-                  <h3>{userRewardRate ? earned.toFixed(4, { groupSeparator: ',' }) : '--'}</h3>
-                  <ButtonEmpty padding="8px" borderRadius="8px" width="fit-content" onClick={onClaimClick}>
-                    {t('claim')}
-                  </ButtonEmpty>
-                </div>
-              </DescriptionWrapper>
-            </YellowCard>
+            <>
+              <YellowCard style={{ marginBottom: '16px' }}>
+                <DescriptionWrapper>
+                  <h4 style={{ margin: '12px 0' }}>Your weekly rewards</h4>
+                  <h4 style={{ margin: '12px 0' }}>
+                    {userRewardRate
+                      ? userRewardRate.multiply(BIG_INT_SECONDS_IN_WEEK).toFixed(2, { groupSeparator: ',' })
+                      : '--'}
+                    {'  '}
+                  </h4>
+                </DescriptionWrapper>
+                <DescriptionWrapper>
+                  <h4 style={{ margin: '12px 0' }}>Annual stake APR</h4>
+                  <h4 style={{ margin: '12px 0' }}>
+                    {apy?.multiply('100').toFixed(2, { groupSeparator: ',' }) ?? '--'}%{' '}
+                  </h4>
+                </DescriptionWrapper>
+                <DescriptionWrapper>
+                  <h4 style={{ margin: '12px 0' }}>Unclaimed Rewards</h4>
+                  <div style={{ display: 'flex' }}>
+                    <h4 style={{ margin: '12px 0' }}>
+                      {userRewardRate ? earned.toFixed(4, { groupSeparator: ',' }) : '--'}
+                    </h4>
+                    <ButtonEmpty padding="8px" borderRadius="8px" width="fit-content" onClick={onClaimClick}>
+                      {t('claim')}
+                    </ButtonEmpty>
+                  </div>
+                </DescriptionWrapper>
+              </YellowCard>
+              <CommunityWrapper showBackground={true} bgColor={theme.primary1}>
+                <h3 style={{ margin: 'unset' }}>Community UBE Stake</h3>
+                <DescriptionWrapper>
+                  <h4 style={{ margin: 'unset' }}>Total UBE Staked</h4>
+                  <h4 style={{ margin: 'unset' }}>{Number(totalSupply?.toSignificant(4)).toLocaleString('en-US')}</h4>
+                </DescriptionWrapper>
+                <DescriptionWrapper>
+                  <h4 style={{ margin: 'unset' }}>Your UBE Stake Pool Share</h4>
+                  <h4 style={{ margin: 'unset' }}>{stakeBalance?.toSignificant(4)}</h4>
+                </DescriptionWrapper>
+                <ExternalLink
+                  style={{ color: 'white', textDecoration: 'underline', textAlign: 'left' }}
+                  target="_blank"
+                  href="https://explorer.celo.org/address/0x00Be915B9dCf56a3CBE739D9B9c202ca692409EC/transactions"
+                >
+                  View UBE Contract
+                </ExternalLink>
+                <ExternalLink
+                  style={{ color: 'white', textDecoration: 'underline', textAlign: 'left' }}
+                  target="_blank"
+                  href="https://info.ubeswap.org/token/0x00be915b9dcf56a3cbe739d9b9c202ca692409ec"
+                >
+                  View UBE Chart
+                </ExternalLink>
+              </CommunityWrapper>
+            </>
           ) : (
             <h3>
               Weekly rewards:{' '}
