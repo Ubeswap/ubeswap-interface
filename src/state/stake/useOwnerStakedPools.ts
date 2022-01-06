@@ -25,9 +25,9 @@ export const useOwnerStakedPools = (farmSummaries: FarmSummary[]) => {
   }, {})
 
   const [stakedFarms, featuredFarms, uniqueUnstakedFarms] = useMemo(() => {
-    const [farms, featuredFarms] = partition(farmSummaries, (farmSummary) => !farmSummary.isFeatured)
-    const [staked, unstaked] = partition(farms, (farmSummary) => isStaked[farmSummary.stakingAddress])
-    return [staked, unique(featuredFarms), unique(unstaked)]
+    const [staked, unstaked] = partition(farmSummaries, (farmSummary) => isStaked[farmSummary.stakingAddress])
+    const [featuredFarms, availableFarms] = partition(unstaked, (farmSummary) => farmSummary.isFeatured)
+    return [staked, unique(featuredFarms), unique(availableFarms)]
   }, [farmSummaries, isStaked])
 
   return { stakedFarms, featuredFarms, unstakedFarms: uniqueUnstakedFarms }

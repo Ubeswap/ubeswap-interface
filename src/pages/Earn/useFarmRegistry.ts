@@ -86,7 +86,7 @@ export const useFarmRegistry = () => {
           token1Address: lps[e.returnValues.lpAddress][1],
           tvlUSD: farmData[e.returnValues.stakingAddress].tvlUSD,
           rewardsUSDPerYear: farmData[e.returnValues.stakingAddress].rewardsUSDPerYear,
-          isFeatured: featuredPoolWhitelist[e.returnValues.stakingAddress.toLowerCase()],
+          isFeatured: !!featuredPoolWhitelist[e.returnValues.stakingAddress],
         })
       })
 
