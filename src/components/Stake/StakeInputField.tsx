@@ -70,7 +70,7 @@ const StyledControlButton = styled.button`
 `
 const ButtonGroup = styled.div``
 
-interface CurrencyInputPanelProps {
+interface StakeInputFieldProps {
   value: string
   onUserInput: (value: string) => void
   onMax?: () => void
@@ -84,7 +84,7 @@ interface CurrencyInputPanelProps {
   walletBalance?: TokenAmount
 }
 
-export default function CurrencyInputPanel({
+export default function StakeInputField({
   value,
   onUserInput,
   onMax,
@@ -95,7 +95,7 @@ export default function CurrencyInputPanel({
   customBalanceText,
   stakeBalance,
   walletBalance,
-}: CurrencyInputPanelProps) {
+}: StakeInputFieldProps) {
   const { address: account } = useContractKit()
 
   const userBalance = useCurrencyBalance(account ?? undefined, currency ?? undefined)
