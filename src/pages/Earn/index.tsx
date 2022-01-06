@@ -47,7 +47,7 @@ function useTokenFilter(): [Token | null, (t: Token | null) => void] {
 export default function Earn() {
   const { t } = useTranslation()
   const [filteringToken, setFilteringToken] = useTokenFilter()
-  const [farmSummaries, featuredFarmSummaries] = useFarmRegistry()
+  const farmSummaries = useFarmRegistry()
 
   const filteredFarms = useMemo(() => {
     if (filteringToken === null) {
@@ -59,18 +59,8 @@ export default function Earn() {
     }
   }, [filteringToken, farmSummaries])
 
-  const filteredFeaturedFarms = useMemo(() => {
-    if (filteringToken === null) {
-      return featuredFarmSummaries
-    } else {
-      return featuredFarmSummaries.filter(
-        (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
-      )
-    }
-  }, [filteringToken, featuredFarmSummaries])
-
-  const { stakedFarms, featuredFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms, filteredFeaturedFarms)
-
+  const { stakedFarms, featuredFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms)
+  console.log('kkk', featuredFarms)
   return (
     <PageWrapper>
       <ClaimAllRewardPanel stakedFarms={stakedFarms} />

@@ -18,6 +18,7 @@ export type FarmSummary = {
   tvlUSD: string
   token0Address: string
   token1Address: string
+  isFeatured: boolean
 }
 
 const blacklist: Record<string, boolean> = {
@@ -25,7 +26,8 @@ const blacklist: Record<string, boolean> = {
 }
 
 const featuredPoolWhitelist: Record<string, boolean> = {
-  '0x4488682fd16562a68ea0d0f898413e075f42e6da': true,
+  '0x6F11B6eA70DEe4f167b1A4ED1F01C903f6781960': true,
+  '0xEfe2f9d62E45815837b4f20c1F44F0A83605B540': true,
 }
 
 const CREATION_BLOCK = 9840049
@@ -39,7 +41,6 @@ export interface WarningInfo {
 export const useFarmRegistry = () => {
   const { kit } = useContractKit()
   const [farmSummaries, setFarmSummaries] = React.useState<FarmSummary[]>([])
-  const [featuredFarmSummaries, setFeaturedFarmSummaries] = React.useState<FarmSummary[]>([])
   const call = React.useCallback(async () => {
     const farmRegistry = new kit.web3.eth.Contract(
       farmRegistryAbi as AbiItem[],
@@ -70,7 +71,6 @@ export const useFarmRegistry = () => {
       }
     })
     const farmSummaries: FarmSummary[] = []
-    const featuredFarmSummaries: FarmSummary[] = []
     farmInfoEvents
       .filter((e) => !blacklist[e.returnValues.stakingAddress.toLowerCase()])
       .forEach((e) => {
@@ -86,24 +86,7 @@ export const useFarmRegistry = () => {
           token1Address: lps[e.returnValues.lpAddress][1],
           tvlUSD: farmData[e.returnValues.stakingAddress].tvlUSD,
           rewardsUSDPerYear: farmData[e.returnValues.stakingAddress].rewardsUSDPerYear,
-        })
-      })
-
-    farmInfoEvents
-      .filter((e) => !!featuredPoolWhitelist[e.returnValues.stakingAddress.toLowerCase()])
-      .forEach((e) => {
-        // sometimes there is no farm data for the staking address return early to avoid crash
-        if (!farmData[e.returnValues.stakingAddress]) {
-          return
-        }
-        featuredFarmSummaries.push({
-          farmName: ethers.utils.parseBytes32String(e.returnValues.farmName),
-          stakingAddress: e.returnValues.stakingAddress,
-          lpAddress: e.returnValues.lpAddress,
-          token0Address: lps[e.returnValues.lpAddress][0],
-          token1Address: lps[e.returnValues.lpAddress][1],
-          tvlUSD: farmData[e.returnValues.stakingAddress].tvlUSD,
-          rewardsUSDPerYear: farmData[e.returnValues.stakingAddress].rewardsUSDPerYear,
+          isFeatured: featuredPoolWhitelist[e.returnValues.stakingAddress.toLowerCase()],
         })
       })
 
@@ -111,23 +94,18 @@ export const useFarmRegistry = () => {
       .sort((a, b) => Number(fromWei(toBN(b.rewardsUSDPerYear).sub(toBN(a.rewardsUSDPerYear)))))
       .sort((a, b) => Number(fromWei(toBN(b.tvlUSD).sub(toBN(a.tvlUSD)))))
 
-    featuredFarmSummaries
-      .sort((a, b) => Number(fromWei(toBN(b.rewardsUSDPerYear).sub(toBN(a.rewardsUSDPerYear)))))
-      .sort((a, b) => Number(fromWei(toBN(b.tvlUSD).sub(toBN(a.tvlUSD)))))
-
     setFarmSummaries(farmSummaries)
-    setFeaturedFarmSummaries(featuredFarmSummaries)
   }, [kit.web3.eth])
 
   useEffect(() => {
     call()
   }, [call])
 
-  return [farmSummaries, featuredFarmSummaries]
+  return farmSummaries
 }
 
 export const useUniqueBestFarms = () => {
-  const [farmSummaries] = useFarmRegistry()
+  const farmSummaries = useFarmRegistry()
 
   const farmsUniqueByBestFarm = farmSummaries.reduce((prev: Record<string, FarmSummary>, current) => {
     if (!prev[current.lpAddress]) {
