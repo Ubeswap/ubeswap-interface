@@ -126,6 +126,7 @@
   "poolRate": "Pool $t(rate)",
   "poolTokens": "Pool Tokens",
   "PoolTokensInRewardsPool": "Pool tokens in rewards pool",
+  "portfolio": "Portfolio",
   "priceChange": "Expected price slippage",
   "rate": "rate",
   "Rate": "Rate",
