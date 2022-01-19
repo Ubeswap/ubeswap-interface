@@ -1,21 +1,24 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId as UbeswapChainId, cUSD, JSBI } from '@ubeswap/sdk'
 import StakedAmountsHelper from 'components/earn/StakedAmountsHelper'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useContext, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, RouteComponentProps } from 'react-router-dom'
 import { usePairStakingInfo } from 'state/stake/useStakingInfo'
-import styled from 'styled-components'
+import styled, { ThemeContext } from 'styled-components'
 import { CountUp } from 'use-count-up'
 
 import { ButtonEmpty, ButtonPrimary } from '../../components/Button'
 import { AutoColumn } from '../../components/Column'
 import DoubleCurrencyLogo from '../../components/DoubleLogo'
 import ClaimRewardModal from '../../components/earn/ClaimRewardModal'
+import LeverageModal from '../../components/earn/LeverageModal'
 import StakingModal from '../../components/earn/StakingModal'
 import { CardBGImage, CardNoise, CardSection, DataCard } from '../../components/earn/styled'
 import UnstakingModal from '../../components/earn/UnstakingModal'
-import { RowBetween, RowFixed } from '../../components/Row'
+import QuestionHelper from '../../components/QuestionHelper'
+import { RowBetween, RowEnd, RowFixed } from '../../components/Row'
+import Toggle from '../../components/Toggle'
 import { BIG_INT_SECONDS_IN_WEEK, BIG_INT_ZERO } from '../../constants'
 import { usePair } from '../../data/Reserves'
 import { useCurrency } from '../../hooks/Tokens'
@@ -96,7 +99,8 @@ export default function Manage({
   const { t } = useTranslation()
   const { address: account, network } = useContractKit()
   const { chainId } = network
-
+  const [leverageFarm, setLeverageFarm] = useState<boolean>(false)
+  const theme = useContext(ThemeContext)
   // get currencies and pair
   const [tokenA, tokenB] = [useCurrency(currencyIdA) ?? undefined, useCurrency(currencyIdB) ?? undefined]
 
@@ -113,6 +117,7 @@ export default function Manage({
   const showAddLiquidityButton = Boolean(stakingInfo?.stakedAmount?.equalTo('0') && userLiquidityUnstaked?.equalTo('0'))
 
   // toggle for staking modal and unstaking modal
+  const [showLeverageModal, setShowLeverageModal] = useState(false)
   const [showStakingModal, setShowStakingModal] = useState(false)
   const [showUnstakingModal, setShowUnstakingModal] = useState(false)
   const [showClaimRewardModal, setShowClaimRewardModal] = useState(false)
@@ -150,6 +155,14 @@ export default function Manage({
       toggleWalletModal()
     }
   }, [account, toggleWalletModal])
+
+  const toggleLeverage = () => {
+    const leverage = !leverageFarm
+    setShowLeverageModal(leverage)
+    if (!leverage) {
+      setLeverageFarm(false)
+    }
+  }
 
   return (
     <PageWrapper gap="lg" justify="center">
@@ -199,6 +212,25 @@ export default function Manage({
           </AutoColumn>
         </PoolData>
       </DataRow>
+      {stakingInfo && (
+        <RowEnd>
+          <RowBetween width={'240px'}>
+            <RowFixed>
+              <TYPE.black fontWeight={500} fontSize={16} color={theme.text1}>
+                Enable leverage
+              </TYPE.black>
+              <QuestionHelper text="Enabling leverage can put your assets at risk of liquidation and is only meant for advanced users. Clicking continue will also require you to exit your current farm position." />
+            </RowFixed>
+            <Toggle
+              id="toggle-leverage-yield-farm"
+              isActive={leverageFarm}
+              toggle={() => {
+                toggleLeverage()
+              }}
+            />
+          </RowBetween>
+        </RowEnd>
+      )}
 
       {showAddLiquidityButton && (
         <VoteCard>
@@ -232,6 +264,12 @@ export default function Manage({
 
       {stakingInfo && (
         <>
+          <LeverageModal
+            isOpen={showLeverageModal}
+            turnOnLeverage={() => setLeverageFarm(true)}
+            onClose={() => setShowLeverageModal(false)}
+            stakingInfo={stakingInfo}
+          />
           <StakingModal
             isOpen={showStakingModal}
             onDismiss={() => setShowStakingModal(false)}
