@@ -219,7 +219,7 @@ export default function Manage({
               <TYPE.black fontWeight={500} fontSize={16} color={theme.text1}>
                 Enable leverage
               </TYPE.black>
-              <QuestionHelper text="Enabling leverage can put your assets at risk of liquidation and is only meant for advanced users. Clicking continue will also require you to exit your current farm position." />
+              <QuestionHelper text="Leveraged yield farming is a mechanism that allows farmers to lever up their yield farming position, meaning to borrow external liquidity and add to their liquidity to yield farm." />
             </RowFixed>
             <Toggle
               id="toggle-leverage-yield-farm"
