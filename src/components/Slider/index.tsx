@@ -1,5 +1,10 @@
-import React, { useCallback } from 'react'
-import styled from 'styled-components'
+import { Token, TokenAmount } from '@ubeswap/sdk'
+import React, { useCallback, useContext } from 'react'
+import { Text } from 'rebass'
+import styled, { ThemeContext } from 'styled-components'
+
+import CurrencyLogo from '../CurrencyLogo'
+import { AutoRow } from '../Row'
 
 const StyledRangeInput = styled.input<{ size: number }>`
   -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
@@ -87,6 +92,10 @@ const StyledRangeInput = styled.input<{ size: number }>`
   }
 `
 
+const Aligner = styled.span`
+  display: flex;
+`
+
 interface InputSliderProps {
   value: number
   onChange: (value: number) => void
@@ -94,27 +103,66 @@ interface InputSliderProps {
   min?: number
   max?: number
   size?: number
+  isCurrencyAmount?: boolean
+  currency?: Token | null
+  balance?: TokenAmount | null
 }
 
-export default function Slider({ value, onChange, min = 0, step = 1, max = 100, size = 28 }: InputSliderProps) {
+export default function Slider({
+  value,
+  onChange,
+  min = 0,
+  step = 1,
+  max = 100,
+  size = 28,
+  isCurrencyAmount = false,
+  currency = null,
+  balance = null,
+}: InputSliderProps) {
+  const theme = useContext(ThemeContext)
+
   const changeCallback = useCallback(
     (e) => {
       onChange(parseInt(e.target.value))
     },
     [onChange]
   )
-
   return (
-    <StyledRangeInput
-      size={size}
-      type="range"
-      value={value}
-      style={{ width: '90%', marginLeft: 15, marginRight: 15, padding: '15px 0' }}
-      onChange={changeCallback}
-      aria-labelledby="input slider"
-      step={step}
-      min={min}
-      max={max}
-    />
+    <>
+      {isCurrencyAmount && currency ? (
+        <AutoRow justify="space-between">
+          <Aligner>
+            <CurrencyLogo currency={currency} size={'24px'} />
+            <Text fontWeight={500} fontSize={16} color={theme.text1} pt={0} pl={2}>
+              {currency && currency.symbol && currency.symbol.length > 20
+                ? currency.symbol.slice(0, 4) +
+                  '...' +
+                  currency.symbol.slice(currency.symbol.length - 5, currency.symbol.length)
+                : currency?.symbol}
+            </Text>
+          </Aligner>
+          <Text fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
+            {parseFloat(value.toFixed(6))}
+          </Text>
+        </AutoRow>
+      ) : null}
+
+      <StyledRangeInput
+        size={isCurrencyAmount ? 18 : size}
+        type="range"
+        value={isCurrencyAmount ? parseInt(((value / Number(balance)) * 100).toFixed(0)) : value}
+        style={{
+          width: isCurrencyAmount ? ' 100%' : '90%',
+          marginLeft: isCurrencyAmount ? 0 : 15,
+          marginRight: isCurrencyAmount ? 0 : 15,
+          padding: '15px 0',
+        }}
+        onChange={changeCallback}
+        aria-labelledby="input slider"
+        step={step}
+        min={min}
+        max={max}
+      />
+    </>
   )
 }

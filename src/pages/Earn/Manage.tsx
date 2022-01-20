@@ -1,12 +1,14 @@
+import { gql, useQuery } from '@apollo/client'
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId as UbeswapChainId, cUSD, JSBI } from '@ubeswap/sdk'
+import { ChainId as UbeswapChainId, cUSD, JSBI, Percent } from '@ubeswap/sdk'
 import StakedAmountsHelper from 'components/earn/StakedAmountsHelper'
-import React, { useCallback, useContext, useState } from 'react'
+import React, { useCallback, useContext, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, RouteComponentProps } from 'react-router-dom'
 import { usePairStakingInfo } from 'state/stake/useStakingInfo'
 import styled, { ThemeContext } from 'styled-components'
 import { CountUp } from 'use-count-up'
+import { toBN, toWei } from 'web3-utils'
 
 import { ButtonEmpty, ButtonPrimary } from '../../components/Button'
 import { AutoColumn } from '../../components/Column'
@@ -29,6 +31,7 @@ import { usePairMultiStakingInfo } from '../../state/stake/hooks'
 import { useTokenBalance } from '../../state/wallet/hooks'
 import { ExternalLinkIcon, TYPE } from '../../theme'
 import { currencyId } from '../../utils/currencyId'
+import { useFarmRegistry } from './useFarmRegistry'
 import { useStakingPoolValue } from './useStakingPoolValue'
 
 const PageWrapper = styled(AutoColumn)`
@@ -91,6 +94,17 @@ const DataRow = styled(RowBetween)`
   `};
 `
 
+const pairDataGql = gql`
+  query getPairHourData($id: String!) {
+    pair(id: $id) {
+      pairHourData(first: 24, orderBy: hourStartUnix, orderDirection: desc) {
+        hourStartUnix
+        hourlyVolumeUSD
+      }
+    }
+  }
+`
+const COMPOUNDS_PER_YEAR = 2
 export default function Manage({
   match: {
     params: { currencyIdA, currencyIdB, stakingAddress },
@@ -161,6 +175,44 @@ export default function Manage({
     setShowLeverageModal(leverage)
     if (!leverage) {
       setLeverageFarm(false)
+    }
+  }
+
+  const farmSummaries = useFarmRegistry()
+  const farmSummary = useMemo(() => {
+    return farmSummaries.find((farm) => farm?.stakingAddress === stakingAddress)
+  }, [farmSummaries, stakingAddress])
+
+  const { data, loading, error } = useQuery(pairDataGql, {
+    variables: { id: farmSummary?.lpAddress.toLowerCase() },
+  })
+
+  let swapRewardsUSDPerYear = 0
+  if (!loading && !error && data) {
+    const lastDayVolumeUsd = data.pair.pairHourData.reduce(
+      (acc: number, curr: { hourlyVolumeUSD: string }) => acc + Number(curr.hourlyVolumeUSD),
+      0
+    )
+    swapRewardsUSDPerYear = Math.floor(lastDayVolumeUsd * 365 * 0.0025)
+  }
+
+  // const rewardApr = farmSummary ? new Percent(farmSummary?.rewardsUSDPerYear, farmSummary?.tvlUSD) : null
+  // const swapApr = farmSummary ? new Percent(toWei(swapRewardsUSDPerYear.toString()), farmSummary?.tvlUSD) : null
+  const apr = farmSummary
+    ? new Percent(
+        toBN(toWei(swapRewardsUSDPerYear.toString())).add(toBN(farmSummary?.rewardsUSDPerYear)).toString(),
+        farmSummary?.tvlUSD
+      )
+    : null
+
+  let compoundedAPY = null
+
+  if (farmSummary) {
+    try {
+      compoundedAPY = farmSummary && apr ? annualizedPercentageYield(apr, COMPOUNDS_PER_YEAR) : null
+    } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      console.error('apy calc overflow', farmSummary.farmName, e)
     }
   }
 
@@ -275,6 +327,8 @@ export default function Manage({
             onDismiss={() => setShowStakingModal(false)}
             stakingInfo={stakingInfo}
             userLiquidityUnstaked={userLiquidityUnstaked}
+            leverage={leverageFarm}
+            poolAPY={compoundedAPY}
           />
           <UnstakingModal
             isOpen={showUnstakingModal}
@@ -432,3 +486,11 @@ const PairLinkIcon = styled(ExternalLinkIcon)`
     stroke: ${(props) => props.theme.primary1};
   }
 `
+function annualizedPercentageYield(nominal: Percent, compounds: number) {
+  const ONE = 1
+
+  const divideNominalByNAddOne = Number(nominal.divide(BigInt(compounds)).add(BigInt(ONE)).toFixed(10))
+
+  // multiply 100 to turn decimal into percent, to fixed since we only display integer
+  return ((divideNominalByNAddOne ** compounds - ONE) * 100).toFixed(0)
+}

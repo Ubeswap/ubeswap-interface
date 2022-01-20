@@ -1,16 +1,35 @@
-import { useProvider } from '@celo-tools/use-contractkit'
+import { Token } from '@celo/contractkit'
+import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { Web3Provider } from '@ethersproject/providers'
+import { formatEther } from '@ethersproject/units'
 import { Pair, TokenAmount } from '@ubeswap/sdk'
+import BN from 'bn.js'
+import { LightCard } from 'components/Card'
 import Loader from 'components/Loader'
 import { useDoTransaction } from 'components/swap/routing'
-import React, { useCallback, useState } from 'react'
+import { Bank } from 'constants/bank'
+import { BigNumber, ContractInterface, ethers } from 'ethers'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import styled from 'styled-components'
+import { Text } from 'rebass'
+import styled, { ThemeContext } from 'styled-components'
+import { toBN } from 'web3-utils'
 
+import Circle from '../../assets/images/blue-loader.svg'
+import Slider from '../../components/Slider'
+import CERC20_ABI from '../../constants/abis/CErc20Immutable.json'
+import COREORACLE_ABI from '../../constants/abis/CoreOracle.json'
+import BANK_ABI from '../../constants/abis/HomoraBank.json'
+import PROXYORACLE_ABI from '../../constants/abis/ProxyOracle.json'
+import { CErc20Immutable } from '../../generated/CErc20Immutable'
+import { CoreOracle } from '../../generated/CoreOracle'
+import { HomoraBank } from '../../generated/HomoraBank'
+import { ProxyOracle } from '../../generated/ProxyOracle'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { usePairContract, useStakingContract } from '../../hooks/useContract'
 import useTransactionDeadline from '../../hooks/useTransactionDeadline'
 import { StakingInfo, useDerivedStakeInfo } from '../../state/stake/hooks'
-import { CloseIcon, TYPE } from '../../theme'
+import { CloseIcon, CustomLightSpinner, TYPE } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { ButtonConfirmed, ButtonError } from '../Button'
 import { AutoColumn } from '../Column'
@@ -18,7 +37,7 @@ import CurrencyInputPanel from '../CurrencyInputPanel'
 import Modal from '../Modal'
 import { LoadingView, SubmittedView } from '../ModalViews'
 import ProgressCircles from '../ProgressSteps'
-import { AutoRow, RowBetween } from '../Row'
+import { AutoRow, RowBetween, RowCenter } from '../Row'
 
 const HypotheticalRewardRate = styled.div<{ dim: boolean }>`
   display: flex;
@@ -34,22 +53,50 @@ const ContentWrapper = styled(AutoColumn)`
   padding: 1rem;
 `
 
+export const humanFriendlyNumber = (v: number | string) => {
+  const formatNumber = (num: string) => {
+    return num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+  }
+
+  const num = Number(v)
+  if (num === 0) {
+    return '0'
+  }
+  const smallest = Math.pow(10, -2)
+  if (num < smallest) {
+    return `<${smallest.toFixed(2)}`
+  }
+
+  return formatNumber(num.toFixed(2))
+}
+
 interface StakingModalProps {
   isOpen: boolean
   onDismiss: () => void
   stakingInfo: StakingInfo
   userLiquidityUnstaked: TokenAmount | undefined
+  leverage?: boolean
+  currencies?: Token[] | null
+  balances?: string[] | null
+  poolAPY?: string | null
 }
 
-export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiquidityUnstaked }: StakingModalProps) {
+export default function StakingModal({
+  isOpen,
+  onDismiss,
+  stakingInfo,
+  userLiquidityUnstaked,
+  leverage = false,
+  poolAPY = null,
+}: StakingModalProps) {
+  const { network } = useContractKit()
   const library = useProvider()
-
   // track and parse user input
   const [typedValue, setTypedValue] = useState('')
   const { parsedAmount, error } = useDerivedStakeInfo(typedValue, stakingInfo.stakingToken, userLiquidityUnstaked)
   const parsedAmountWrapped = parsedAmount
   const { t } = useTranslation()
-
+  const theme = useContext(ThemeContext)
   let hypotheticalRewardRates: TokenAmount[] | undefined = stakingInfo?.totalRewardRates?.map(
     (rewardRate) => new TokenAmount(rewardRate.token, '0')
   )
@@ -64,6 +111,16 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
   // state for pending and submitted txn views
   const [attempting, setAttempting] = useState<boolean>(false)
   const [hash, setHash] = useState<string | undefined>()
+  const [info, setInfo] = useState<any>(null)
+  const [init, setInit] = useState<boolean>(false)
+  const [amounts, setAmounts] = useState<string[]>(['0', '0'])
+  const [maxAmounts, setMaxAmounts] = useState<any[]>([])
+  const [lever, setLever] = useState<number>(0)
+  const [debtRatio, setDebtRatio] = useState<number>(0)
+  const [apy, setAPY] = useState<number>(0)
+  const [provider, setProvider] = useState<Web3Provider | undefined>(undefined)
+  const [bank, setBank] = useState<ethers.Contract | undefined>(undefined)
+  const [scale] = useState<BigNumber>(BigNumber.from(2).pow(112))
   const wrappedOnDismiss = useCallback(() => {
     setHash(undefined)
     setAttempting(false)
@@ -80,6 +137,186 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
 
   const stakingContract = useStakingContract(stakingInfo.stakingRewardAddress)
   const doTransaction = useDoTransaction()
+
+  useEffect(() => {
+    const _provider = new Web3Provider(window.ethereum as ethers.providers.ExternalProvider)
+    setProvider(_provider)
+    setBank(
+      new ethers.Contract(Bank[network.chainId], BANK_ABI.abi as ContractInterface, _provider) as unknown as HomoraBank
+    )
+  }, [network.chainId])
+
+  useEffect(() => {
+    const fetchInfo = async () => {
+      try {
+        if (!bank || !provider) return
+        const factors: any[] = []
+        const prices: BigNumber[] = []
+        const availableBorrows: any[] = []
+        const borrows: any[] = []
+        const oracle = await bank.oracle()
+        const proxyOracle = new ethers.Contract(
+          oracle,
+          PROXYORACLE_ABI.abi as ContractInterface,
+          provider
+        ) as unknown as ProxyOracle
+        const source = await proxyOracle.source()
+        const coreOracle = new ethers.Contract(
+          source,
+          COREORACLE_ABI.abi as ContractInterface,
+          provider
+        ) as unknown as CoreOracle
+        for (const token of stakingInfo.tokens) {
+          const bankInfo = await bank.getBankInfo(token ? token.address : '')
+          const cToken = new ethers.Contract(
+            bankInfo.cToken,
+            CERC20_ABI as ContractInterface,
+            provider
+          ) as unknown as CErc20Immutable
+          const totalSupply = await cToken.totalSupply()
+          const totalBorrows = await cToken.totalBorrows()
+          const totalReserves = await cToken.totalReserves()
+          availableBorrows.push(totalSupply.sub(totalBorrows).sub(totalReserves))
+          const blocksPerYear = 63115
+          const borrowRate = (await cToken.borrowRatePerBlock()).mul(blocksPerYear)
+          borrows.push(borrowRate)
+          const factor = await proxyOracle.tokenFactors(token ? token.address : '')
+          factors.push({
+            borrowFactor: factor.borrowFactor,
+            collateralFactor: factor.collateralFactor,
+            liqIncentive: factor.liqIncentive,
+          })
+          const price = await coreOracle.getCELOPx(token ? token.address : '')
+          prices.push(price)
+        }
+        const lpPrice = await coreOracle.getCELOPx(dummyPair?.liquidityToken.address ?? '')
+        const lpFactor = await proxyOracle.tokenFactors(dummyPair?.liquidityToken.address ?? '')
+
+        let reserve0: BN
+        let reserve1: BN
+        if (stakingInfo.tokens[0] !== undefined && dummyPair.token0 === stakingInfo.tokens[0]) {
+          reserve0 = toBN(dummyPair.reserve0.toExact())
+          reserve1 = toBN(dummyPair.reserve1.toExact())
+        } else {
+          reserve0 = toBN(dummyPair.reserve1.toExact())
+          reserve1 = toBN(dummyPair.reserve0.toExact())
+        }
+        const _info = {
+          tokenFactor: factors,
+          celoPrices: prices,
+          lpFactor,
+          lpPrice,
+          reserve0,
+          reserve1,
+          borrows,
+          availableBorrows,
+        }
+        setInfo(_info)
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    fetchInfo()
+  }, [
+    bank,
+    provider,
+    dummyPair.token0,
+    dummyPair.reserve0,
+    dummyPair.reserve1,
+    dummyPair.liquidityToken.address,
+    stakingInfo?.tokens,
+  ])
+
+  useEffect(() => {
+    if (typedValue && info?.lpPrice && info?.lpFactor) {
+      const weightedSuppliedCollateralValue =
+        Number(typedValue) *
+        (Number(formatEther(info?.lpPrice)) / Number(formatEther(scale))) *
+        (info?.lpFactor.collateralFactor / 10000)
+      const prices: BigNumber[] = info?.celoPrices
+      const borrowMax = prices.map(
+        (x, i) =>
+          weightedSuppliedCollateralValue /
+          ((Number(formatEther(x)) / Number(formatEther(scale))) *
+            ((Number(info?.tokenFactor[i]?.borrowFactor) - Number(info?.lpFactor.collateralFactor)) / 10000))
+      )
+      const maxAmounts = borrowMax.map((x, index) =>
+        String(Math.min(x, Number(formatEther(info?.availableBorrows[index]))))
+      )
+      setMaxAmounts(maxAmounts)
+      if (!init) {
+        setInit(true)
+        setAmounts(maxAmounts.map((x) => (Number(x) === 0 ? '0' : String((Number(x) / 3).toFixed(3)))))
+      }
+    }
+  }, [
+    typedValue,
+    info?.tokenFactor,
+    info?.celoPrices,
+    info?.availableBorrows,
+    info?.lpPrice,
+    info?.lpFactor,
+    info?.prices,
+    init,
+    scale,
+  ])
+
+  useEffect(() => {
+    if (info && typedValue && Number(typedValue) !== 0) {
+      const individualBorrow = amounts.map(
+        (x, i) => Number(x) * (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale)))
+      )
+      const borrowValue = individualBorrow ? individualBorrow.reduce((sum, current) => sum + current, 0) : 0
+      const supplyValue = Number(typedValue) * (Number(formatEther(info?.lpPrice)) / Number(formatEther(scale)))
+      const lever = 1 + borrowValue / supplyValue
+      const apy =
+        ((borrowValue + supplyValue) * (Number(poolAPY) / 100) -
+          individualBorrow
+            .map((x, i) => x * Number(formatEther(info?.borrows[i])))
+            .reduce((sum, current) => sum + current, 0)) /
+        supplyValue
+      const numer = amounts
+        .map(
+          (x, i) =>
+            Number(x) *
+            (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale))) *
+            (Number(info.tokenFactor[i]?.borrowFactor) / 10000)
+        )
+        .reduce((sum, current) => sum + current, 0)
+      const denom = amounts
+        .map(
+          (x, i) =>
+            Number(x) *
+            (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale))) *
+            (Number(info.lpFactor?.collateralFactor) / 10000)
+        )
+        .reduce(
+          (sum, current) => sum + current,
+          Number(typedValue) *
+            (Number(formatEther(info?.lpPrice)) / Number(formatEther(scale))) *
+            (Number(info.lpFactor?.collateralFactor) / 10000)
+        )
+      const debtRatio = (numer / denom) * 100
+      setDebtRatio(debtRatio)
+      setLever(lever)
+      setAPY(apy)
+    }
+  }, [info, scale, typedValue, amounts, poolAPY])
+
+  const handleSlider = (value: number, index: number) => {
+    setAmounts(
+      amounts.map((x, i) => {
+        if (i === index) {
+          if (i === 0) {
+            return String((Number(maxAmounts[0]) / 100) * value)
+          } else {
+            return String((Number(maxAmounts[1]) / 100) * value)
+          }
+        }
+        return x
+      })
+    )
+  }
 
   async function onStake() {
     setAttempting(true)
@@ -100,6 +337,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
   // wrapped onUserInput to clear signatures
   const onUserInput = useCallback((typedValue: string) => {
     setTypedValue(typedValue)
+    setInit(false)
   }, [])
 
   // used for max input button
@@ -137,6 +375,66 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
             customBalanceText={`${t('AvailableToDeposit')}: `}
             id="stake-liquidity-token"
           />
+          {leverage && stakingInfo && (
+            <LightCard padding="0px" borderRadius={'20px'}>
+              <RowBetween padding="1rem">
+                <TYPE.subHeader fontWeight={500} fontSize={14}>
+                  Borrows
+                </TYPE.subHeader>
+              </RowBetween>
+              {!info ? (
+                <LightCard padding="2rem" borderRadius={'20px'}>
+                  <AutoColumn justify="center">
+                    <CustomLightSpinner src={Circle} alt="loader" size={'70px'} />
+                  </AutoColumn>
+                </LightCard>
+              ) : (
+                <LightCard padding="1rem" borderRadius={'20px'}>
+                  <AutoColumn gap={'10px'}>
+                    <AutoColumn justify="space-between">
+                      <RowBetween>
+                        <TYPE.black>Est.Debt Ratio</TYPE.black>
+                        <Text fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
+                          {''.concat(humanFriendlyNumber(debtRatio)).concat('/100')}
+                        </Text>
+                      </RowBetween>
+                    </AutoColumn>
+                    <AutoColumn justify="center">
+                      <RowBetween>
+                        <TYPE.black>Leverage</TYPE.black>
+                        <Text fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
+                          {''.concat(humanFriendlyNumber(lever)).concat('x')}
+                        </Text>
+                      </RowBetween>
+                    </AutoColumn>
+                    <AutoColumn justify="center">
+                      <RowBetween>
+                        <TYPE.black>Farming APR</TYPE.black>
+                        <Text fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
+                          {''.concat(humanFriendlyNumber(apy * 100)).concat('%')}
+                        </Text>
+                      </RowBetween>
+                    </AutoColumn>
+                  </AutoColumn>
+                  <RowCenter padding={'1rem'}></RowCenter>
+                  {stakingInfo?.tokens.map((token, i) => (
+                    <>
+                      <Slider
+                        value={Number(amounts[i])}
+                        onChange={(e) => {
+                          handleSlider(e, i)
+                        }}
+                        isCurrencyAmount={true}
+                        currency={token}
+                        balance={maxAmounts[i]}
+                      />
+                      <RowCenter padding={'0.5rem'}></RowCenter>
+                    </>
+                  ))}{' '}
+                </LightCard>
+              )}
+            </LightCard>
+          )}
 
           <HypotheticalRewardRate dim={false}>
             <div>
@@ -173,11 +471,11 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
               )}
             </ButtonConfirmed>
             <ButtonError
-              disabled={!!error || approval !== ApprovalState.APPROVED}
-              error={!!error && !!parsedAmount}
+              disabled={!!error || approval !== ApprovalState.APPROVED || debtRatio >= 96}
+              error={(!!error && !!parsedAmount) || debtRatio >= 96}
               onClick={onStake}
             >
-              {error ?? `${t('deposit')}`}
+              {debtRatio >= 96 ? 'Debt ratio too high' : error ?? `${t('deposit')}`}
             </ButtonError>
           </RowBetween>
           <ProgressCircles steps={[approval === ApprovalState.APPROVED]} disabled={true} />
