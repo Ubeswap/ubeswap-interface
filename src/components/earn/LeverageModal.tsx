@@ -1,11 +1,10 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { LoadingView, SubmittedView } from 'components/ModalViews'
 import { useDoTransaction } from 'components/swap/routing'
-import React, { useContext, useState } from 'react'
+import React, { useState } from 'react'
 import { X } from 'react-feather'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
-import styled, { ThemeContext } from 'styled-components'
+import styled from 'styled-components'
 import { TYPE } from 'theme'
 
 import { useStakingContract } from '../../hooks/useContract'
@@ -45,9 +44,7 @@ interface LeverageModalProps {
 }
 
 export default function LeverageModal({ isOpen, turnOnLeverage, onClose, stakingInfo }: LeverageModalProps) {
-  const { address: account } = useContractKit()
   const { t } = useTranslation()
-  const theme = useContext(ThemeContext)
   const doTransaction = useDoTransaction()
   const [attempting, setAttempting] = useState(false)
   const [hash, setHash] = useState<string | undefined>()
