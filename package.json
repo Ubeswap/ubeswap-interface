@@ -138,7 +138,7 @@
     "@uniswap/default-token-list": "^2.0.0",
     "ajv-formats": "^2.1.1",
     "eventemitter3": "^4.0.7",
-    "graphql": "^15.6.1",
+    "graphql": "^15.8.0",
     "hamburger-react": "^2.4.1",
     "hash.js": "^1.1.7",
     "jsbi": "^3.1.5",
