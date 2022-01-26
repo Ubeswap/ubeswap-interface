@@ -9,7 +9,7 @@ import { TYPE } from 'theme'
 
 import { useStakingContract } from '../../hooks/useContract'
 import { StakingInfo } from '../../state/stake/hooks'
-import { ButtonConfirmed, ButtonError } from '../Button'
+import { ButtonPrimary, ButtonSecondary } from '../Button'
 import { AutoColumn } from '../Column'
 import Modal from '../Modal'
 import { RowBetween } from '../Row'
@@ -93,15 +93,14 @@ export default function LeverageModal({ isOpen, turnOnLeverage, onClose, staking
             </RowBetween>
             <Break />
             <AutoColumn gap="lg" style={{ padding: '0 2rem' }}>
-              <Text fontWeight={500} fontSize={16} mb={'1rem'}>
+              <Text fontWeight={400} fontSize={16} mb={'1rem'}>
                 Enabling leverage can put your assets at risk of liquidation and is only meant for advanced users.
+                <br />
                 Clicking continue will also require you to exit your current farm position.
               </Text>
               <RowBetween>
-                <ButtonError mr="0.5rem" error={true} onClick={onDismiss}>
-                  {`${t('cancel')}`}
-                </ButtonError>
-                <ButtonConfirmed onClick={onWithdraw}>{`${t('continue')}`}</ButtonConfirmed>
+                <ButtonSecondary mr="0.5rem" padding="18px" onClick={onDismiss}>{`${t('cancel')}`}</ButtonSecondary>
+                <ButtonPrimary borderRadius="12px" onClick={onWithdraw}>{`${t('continue')}`}</ButtonPrimary>
               </RowBetween>
             </AutoColumn>
           </AutoColumn>

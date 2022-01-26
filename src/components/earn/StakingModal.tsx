@@ -1,30 +1,27 @@
-import { Token } from '@celo/contractkit'
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { Web3Provider } from '@ethersproject/providers'
 import { formatEther } from '@ethersproject/units'
 import { Pair, TokenAmount } from '@ubeswap/sdk'
-import BN from 'bn.js'
 import { LightCard } from 'components/Card'
 import Loader from 'components/Loader'
 import { useDoTransaction } from 'components/swap/routing'
-import { Bank } from 'constants/bank'
 import { BigNumber, ContractInterface, ethers } from 'ethers'
+import { ProxyOracle } from 'generated'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
+import { tryParseAmount } from 'state/swap/hooks'
 import styled, { ThemeContext } from 'styled-components'
-import { toBN } from 'web3-utils'
+import { AbiItem, toBN, toWei } from 'web3-utils'
 
 import Circle from '../../assets/images/blue-loader.svg'
 import Slider from '../../components/Slider'
 import CERC20_ABI from '../../constants/abis/CErc20Immutable.json'
-import COREORACLE_ABI from '../../constants/abis/CoreOracle.json'
-import BANK_ABI from '../../constants/abis/HomoraBank.json'
-import PROXYORACLE_ABI from '../../constants/abis/ProxyOracle.json'
+import UBE_SPELL from '../../constants/abis/UbeswapMSRSpellV1.json'
+import { Farm } from '../../constants/leverageYieldFarm'
 import { CErc20Immutable } from '../../generated/CErc20Immutable'
 import { CoreOracle } from '../../generated/CoreOracle'
 import { HomoraBank } from '../../generated/HomoraBank'
-import { ProxyOracle } from '../../generated/ProxyOracle'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { usePairContract, useStakingContract } from '../../hooks/useContract'
 import useTransactionDeadline from '../../hooks/useTransactionDeadline'
@@ -75,10 +72,15 @@ interface StakingModalProps {
   onDismiss: () => void
   stakingInfo: StakingInfo
   userLiquidityUnstaked: TokenAmount | undefined
-  leverage?: boolean
-  currencies?: Token[] | null
-  balances?: string[] | null
-  poolAPY?: string | null
+  leverage: boolean
+  poolAPY: number
+  bank: HomoraBank
+  proxyOracle: ProxyOracle | null
+  coreOracle: CoreOracle | null
+  dummyPair: Pair | undefined
+  lpToken: Farm | undefined
+  provider: Web3Provider
+  positionInfo: any
 }
 
 export default function StakingModal({
@@ -86,10 +88,17 @@ export default function StakingModal({
   onDismiss,
   stakingInfo,
   userLiquidityUnstaked,
-  leverage = false,
-  poolAPY = null,
+  leverage,
+  poolAPY,
+  bank,
+  proxyOracle,
+  coreOracle,
+  dummyPair,
+  lpToken,
+  provider,
+  positionInfo,
 }: StakingModalProps) {
-  const { network } = useContractKit()
+  const { getConnectedKit } = useContractKit()
   const library = useProvider()
   // track and parse user input
   const [typedValue, setTypedValue] = useState('')
@@ -118,18 +127,16 @@ export default function StakingModal({
   const [lever, setLever] = useState<number>(0)
   const [debtRatio, setDebtRatio] = useState<number>(0)
   const [apy, setAPY] = useState<number>(0)
-  const [provider, setProvider] = useState<Web3Provider | undefined>(undefined)
-  const [bank, setBank] = useState<ethers.Contract | undefined>(undefined)
   const [scale] = useState<BigNumber>(BigNumber.from(2).pow(112))
   const wrappedOnDismiss = useCallback(() => {
     setHash(undefined)
     setAttempting(false)
+    setInit(false)
     onDismiss()
   }, [onDismiss])
 
   // pair contract for this token to be staked
-  const dummyPair = new Pair(new TokenAmount(stakingInfo.tokens[0], '0'), new TokenAmount(stakingInfo.tokens[1], '0'))
-  const pairContract = usePairContract(dummyPair.liquidityToken.address)
+  const pairContract = usePairContract(dummyPair?.liquidityToken.address ?? undefined)
 
   // approval data for stake
   const deadline = useTransactionDeadline()
@@ -139,33 +146,13 @@ export default function StakingModal({
   const doTransaction = useDoTransaction()
 
   useEffect(() => {
-    const _provider = new Web3Provider(window.ethereum as ethers.providers.ExternalProvider)
-    setProvider(_provider)
-    setBank(
-      new ethers.Contract(Bank[network.chainId], BANK_ABI.abi as ContractInterface, _provider) as unknown as HomoraBank
-    )
-  }, [network.chainId])
-
-  useEffect(() => {
     const fetchInfo = async () => {
       try {
-        if (!bank || !provider) return
+        if (!bank || !provider || !leverage || !proxyOracle || !coreOracle || !dummyPair) return
         const factors: any[] = []
         const prices: BigNumber[] = []
         const availableBorrows: any[] = []
         const borrows: any[] = []
-        const oracle = await bank.oracle()
-        const proxyOracle = new ethers.Contract(
-          oracle,
-          PROXYORACLE_ABI.abi as ContractInterface,
-          provider
-        ) as unknown as ProxyOracle
-        const source = await proxyOracle.source()
-        const coreOracle = new ethers.Contract(
-          source,
-          COREORACLE_ABI.abi as ContractInterface,
-          provider
-        ) as unknown as CoreOracle
         for (const token of stakingInfo.tokens) {
           const bankInfo = await bank.getBankInfo(token ? token.address : '')
           const cToken = new ethers.Contract(
@@ -177,7 +164,7 @@ export default function StakingModal({
           const totalBorrows = await cToken.totalBorrows()
           const totalReserves = await cToken.totalReserves()
           availableBorrows.push(totalSupply.sub(totalBorrows).sub(totalReserves))
-          const blocksPerYear = 63115
+          const blocksPerYear = BigNumber.from(6311520)
           const borrowRate = (await cToken.borrowRatePerBlock()).mul(blocksPerYear)
           borrows.push(borrowRate)
           const factor = await proxyOracle.tokenFactors(token ? token.address : '')
@@ -192,15 +179,43 @@ export default function StakingModal({
         const lpPrice = await coreOracle.getCELOPx(dummyPair?.liquidityToken.address ?? '')
         const lpFactor = await proxyOracle.tokenFactors(dummyPair?.liquidityToken.address ?? '')
 
-        let reserve0: BN
-        let reserve1: BN
-        if (stakingInfo.tokens[0] !== undefined && dummyPair.token0 === stakingInfo.tokens[0]) {
-          reserve0 = toBN(dummyPair.reserve0.toExact())
-          reserve1 = toBN(dummyPair.reserve1.toExact())
-        } else {
-          reserve0 = toBN(dummyPair.reserve1.toExact())
-          reserve1 = toBN(dummyPair.reserve0.toExact())
+        let existingCollateral = BigNumber.from(0)
+        let existingBorrow = BigNumber.from(0)
+        if (positionInfo) {
+          existingCollateral = await bank.getCollateralCELOValue(positionInfo.positionId)
+          existingBorrow = await bank.getBorrowCELOValue(positionInfo.positionId)
         }
+
+        let reserve0: BigNumber
+        let reserve1: BigNumber
+        if (stakingInfo.tokens[0] !== undefined && dummyPair.token0 === stakingInfo.tokens[0]) {
+          reserve0 = BigNumber.from(dummyPair.reserve0.toExact())
+          reserve1 = BigNumber.from(dummyPair.reserve1.toExact())
+        } else {
+          reserve0 = BigNumber.from(dummyPair.reserve1.toExact())
+          reserve1 = BigNumber.from(dummyPair.reserve0.toExact())
+        }
+
+        const prevBorrow: BigNumber[] = []
+        let prevCollateral: BigNumber[] = []
+        if (positionInfo) {
+          const existingPosition = [reserve0, reserve1].map((reserve) =>
+            reserve.mul(positionInfo.collateralSize).div(positionInfo.totalSupply)
+          )
+          const positionDebts = await bank.getPositionDebts(positionInfo.positionId)
+          for (let i = 0; i < stakingInfo.tokens.length; i += 1) {
+            const token = stakingInfo.tokens[i]
+            for (let j = 0; j < positionDebts.tokens.length; j += 1) {
+              if (token.address.toLowerCase() === positionDebts.tokens[j]?.toLowerCase()) {
+                prevBorrow.push(positionDebts.debts[j])
+                break
+              }
+            }
+            if (prevBorrow.length === i) prevBorrow.push(BigNumber.from(0))
+          }
+          prevCollateral = existingPosition.map((x, i) => x.sub(prevBorrow[i]))
+        }
+
         const _info = {
           tokenFactor: factors,
           celoPrices: prices,
@@ -210,6 +225,10 @@ export default function StakingModal({
           reserve1,
           borrows,
           availableBorrows,
+          existingCollateral,
+          existingBorrow,
+          prevCollateral,
+          prevBorrow,
         }
         setInfo(_info)
       } catch (error) {
@@ -217,22 +236,16 @@ export default function StakingModal({
       }
     }
     fetchInfo()
-  }, [
-    bank,
-    provider,
-    dummyPair.token0,
-    dummyPair.reserve0,
-    dummyPair.reserve1,
-    dummyPair.liquidityToken.address,
-    stakingInfo?.tokens,
-  ])
+  }, [bank, proxyOracle, coreOracle, provider, stakingInfo?.tokens, leverage, dummyPair, positionInfo])
 
   useEffect(() => {
-    if (typedValue && info?.lpPrice && info?.lpFactor) {
+    if (typedValue && info?.lpPrice && info?.lpFactor && leverage) {
       const weightedSuppliedCollateralValue =
         Number(typedValue) *
-        (Number(formatEther(info?.lpPrice)) / Number(formatEther(scale))) *
-        (info?.lpFactor.collateralFactor / 10000)
+          (Number(formatEther(info?.lpPrice)) / Number(formatEther(scale))) *
+          (info?.lpFactor.collateralFactor / 10000) +
+        Number(formatEther(info?.existingCollateral)) -
+        Number(formatEther(info?.existingBorrow))
       const prices: BigNumber[] = info?.celoPrices
       const borrowMax = prices.map(
         (x, i) =>
@@ -257,51 +270,67 @@ export default function StakingModal({
     info?.lpPrice,
     info?.lpFactor,
     info?.prices,
+    info?.existingCollateral,
+    info?.existingBorrow,
     init,
     scale,
+    leverage,
   ])
 
   useEffect(() => {
     if (info && typedValue && Number(typedValue) !== 0) {
       const individualBorrow = amounts.map(
-        (x, i) => Number(x) * (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale)))
+        (x, i) =>
+          (Number(x) + positionInfo ? Number(formatEther(info?.prevBorrow[i])) : 0) *
+          (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale)))
       )
       const borrowValue = individualBorrow ? individualBorrow.reduce((sum, current) => sum + current, 0) : 0
-      const supplyValue = Number(typedValue) * (Number(formatEther(info?.lpPrice)) / Number(formatEther(scale)))
+      const supplyValue = stakingInfo.tokens
+        .map(
+          (x, i) =>
+            (positionInfo ? Number(info.prevCollateral[i]) : 0) *
+            (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale)))
+        )
+        .reduce(
+          (sum, current) => sum + current,
+          Number(typedValue) * (Number(formatEther(info?.lpPrice)) / Number(formatEther(scale)))
+        )
       const lever = 1 + borrowValue / supplyValue
       const apy =
-        ((borrowValue + supplyValue) * (Number(poolAPY) / 100) -
+        ((borrowValue + supplyValue) * (poolAPY / 100) -
           individualBorrow
             .map((x, i) => x * Number(formatEther(info?.borrows[i])))
             .reduce((sum, current) => sum + current, 0)) /
         supplyValue
-      const numer = amounts
-        .map(
-          (x, i) =>
-            Number(x) *
-            (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale))) *
-            (Number(info.tokenFactor[i]?.borrowFactor) / 10000)
-        )
-        .reduce((sum, current) => sum + current, 0)
-      const denom = amounts
-        .map(
-          (x, i) =>
-            Number(x) *
-            (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale))) *
-            (Number(info.lpFactor?.collateralFactor) / 10000)
-        )
-        .reduce(
-          (sum, current) => sum + current,
-          Number(typedValue) *
-            (Number(formatEther(info?.lpPrice)) / Number(formatEther(scale))) *
-            (Number(info.lpFactor?.collateralFactor) / 10000)
-        )
+      const numer =
+        amounts
+          .map(
+            (x, i) =>
+              Number(x) *
+              (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale))) *
+              (Number(info.tokenFactor[i]?.borrowFactor) / 10000)
+          )
+          .reduce((sum, current) => sum + current, 0) + Number(formatEther(info.existingBorrow))
+      const denom =
+        amounts
+          .map(
+            (x, i) =>
+              Number(x) *
+              (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale))) *
+              (Number(info.lpFactor?.collateralFactor) / 10000)
+          )
+          .reduce(
+            (sum, current) => sum + current,
+            Number(typedValue) *
+              (Number(formatEther(info?.lpPrice)) / Number(formatEther(scale))) *
+              (Number(info.lpFactor?.collateralFactor) / 10000)
+          ) + Number(formatEther(info.existingCollateral))
       const debtRatio = (numer / denom) * 100
       setDebtRatio(debtRatio)
       setLever(lever)
       setAPY(apy)
     }
-  }, [info, scale, typedValue, amounts, poolAPY])
+  }, [info, scale, typedValue, amounts, poolAPY, positionInfo, stakingInfo.tokens])
 
   const handleSlider = (value: number, index: number) => {
     setAmounts(
@@ -319,17 +348,50 @@ export default function StakingModal({
   }
 
   async function onStake() {
-    setAttempting(true)
-    if (stakingContract && parsedAmount && deadline) {
-      if (approval === ApprovalState.APPROVED) {
-        const response = await doTransaction(stakingContract, 'stake', {
-          args: [`0x${parsedAmount.raw.toString(16)}`],
-          summary: `${t('StakeDepositedLiquidity')}`,
+    if (leverage) {
+      try {
+        setAttempting(true)
+        const kit = await getConnectedKit()
+        const spell = new kit.web3.eth.Contract(UBE_SPELL.abi as AbiItem[], lpToken?.spell ?? '') as unknown as any
+        const bytes = spell.methods
+          .addLiquidityWStakingRewards(
+            stakingInfo.tokens[0].address,
+            stakingInfo.tokens[1].address,
+            [
+              0,
+              0,
+              toBN(toWei(typedValue)).toString(),
+              toBN(toWei(amounts[0])).toString(),
+              toBN(toWei(amounts[1])).toString(),
+              0,
+              0,
+              0,
+            ],
+            lpToken?.wrapper ?? ''
+          )
+          .encodeABI()
+        const tx = await bank.execute(positionInfo.positionId, lpToken?.spell ?? '', bytes, {
+          from: kit.defaultAccount,
+          gasPrice: toWei('0.5', 'gwei'),
         })
-        setHash(response.hash)
-      } else {
+        setHash(tx.hash)
+      } catch (e) {
+        console.log(e)
         setAttempting(false)
-        throw new Error('Attempting to stake without approval or a signature. Please contact support.')
+      }
+    } else {
+      setAttempting(true)
+      if (stakingContract && parsedAmount && deadline) {
+        if (approval === ApprovalState.APPROVED) {
+          const response = await doTransaction(stakingContract, 'stake', {
+            args: [`0x${parsedAmount.raw.toString(16)}`],
+            summary: `${t('StakeDepositedLiquidity')}`,
+          })
+          setHash(response.hash)
+        } else {
+          setAttempting(false)
+          throw new Error('Attempting to stake without approval or a signature. Please contact support.')
+        }
       }
     }
   }
@@ -393,7 +455,7 @@ export default function StakingModal({
                   <AutoColumn gap={'10px'}>
                     <AutoColumn justify="space-between">
                       <RowBetween>
-                        <TYPE.black>Est.Debt Ratio</TYPE.black>
+                        <TYPE.black>Est. Debt Ratio</TYPE.black>
                         <Text fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
                           {''.concat(humanFriendlyNumber(debtRatio)).concat('/100')}
                         </Text>
@@ -471,24 +533,48 @@ export default function StakingModal({
               )}
             </ButtonConfirmed>
             <ButtonError
-              disabled={!!error || approval !== ApprovalState.APPROVED || debtRatio >= 96}
-              error={(!!error && !!parsedAmount) || debtRatio >= 96}
+              disabled={!!error || approval !== ApprovalState.APPROVED || debtRatio >= 100}
+              error={(!!error && !!parsedAmount) || debtRatio >= 90}
               onClick={onStake}
             >
-              {debtRatio >= 96 ? 'Debt ratio too high' : error ?? `${t('deposit')}`}
+              {debtRatio >= 100 ? 'Debt ratio too high' : error ?? `${t('deposit')}`}
             </ButtonError>
           </RowBetween>
           <ProgressCircles steps={[approval === ApprovalState.APPROVED]} disabled={true} />
         </ContentWrapper>
       )}
-      {attempting && !hash && (
-        <LoadingView onDismiss={wrappedOnDismiss}>
-          <AutoColumn gap="12px" justify={'center'}>
-            <TYPE.largeHeader>{t('DepositingLiquidity')}</TYPE.largeHeader>
-            <TYPE.body fontSize={20}>{parsedAmount?.toSignificant(4)} UBE LP</TYPE.body>
-          </AutoColumn>
-        </LoadingView>
-      )}
+      {attempting &&
+        !hash &&
+        (leverage ? (
+          <LoadingView onDismiss={wrappedOnDismiss}>
+            <AutoColumn gap="12px" justify={'start'}>
+              <TYPE.largeHeader>{t('DepositingLiquidity')}</TYPE.largeHeader>
+              <TYPE.body fontSize={20}>I&lsquo;m supplying:</TYPE.body>
+              <RowBetween>
+                <TYPE.body fontSize={18}>{parsedAmount?.toSignificant(4)} UBE LP</TYPE.body>
+              </RowBetween>
+              <TYPE.body fontSize={20} mt="0.5rem">
+                I&lsquo;m borrowing:
+              </TYPE.body>
+              <TYPE.body fontSize={18}>
+                {tryParseAmount(amounts[0] ?? '', stakingInfo.tokens[0])?.toSignificant(4) +
+                  '  ' +
+                  stakingInfo.tokens[0].symbol +
+                  '  +  ' +
+                  tryParseAmount(amounts[1] ?? '', stakingInfo.tokens[1])?.toSignificant(4) +
+                  '  ' +
+                  stakingInfo.tokens[1].symbol}
+              </TYPE.body>
+            </AutoColumn>
+          </LoadingView>
+        ) : (
+          <LoadingView onDismiss={wrappedOnDismiss}>
+            <AutoColumn gap="12px" justify={'center'}>
+              <TYPE.largeHeader>{t('DepositingLiquidity')}</TYPE.largeHeader>
+              <TYPE.body fontSize={20}>{parsedAmount?.toSignificant(4)} UBE LP</TYPE.body>
+            </AutoColumn>
+          </LoadingView>
+        ))}
       {attempting && hash && (
         <SubmittedView onDismiss={wrappedOnDismiss} hash={hash}>
           <AutoColumn gap="12px" justify={'center'}>
