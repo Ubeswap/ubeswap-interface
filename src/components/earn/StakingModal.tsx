@@ -370,7 +370,7 @@ export default function StakingModal({
             lpToken?.wrapper ?? ''
           )
           .encodeABI()
-        const tx = await bank.execute(positionInfo.positionId, lpToken?.spell ?? '', bytes, {
+        const tx = await bank.execute(positionInfo ? positionInfo.positionId : 0, lpToken?.spell ?? '', bytes, {
           from: kit.defaultAccount,
           gasPrice: toWei('0.5', 'gwei'),
         })
@@ -480,7 +480,7 @@ export default function StakingModal({
                   </AutoColumn>
                   <RowCenter padding={'1rem'}></RowCenter>
                   {stakingInfo?.tokens.map((token, i) => (
-                    <>
+                    <div key={i}>
                       <Slider
                         value={Number(amounts[i])}
                         onChange={(e) => {
@@ -491,7 +491,7 @@ export default function StakingModal({
                         balance={maxAmounts[i]}
                       />
                       <RowCenter padding={'0.5rem'}></RowCenter>
-                    </>
+                    </div>
                   ))}{' '}
                 </LightCard>
               )}

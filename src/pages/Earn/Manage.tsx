@@ -274,13 +274,14 @@ export default function Manage({
           const apr = Number(formatEther(_apr)) * 100
           let leverage = false
           const nextPositionId = await bank.nextPositionId()
+          console.log(nextPositionId.toNumber())
+          let posInfo: any = null
           if (nextPositionId.toNumber() > 1) {
             const batch = []
             for (let i = 1; i < Number(nextPositionId); i += 1) {
               batch.push(bank.getPositionInfo(i))
             }
             const results = await Promise.all(batch)
-            let posInfo: any
             for (let i = 0; i < Number(nextPositionId) - 1; i += 1) {
               const positionId = i + 1
               const positionInfo = results[i]
@@ -304,6 +305,15 @@ export default function Manage({
               }
             }
             setPositionInfo(posInfo)
+          }
+          setProxyOracle(proxyOracle)
+          setCoreOracle(coreOracle)
+          setPoolAPR(apr)
+          if (stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0))) {
+            leverage = false
+          }
+          setLeverageFarm(leverage)
+          if (posInfo) {
             const price = await coreOracle.getCELOPx(lpToken.lp)
             const totalValue =
               Number(formatEther(posInfo.collateralSize)) * (Number(formatEther(price)) / Number(formatEther(scale)))
@@ -330,12 +340,13 @@ export default function Manage({
             const apy = (totalValue * (apr / 100) - debtInterest) / (totalValue - debtValue)
             let reserve0: BigNumber
             let reserve1: BigNumber
+            const reserves = await pairLP.getReserves()
             if (stakingInfo.tokens[0] !== undefined && dummyPair?.token0 === stakingInfo.tokens[0]) {
-              reserve0 = BigNumber.from(dummyPair?.reserve0.toExact())
-              reserve1 = BigNumber.from(dummyPair?.reserve1.toExact())
+              reserve0 = reserves.reserve0
+              reserve1 = reserves.reserve1
             } else {
-              reserve0 = BigNumber.from(dummyPair?.reserve1.toExact())
-              reserve1 = BigNumber.from(dummyPair?.reserve0.toExact())
+              reserve0 = reserves.reserve1
+              reserve1 = reserves.reserve0
             }
             setMyPosition({
               debtValue,
@@ -347,13 +358,6 @@ export default function Manage({
               ),
             })
           }
-          if (stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0))) {
-            leverage = false
-          }
-          setProxyOracle(proxyOracle)
-          setCoreOracle(coreOracle)
-          setPoolAPR(apr)
-          setLeverageFarm(leverage)
         }
       } catch (err) {
         setInit(true)
@@ -371,47 +375,49 @@ export default function Manage({
         </TYPE.mediumHeader>
         <DoubleCurrencyLogo currency0={tokenA ?? undefined} currency1={tokenB ?? undefined} size={24} />
       </RowBetween>
+      {stakingInfo && (
+        <DataRow style={{ gap: '24px' }}>
+          <PoolData>
+            <AutoColumn gap="sm">
+              <TYPE.body style={{ margin: 0 }}>{t('totalDeposits')}</TYPE.body>
+              <TYPE.body fontSize={24} fontWeight={500}>
+                {valueOfTotalStakedAmountInCUSD
+                  ? `$${
+                      valueOfTotalStakedAmountInCUSD.lessThan('1')
+                        ? valueOfTotalStakedAmountInCUSD.toFixed(2, {
+                            groupSeparator: ',',
+                          })
+                        : valueOfTotalStakedAmountInCUSD.toFixed(0, {
+                            groupSeparator: ',',
+                          })
+                    }`
+                  : '-'}
+              </TYPE.body>
+            </AutoColumn>
+          </PoolData>
+          <PoolData>
+            <AutoColumn gap="sm">
+              {stakingInfo?.active && (
+                <>
+                  <TYPE.body style={{ margin: 0 }}>{t('poolRate')}</TYPE.body>
+                  {stakingInfo?.totalRewardRates
+                    ?.filter((rewardRate) => !rewardRate.equalTo('0'))
+                    ?.map((rewardRate) => {
+                      return (
+                        <TYPE.body fontSize={24} fontWeight={500} key={rewardRate.token.symbol}>
+                          {rewardRate?.multiply(BIG_INT_SECONDS_IN_WEEK)?.toFixed(0, { groupSeparator: ',' }) ?? '-'}
+                          {` ${rewardRate.token.symbol} / week`}
+                        </TYPE.body>
+                      )
+                    })}
+                </>
+              )}
+            </AutoColumn>
+          </PoolData>
+        </DataRow>
+      )}
       {stakingInfo && (!lpToken || (lpToken && coreOracle)) ? (
         <>
-          <DataRow style={{ gap: '24px' }}>
-            <PoolData>
-              <AutoColumn gap="sm">
-                <TYPE.body style={{ margin: 0 }}>{t('totalDeposits')}</TYPE.body>
-                <TYPE.body fontSize={24} fontWeight={500}>
-                  {valueOfTotalStakedAmountInCUSD
-                    ? `$${
-                        valueOfTotalStakedAmountInCUSD.lessThan('1')
-                          ? valueOfTotalStakedAmountInCUSD.toFixed(2, {
-                              groupSeparator: ',',
-                            })
-                          : valueOfTotalStakedAmountInCUSD.toFixed(0, {
-                              groupSeparator: ',',
-                            })
-                      }`
-                    : '-'}
-                </TYPE.body>
-              </AutoColumn>
-            </PoolData>
-            <PoolData>
-              <AutoColumn gap="sm">
-                {stakingInfo?.active && (
-                  <>
-                    <TYPE.body style={{ margin: 0 }}>{t('poolRate')}</TYPE.body>
-                    {stakingInfo?.totalRewardRates
-                      ?.filter((rewardRate) => !rewardRate.equalTo('0'))
-                      ?.map((rewardRate) => {
-                        return (
-                          <TYPE.body fontSize={24} fontWeight={500} key={rewardRate.token.symbol}>
-                            {rewardRate?.multiply(BIG_INT_SECONDS_IN_WEEK)?.toFixed(0, { groupSeparator: ',' }) ?? '-'}
-                            {` ${rewardRate.token.symbol} / week`}
-                          </TYPE.body>
-                        )
-                      })}
-                  </>
-                )}
-              </AutoColumn>
-            </PoolData>
-          </DataRow>
           {lpToken && (
             <RowEnd>
               <RowBetween width={'240px'}>
@@ -506,7 +512,7 @@ export default function Manage({
                     <CardNoise />
                     <AutoColumn gap="lg">
                       <RowBetween>
-                        <TYPE.white fontWeight={600}>Your Position Has</TYPE.white>
+                        <TYPE.white fontWeight={600}>Your Position</TYPE.white>
                       </RowBetween>
                       {/* {myPosition &&
                         myPosition.reserves &&
@@ -521,21 +527,39 @@ export default function Manage({
                         ))} */}
                       <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
                         <TYPE.white fontSize={16}>Borrow Value</TYPE.white>
-                        <TYPE.white>{myPosition ? humanFriendlyNumber(myPosition.debtValue) : '--'} Celo</TYPE.white>
+                        <TYPE.white>
+                          {myPosition ? (
+                            humanFriendlyNumber(myPosition.debtValue).concat(' Celo')
+                          ) : (
+                            <Loader size="16px" />
+                          )}
+                        </TYPE.white>
                       </RowBetween>
                       <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
                         <TYPE.white fontSize={16}>Total Value</TYPE.white>
-                        <TYPE.white>{myPosition ? humanFriendlyNumber(myPosition.totalValue) : '--'} Celo</TYPE.white>
+                        <TYPE.white>
+                          {myPosition ? (
+                            humanFriendlyNumber(myPosition.totalValue).concat(' Celo')
+                          ) : (
+                            <Loader size="16px" />
+                          )}
+                        </TYPE.white>
                       </RowBetween>
                       <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
                         <TYPE.white fontSize={16}>Debt Ratio</TYPE.white>
                         <TYPE.white>
-                          {myPosition ? humanFriendlyNumber(myPosition.debtRatio * 100).concat('%') : '--'}
+                          {myPosition ? (
+                            humanFriendlyNumber(myPosition.debtRatio * 100).concat(' %')
+                          ) : (
+                            <Loader size="16px" />
+                          )}
                         </TYPE.white>
                       </RowBetween>
                       <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
                         <TYPE.white fontSize={16}>Position APR</TYPE.white>
-                        <TYPE.white>{myPosition ? humanFriendlyNumber(poolAPR).concat('%') : '--'}</TYPE.white>
+                        <TYPE.white>
+                          {myPosition ? humanFriendlyNumber(poolAPR).concat(' %') : <Loader size="16px" />}
+                        </TYPE.white>
                       </RowBetween>
                     </AutoColumn>
                   </CardSection>
