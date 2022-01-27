@@ -188,8 +188,8 @@ export default function Manage({
 
   const [proxyOracle, setProxyOracle] = useState<ProxyOracle | null>(null)
   const [coreOracle, setCoreOracle] = useState<CoreOracle | null>(null)
-  const [positionInfo, setPositionInfo] = useState<any>(null)
-  const [myPosition, setMyPosition] = useState<any>(null)
+  const [positionInfo, setPositionInfo] = useState<any>(undefined)
+  const [myPosition, setMyPosition] = useState<any>(undefined)
   const [poolAPR, setPoolAPR] = useState<number>(0)
   const [init, setInit] = useState<boolean>(true)
   const [scale] = useState<BigNumber>(BigNumber.from(2).pow(112))
@@ -275,8 +275,8 @@ export default function Manage({
           let leverage = false
           const nextPositionId = await bank.nextPositionId()
           console.log(nextPositionId.toNumber())
-          let posInfo: any = null
-          if (nextPositionId.toNumber() > 1) {
+          let posInfo: any = undefined
+          if (nextPositionId.toNumber() > 1 && !showAddLiquidityButton) {
             const batch = []
             for (let i = 1; i < Number(nextPositionId); i += 1) {
               batch.push(bank.getPositionInfo(i))
@@ -313,7 +313,7 @@ export default function Manage({
             leverage = false
           }
           setLeverageFarm(leverage)
-          if (posInfo) {
+          if (posInfo && !showAddLiquidityButton) {
             const price = await coreOracle.getCELOPx(lpToken.lp)
             const totalValue =
               Number(formatEther(posInfo.collateralSize)) * (Number(formatEther(price)) / Number(formatEther(scale)))
@@ -365,7 +365,7 @@ export default function Manage({
       }
     }
     connectContract()
-  }, [bank, provider, stakingInfo, init, lpToken, stakingAddress, account, scale, dummyPair])
+  }, [bank, provider, stakingInfo, init, lpToken, stakingAddress, account, scale, dummyPair, showAddLiquidityButton])
 
   return (
     <PageWrapper gap="lg" justify="center">
@@ -418,7 +418,7 @@ export default function Manage({
       )}
       {stakingInfo && (!lpToken || (lpToken && coreOracle)) ? (
         <>
-          {lpToken && (
+          {!showAddLiquidityButton && lpToken && (
             <RowEnd>
               <RowBetween width={'240px'}>
                 <RowFixed>
@@ -511,10 +511,12 @@ export default function Manage({
                   <CardSection>
                     <CardNoise />
                     <AutoColumn gap="lg">
-                      <RowBetween>
-                        <TYPE.white fontWeight={600}>Your Position</TYPE.white>
-                      </RowBetween>
-                      {/* {myPosition &&
+                      {positionInfo ? (
+                        <>
+                          <RowBetween>
+                            <TYPE.white fontWeight={600}>Your Position</TYPE.white>
+                          </RowBetween>
+                          {/* {myPosition &&
                         myPosition.reserves &&
                         stakingInfo.tokens.map((token, i) => (
                           <RowBetween key={i} style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
@@ -525,42 +527,48 @@ export default function Manage({
                             </TYPE.white>
                           </RowBetween>
                         ))} */}
-                      <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-                        <TYPE.white fontSize={16}>Borrow Value</TYPE.white>
-                        <TYPE.white>
-                          {myPosition ? (
-                            humanFriendlyNumber(myPosition.debtValue).concat(' Celo')
-                          ) : (
-                            <Loader size="16px" />
-                          )}
-                        </TYPE.white>
-                      </RowBetween>
-                      <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-                        <TYPE.white fontSize={16}>Total Value</TYPE.white>
-                        <TYPE.white>
-                          {myPosition ? (
-                            humanFriendlyNumber(myPosition.totalValue).concat(' Celo')
-                          ) : (
-                            <Loader size="16px" />
-                          )}
-                        </TYPE.white>
-                      </RowBetween>
-                      <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-                        <TYPE.white fontSize={16}>Debt Ratio</TYPE.white>
-                        <TYPE.white>
-                          {myPosition ? (
-                            humanFriendlyNumber(myPosition.debtRatio * 100).concat(' %')
-                          ) : (
-                            <Loader size="16px" />
-                          )}
-                        </TYPE.white>
-                      </RowBetween>
-                      <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-                        <TYPE.white fontSize={16}>Position APR</TYPE.white>
-                        <TYPE.white>
-                          {myPosition ? humanFriendlyNumber(poolAPR).concat(' %') : <Loader size="16px" />}
-                        </TYPE.white>
-                      </RowBetween>
+                          <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                            <TYPE.white fontSize={16}>Borrow Value</TYPE.white>
+                            <TYPE.white>
+                              {myPosition ? (
+                                humanFriendlyNumber(myPosition.debtValue).concat(' Celo')
+                              ) : (
+                                <Loader size="16px" />
+                              )}
+                            </TYPE.white>
+                          </RowBetween>
+                          <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                            <TYPE.white fontSize={16}>Total Value</TYPE.white>
+                            <TYPE.white>
+                              {myPosition ? (
+                                humanFriendlyNumber(myPosition.totalValue).concat(' Celo')
+                              ) : (
+                                <Loader size="16px" />
+                              )}
+                            </TYPE.white>
+                          </RowBetween>
+                          <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                            <TYPE.white fontSize={16}>Debt Ratio</TYPE.white>
+                            <TYPE.white>
+                              {myPosition ? (
+                                humanFriendlyNumber(myPosition.debtRatio * 100).concat(' %')
+                              ) : (
+                                <Loader size="16px" />
+                              )}
+                            </TYPE.white>
+                          </RowBetween>
+                          <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                            <TYPE.white fontSize={16}>Position APR</TYPE.white>
+                            <TYPE.white>
+                              {myPosition ? humanFriendlyNumber(poolAPR).concat(' %') : <Loader size="16px" />}
+                            </TYPE.white>
+                          </RowBetween>
+                        </>
+                      ) : (
+                        <RowBetween>
+                          <TYPE.white fontWeight={600}>You don&apos;t have a position</TYPE.white>
+                        </RowBetween>
+                      )}
                     </AutoColumn>
                   </CardSection>
                 </StyledDataCard>
