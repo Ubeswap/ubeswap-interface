@@ -1,10 +1,12 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { getAddress } from '@ethersproject/address'
 import { Web3Provider } from '@ethersproject/providers'
 import { formatEther } from '@ethersproject/units'
 import { Pair, TokenAmount } from '@ubeswap/sdk'
 import { LightCard } from 'components/Card'
 import Loader from 'components/Loader'
 import { useDoTransaction } from 'components/swap/routing'
+import { Bank } from 'constants/leverageYieldFarm'
 import { BigNumber, ContractInterface, ethers } from 'ethers'
 import { ProxyOracle } from 'generated'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
@@ -17,6 +19,7 @@ import { AbiItem, toBN, toWei } from 'web3-utils'
 import Circle from '../../assets/images/blue-loader.svg'
 import Slider from '../../components/Slider'
 import CERC20_ABI from '../../constants/abis/CErc20Immutable.json'
+import BANK_ABI from '../../constants/abis/HomoraBank.json'
 import UBE_SPELL from '../../constants/abis/UbeswapMSRSpellV1.json'
 import { Farm } from '../../constants/leverageYieldFarm'
 import { CErc20Immutable } from '../../generated/CErc20Immutable'
@@ -70,6 +73,7 @@ export const humanFriendlyNumber = (v: number | string) => {
 interface StakingModalProps {
   isOpen: boolean
   onDismiss: () => void
+  onLevDepositSuccess: () => void
   stakingInfo: StakingInfo
   userLiquidityUnstaked: TokenAmount | undefined
   leverage: boolean
@@ -86,6 +90,7 @@ interface StakingModalProps {
 export default function StakingModal({
   isOpen,
   onDismiss,
+  onLevDepositSuccess,
   stakingInfo,
   userLiquidityUnstaked,
   leverage,
@@ -98,7 +103,8 @@ export default function StakingModal({
   provider,
   positionInfo,
 }: StakingModalProps) {
-  const { getConnectedKit } = useContractKit()
+  const { getConnectedKit, network } = useContractKit()
+  const { chainId } = network
   const library = useProvider()
   // track and parse user input
   const [typedValue, setTypedValue] = useState('')
@@ -370,11 +376,15 @@ export default function StakingModal({
             lpToken?.wrapper ?? ''
           )
           .encodeABI()
-        const tx = await bank.execute(positionInfo ? positionInfo.positionId : 0, lpToken?.spell ?? '', bytes, {
-          from: kit.defaultAccount,
-          gasPrice: toWei('0.5', 'gwei'),
-        })
-        setHash(tx.hash)
+        const bank = new kit.web3.eth.Contract(BANK_ABI.abi as AbiItem[], getAddress(Bank[chainId])) as unknown as any
+        const tx = await bank.methods
+          .execute(positionInfo ? positionInfo.positionId : 0, lpToken?.spell ?? '', bytes)
+          .send({
+            from: kit.defaultAccount,
+            gasPrice: toWei('0.5', 'gwei'),
+          })
+        setHash(tx.transactionHash)
+        onLevDepositSuccess()
       } catch (e) {
         console.log(e)
         setAttempting(false)
@@ -533,11 +543,11 @@ export default function StakingModal({
               )}
             </ButtonConfirmed>
             <ButtonError
-              disabled={!!error || approval !== ApprovalState.APPROVED || debtRatio >= 100}
-              error={(!!error && !!parsedAmount) || debtRatio >= 90}
+              disabled={!!error || approval !== ApprovalState.APPROVED || (leverage && debtRatio >= 100)}
+              error={(!!error && !!parsedAmount) || (leverage && debtRatio >= 90)}
               onClick={onStake}
             >
-              {debtRatio >= 100 ? 'Debt ratio too high' : error ?? `${t('deposit')}`}
+              {leverage && debtRatio >= 100 ? 'Debt ratio too high' : error ?? `${t('deposit')}`}
             </ButtonError>
           </RowBetween>
           <ProgressCircles steps={[approval === ApprovalState.APPROVED]} disabled={true} />

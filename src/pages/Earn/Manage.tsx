@@ -180,7 +180,11 @@ export default function Manage({
 
   const toggleLeverage = () => {
     const leverage = !leverageFarm
-    setShowLeverageModal(leverage)
+    if (stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0))) {
+      setShowLeverageModal(leverage)
+    } else {
+      setLeverageFarm(leverage)
+    }
     if (!leverage) {
       setLeverageFarm(false)
     }
@@ -188,6 +192,7 @@ export default function Manage({
 
   const [proxyOracle, setProxyOracle] = useState<ProxyOracle | null>(null)
   const [coreOracle, setCoreOracle] = useState<CoreOracle | null>(null)
+  const [pairLP, setPairLP] = useState<IUniswapV2Pair | null>(null)
   const [positionInfo, setPositionInfo] = useState<any>(undefined)
   const [myPosition, setMyPosition] = useState<any>(undefined)
   const [poolAPR, setPoolAPR] = useState<number>(0)
@@ -215,6 +220,95 @@ export default function Manage({
   )
 
   const lpToken = FARMS.find((farm) => farm.lp === dummyPair?.liquidityToken.address)
+
+  const loadPosition = useCallback(
+    async (coreOracle: CoreOracle | null, pairLP: IUniswapV2Pair | null, apr: number): Promise<boolean> => {
+      let leverage = false
+      if (coreOracle && lpToken && stakingInfo && pairLP) {
+        setMyPosition(undefined)
+        const nextPositionId = await bank.nextPositionId()
+        console.log(nextPositionId.toNumber())
+        let posInfo: any = undefined
+        if (nextPositionId.toNumber() > 1 && !showAddLiquidityButton) {
+          const batch = []
+          for (let i = 1; i < Number(nextPositionId); i += 1) {
+            batch.push(bank.getPositionInfo(i))
+          }
+          const results = await Promise.all(batch)
+          for (let i = 0; i < Number(nextPositionId) - 1; i += 1) {
+            const positionId = i + 1
+            const positionInfo = results[i]
+            if (positionInfo && positionInfo.owner.toLowerCase() === account?.toLowerCase()) {
+              const wrapper = new ethers.Contract(
+                positionInfo.collToken,
+                IERC20W_ABI.abi as ContractInterface,
+                provider
+              ) as unknown as IERC20Wrapper
+              const underlying = await wrapper.getUnderlyingToken(positionInfo.collId)
+              if (
+                getAddress(underlying) === lpToken.lp &&
+                getAddress(positionInfo.collToken) === lpToken.wrapper &&
+                positionInfo.collateralSize !== BigNumber.from(0)
+              ) {
+                const totalSupply = await pairLP.totalSupply()
+                posInfo = { ...positionInfo, positionId: positionId, totalSupply: totalSupply }
+                leverage = true
+                break
+              }
+            }
+          }
+          setPositionInfo(posInfo)
+        }
+        if (posInfo && !showAddLiquidityButton) {
+          const price = await coreOracle.getCELOPx(lpToken.lp)
+          const totalValue =
+            Number(formatEther(posInfo.collateralSize)) * (Number(formatEther(price)) / Number(formatEther(scale)))
+          const ret = await bank.getPositionDebts(posInfo.positionId)
+          let debtValue = 0
+          let debtInterest = 0
+          for (let i = 0; i < ret.tokens.length; i += 1) {
+            const token = ret.tokens[i]
+            const price = await coreOracle.getCELOPx(token)
+            debtValue += Number(formatEther(ret.debts[i])) * (Number(formatEther(price)) / Number(formatEther(scale)))
+            const bankInfo = await bank.getBankInfo(token)
+            const cToken = new ethers.Contract(
+              bankInfo.cToken,
+              CERC20_ABI as ContractInterface,
+              provider
+            ) as unknown as CErc20Immutable
+            const blocksPerYear = BigNumber.from(6311520)
+            const borrowRate = (await cToken.borrowRatePerBlock()).mul(blocksPerYear)
+            debtInterest += debtValue * Number(formatEther(borrowRate))
+          }
+          const numer = await bank.getBorrowCELOValue(posInfo.positionId)
+          const denom = await bank.getCollateralCELOValue(posInfo.positionId)
+          const debtRatio = Number(formatEther(numer)) / Number(formatEther(denom))
+          const apy = (totalValue * (apr / 100) - debtInterest) / (totalValue - debtValue)
+          let reserve0: BigNumber
+          let reserve1: BigNumber
+          const reserves = await pairLP.getReserves()
+          if (stakingInfo.tokens[0] !== undefined && dummyPair?.token0 === stakingInfo.tokens[0]) {
+            reserve0 = reserves.reserve0
+            reserve1 = reserves.reserve1
+          } else {
+            reserve0 = reserves.reserve1
+            reserve1 = reserves.reserve0
+          }
+          setMyPosition({
+            debtValue,
+            totalValue,
+            debtRatio,
+            apy,
+            reserves: [reserve0, reserve1].map((reserve) =>
+              reserve.mul(posInfo.collateralSize).div(posInfo.totalSupply)
+            ),
+          })
+        }
+      }
+      return leverage
+    },
+    [account, bank, dummyPair?.token0, lpToken, provider, scale, showAddLiquidityButton, stakingInfo]
+  )
 
   useEffect(() => {
     const connectContract = async () => {
@@ -272,92 +366,12 @@ export default function Manage({
           const valueDeposited = (await coreOracle.getCELOPx(lpToken.lp)).mul(amountDeposited)
           const _apr = externalRewards.mul(BigNumber.from(10).pow(BigNumber.from(18))).div(valueDeposited)
           const apr = Number(formatEther(_apr)) * 100
-          let leverage = false
-          const nextPositionId = await bank.nextPositionId()
-          console.log(nextPositionId.toNumber())
-          let posInfo: any = undefined
-          if (nextPositionId.toNumber() > 1 && !showAddLiquidityButton) {
-            const batch = []
-            for (let i = 1; i < Number(nextPositionId); i += 1) {
-              batch.push(bank.getPositionInfo(i))
-            }
-            const results = await Promise.all(batch)
-            for (let i = 0; i < Number(nextPositionId) - 1; i += 1) {
-              const positionId = i + 1
-              const positionInfo = results[i]
-              if (positionInfo && positionInfo.owner.toLowerCase() === account?.toLowerCase()) {
-                const wrapper = new ethers.Contract(
-                  positionInfo.collToken,
-                  IERC20W_ABI.abi as ContractInterface,
-                  provider
-                ) as unknown as IERC20Wrapper
-                const underlying = await wrapper.getUnderlyingToken(positionInfo.collId)
-                if (
-                  getAddress(underlying) === lpToken.lp &&
-                  getAddress(positionInfo.collToken) === lpToken.wrapper &&
-                  positionInfo.collateralSize !== BigNumber.from(0)
-                ) {
-                  const totalSupply = await pairLP.totalSupply()
-                  posInfo = { ...positionInfo, positionId: positionId, totalSupply: totalSupply }
-                  leverage = true
-                  break
-                }
-              }
-            }
-            setPositionInfo(posInfo)
-          }
+          const leverage = await loadPosition(coreOracle, pairLP, apr)
+          setLeverageFarm(leverage)
           setProxyOracle(proxyOracle)
           setCoreOracle(coreOracle)
+          setPairLP(pairLP)
           setPoolAPR(apr)
-          if (stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0))) {
-            leverage = false
-          }
-          setLeverageFarm(leverage)
-          if (posInfo && !showAddLiquidityButton) {
-            const price = await coreOracle.getCELOPx(lpToken.lp)
-            const totalValue =
-              Number(formatEther(posInfo.collateralSize)) * (Number(formatEther(price)) / Number(formatEther(scale)))
-            const ret = await bank.getPositionDebts(posInfo.positionId)
-            let debtValue = 0
-            let debtInterest = 0
-            for (let i = 0; i < ret.tokens.length; i += 1) {
-              const token = ret.tokens[i]
-              const price = await coreOracle.getCELOPx(token)
-              debtValue += Number(formatEther(ret.debts[i])) * (Number(formatEther(price)) / Number(formatEther(scale)))
-              const bankInfo = await bank.getBankInfo(token)
-              const cToken = new ethers.Contract(
-                bankInfo.cToken,
-                CERC20_ABI as ContractInterface,
-                provider
-              ) as unknown as CErc20Immutable
-              const blocksPerYear = BigNumber.from(6311520)
-              const borrowRate = (await cToken.borrowRatePerBlock()).mul(blocksPerYear)
-              debtInterest += debtValue * Number(formatEther(borrowRate))
-            }
-            const numer = await bank.getBorrowCELOValue(posInfo.positionId)
-            const denom = await bank.getCollateralCELOValue(posInfo.positionId)
-            const debtRatio = Number(formatEther(numer)) / Number(formatEther(denom))
-            const apy = (totalValue * (apr / 100) - debtInterest) / (totalValue - debtValue)
-            let reserve0: BigNumber
-            let reserve1: BigNumber
-            const reserves = await pairLP.getReserves()
-            if (stakingInfo.tokens[0] !== undefined && dummyPair?.token0 === stakingInfo.tokens[0]) {
-              reserve0 = reserves.reserve0
-              reserve1 = reserves.reserve1
-            } else {
-              reserve0 = reserves.reserve1
-              reserve1 = reserves.reserve0
-            }
-            setMyPosition({
-              debtValue,
-              totalValue,
-              debtRatio,
-              apy,
-              reserves: [reserve0, reserve1].map((reserve) =>
-                reserve.mul(posInfo.collateralSize).div(posInfo.totalSupply)
-              ),
-            })
-          }
         }
       } catch (err) {
         setInit(true)
@@ -365,7 +379,27 @@ export default function Manage({
       }
     }
     connectContract()
-  }, [bank, provider, stakingInfo, init, lpToken, stakingAddress, account, scale, dummyPair, showAddLiquidityButton])
+  }, [
+    bank,
+    provider,
+    stakingInfo,
+    init,
+    lpToken,
+    stakingAddress,
+    account,
+    scale,
+    dummyPair,
+    showAddLiquidityButton,
+    loadPosition,
+  ])
+
+  useEffect(() => {
+    if (coreOracle) {
+      if (stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0))) {
+        setLeverageFarm(false)
+      }
+    }
+  }, [coreOracle, stakingInfo?.stakedAmount])
 
   return (
     <PageWrapper gap="lg" justify="center">
@@ -477,6 +511,7 @@ export default function Manage({
           <StakingModal
             isOpen={showStakingModal}
             onDismiss={() => setShowStakingModal(false)}
+            onLevDepositSuccess={() => loadPosition(coreOracle, pairLP, poolAPR)}
             stakingInfo={stakingInfo}
             userLiquidityUnstaked={userLiquidityUnstaked}
             leverage={leverageFarm}
