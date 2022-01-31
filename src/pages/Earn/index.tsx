@@ -3,6 +3,7 @@ import { Token } from '@ubeswap/sdk'
 import TokenSelect from 'components/CurrencyInputPanel/TokenSelect'
 import ClaimAllRewardPanel from 'components/earn/ClaimAllRewardPanel'
 import Loader from 'components/Loader'
+import { FARMS } from 'constants/leverageYieldFarm'
 import React, { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useOwnerStakedPools } from 'state/stake/useOwnerStakedPools'
@@ -11,7 +12,7 @@ import styled from 'styled-components'
 import { AutoColumn, ColumnCenter, TopSection } from '../../components/Column'
 import { PoolCard } from '../../components/earn/PoolCard'
 import { CardNoise, CardSection, DataCard } from '../../components/earn/styled'
-import { RowBetween } from '../../components/Row'
+import { RowBetween, RowStart } from '../../components/Row'
 import { ExternalLink, TYPE } from '../../theme'
 import LiquidityWarning from '../Pool/LiquidityWarning'
 import { useFarmRegistry } from './useFarmRegistry'
@@ -31,6 +32,35 @@ const PoolWrapper = styled.div`
   margin-bottom: 12px;
 `
 
+const FancyButton = styled.button`
+  color: ${({ theme }) => theme.text1};
+  align-items: center;
+  height: 2.2rem;
+  padding: 0 0.7rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  width: auto;
+  min-width: 3.5rem;
+  border: 1px solid ${({ theme }) => theme.bg3};
+  outline: none;
+  background: ${({ theme }) => theme.bg1};
+  :hover {
+    border: 1px solid ${({ theme }) => theme.bg4};
+  }
+  :focus {
+    border: 1px solid ${({ theme }) => theme.primary1};
+  }
+`
+
+const Option = styled(FancyButton)<{ active: boolean }>`
+  margin-right: 8px;
+  :hover {
+    cursor: pointer;
+  }
+  background-color: ${({ active, theme }) => active && theme.primary1};
+  color: ${({ active, theme }) => (active ? theme.white : theme.text1)};
+`
+
 const Header: React.FC = ({ children }) => {
   return (
     <DataRow style={{ alignItems: 'baseline', marginBottom: '12px' }}>
@@ -48,16 +78,19 @@ export default function Earn() {
   const { t } = useTranslation()
   const [filteringToken, setFilteringToken] = useTokenFilter()
   const farmSummaries = useFarmRegistry()
-
+  const [leverage, setLeverage] = useState<boolean>(false)
   const filteredFarms = useMemo(() => {
+    const tmpFarmSummaries = !leverage
+      ? [...farmSummaries]
+      : farmSummaries.filter((farm) => FARMS.find((levFarm) => farm.lpAddress === levFarm.lp))
     if (filteringToken === null) {
-      return farmSummaries
+      return tmpFarmSummaries
     } else {
-      return farmSummaries.filter(
+      return tmpFarmSummaries.filter(
         (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
       )
     }
-  }, [filteringToken, farmSummaries])
+  }, [filteringToken, farmSummaries, leverage])
 
   const { stakedFarms, featuredFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms)
   return (
@@ -91,7 +124,18 @@ export default function Earn() {
       )}
       <TopSection gap="md">
         <AutoColumn>
-          <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
+          <RowStart>
+            <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
+            <Option
+              style={{ marginLeft: '10px' }}
+              onClick={() => {
+                setLeverage(!leverage)
+              }}
+              active={leverage}
+            >
+              Leverage Yield Farms
+            </Option>
+          </RowStart>
         </AutoColumn>
       </TopSection>
       <ColumnCenter>
