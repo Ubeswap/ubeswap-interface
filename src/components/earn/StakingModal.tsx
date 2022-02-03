@@ -1,7 +1,7 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { getAddress, isAddress } from '@ethersproject/address'
 import { BigNumber } from '@ethersproject/bignumber'
-import { Web3Provider } from '@ethersproject/providers'
+import { JsonRpcSigner } from '@ethersproject/providers'
 import { formatEther } from '@ethersproject/units'
 import { Pair, TokenAmount } from '@ubeswap/sdk'
 import { LightCard } from 'components/Card'
@@ -87,7 +87,7 @@ interface StakingModalProps {
   coreOracle: CoreOracle | null
   dummyPair: Pair | undefined
   lpToken: Farm | undefined
-  provider: Web3Provider
+  provider: JsonRpcSigner
   positionInfo: any
 }
 
