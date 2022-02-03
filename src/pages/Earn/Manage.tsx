@@ -199,15 +199,10 @@ export default function Manage({
   const [init, setInit] = useState<boolean>(true)
   const [scale] = useState<BigNumber>(BigNumber.from(2).pow(112))
 
-  const provider = useMemo(() => new Web3Provider(window.ethereum as ethers.providers.ExternalProvider), [])
+  const provider = useMemo(() => new Web3Provider(window.ethereum as ethers.providers.ExternalProvider).getSigner(), [])
 
   const bank = useMemo(
-    () =>
-      new ethers.Contract(
-        Bank[chainId],
-        BANK_ABI.abi as ContractInterface,
-        provider.getSigner()
-      ) as unknown as HomoraBank,
+    () => new ethers.Contract(Bank[chainId], BANK_ABI.abi as ContractInterface, provider) as unknown as HomoraBank,
     [chainId, provider]
   )
 
@@ -355,6 +350,7 @@ export default function Manage({
                 MULTISTAKING.abi as ContractInterface,
                 provider
               ) as unknown as MockMoolaStakingRewards
+
               const rewardToken = await staking.rewardsToken()
               const rate = await staking.rewardRate()
               const rewardPrice = await coreOracle.getCELOPx(rewardToken)
@@ -363,6 +359,7 @@ export default function Manage({
               amountDeposited = await pairLP.balanceOf(_stakingAddress)
             }
           }
+
           const valueDeposited = (await coreOracle.getCELOPx(lpToken.lp)).mul(amountDeposited)
           const _apr = externalRewards.mul(BigNumber.from(10).pow(BigNumber.from(18))).div(valueDeposited)
           const apr = Number(formatEther(_apr)) * 100

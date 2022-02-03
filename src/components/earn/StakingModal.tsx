@@ -1,5 +1,6 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
-import { getAddress } from '@ethersproject/address'
+import { getAddress, isAddress } from '@ethersproject/address'
+import { BigNumber } from '@ethersproject/bignumber'
 import { Web3Provider } from '@ethersproject/providers'
 import { formatEther } from '@ethersproject/units'
 import { Pair, TokenAmount } from '@ubeswap/sdk'
@@ -7,7 +8,7 @@ import { LightCard } from 'components/Card'
 import Loader from 'components/Loader'
 import { useDoTransaction } from 'components/swap/routing'
 import { Bank } from 'constants/leverageYieldFarm'
-import { BigNumber, ContractInterface, ethers } from 'ethers'
+import { ContractInterface, ethers } from 'ethers'
 import { ProxyOracle } from 'generated'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -19,12 +20,15 @@ import { AbiItem, toBN, toWei } from 'web3-utils'
 import Circle from '../../assets/images/blue-loader.svg'
 import Slider from '../../components/Slider'
 import CERC20_ABI from '../../constants/abis/CErc20Immutable.json'
+import ERC20_ABI from '../../constants/abis/ERC20-Youth.json'
 import BANK_ABI from '../../constants/abis/HomoraBank.json'
+import IERC20_ABI from '../../constants/abis/IERC20.json'
 import UBE_SPELL from '../../constants/abis/UbeswapMSRSpellV1.json'
 import { Farm } from '../../constants/leverageYieldFarm'
 import { CErc20Immutable } from '../../generated/CErc20Immutable'
 import { CoreOracle } from '../../generated/CoreOracle'
 import { HomoraBank } from '../../generated/HomoraBank'
+import { IERC20 } from '../../generated/IERC20'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { usePairContract, useStakingContract } from '../../hooks/useContract'
 import useTransactionDeadline from '../../hooks/useTransactionDeadline'
@@ -103,7 +107,7 @@ export default function StakingModal({
   provider,
   positionInfo,
 }: StakingModalProps) {
-  const { getConnectedKit, network } = useContractKit()
+  const { getConnectedKit, network, address: account } = useContractKit()
   const { chainId } = network
   const library = useProvider()
   // track and parse user input
@@ -129,15 +133,16 @@ export default function StakingModal({
   const [info, setInfo] = useState<any>(null)
   const [init, setInit] = useState<boolean>(false)
   const [amounts, setAmounts] = useState<string[]>(['0', '0'])
-  const [maxAmounts, setMaxAmounts] = useState<any[]>([])
+  const [maxAmounts, setMaxAmounts] = useState<any[]>(['0', '0'])
   const [lever, setLever] = useState<number>(0)
   const [debtRatio, setDebtRatio] = useState<number>(0)
   const [apy, setAPY] = useState<number>(0)
   const [scale] = useState<BigNumber>(BigNumber.from(2).pow(112))
+  const [levApproval, setLevApproval] = useState<ApprovalState>(ApprovalState.UNKNOWN)
   const wrappedOnDismiss = useCallback(() => {
     setHash(undefined)
     setAttempting(false)
-    setInit(false)
+    initialize()
     onDismiss()
   }, [onDismiss])
 
@@ -150,6 +155,74 @@ export default function StakingModal({
 
   const stakingContract = useStakingContract(stakingInfo.stakingRewardAddress)
   const doTransaction = useDoTransaction()
+
+  const initialize = () => {
+    setInit(false)
+    setAmounts(['0', '0'])
+    setMaxAmounts(['0', '0'])
+    setLever(0)
+    setDebtRatio(0)
+    setAPY(0)
+  }
+
+  useEffect(() => {
+    const checkLeverageApproval = async () => {
+      const tokenStates: any = []
+      const tokenAddress = lpToken?.lp ?? ''
+      for (const token of lpToken?.tokens ?? []) {
+        const address = token.address
+        if (!address || !isAddress(address) || !account) {
+          tokenStates.push(null)
+          continue
+        }
+        const ERCToken = new ethers.Contract(
+          address,
+          IERC20_ABI.abi as ContractInterface,
+          provider
+        ) as unknown as IERC20
+        const allowance = await ERCToken.allowance(account ?? '', Bank[chainId])
+        const balance = await ERCToken.balanceOf(account ?? '')
+        tokenStates.push({ allowance: allowance, balance: balance })
+      }
+      let erc = null
+      const ERCToken = new ethers.Contract(
+        getAddress(tokenAddress),
+        IERC20_ABI.abi as ContractInterface,
+        provider
+      ) as unknown as IERC20
+      if (tokenAddress && isAddress(tokenAddress) && account) {
+        erc = {
+          allowance: await ERCToken.allowance(account, Bank[chainId]),
+          balance: await ERCToken.balanceOf(account),
+        }
+      }
+      if (tokenStates && erc) {
+        let approvalState = false
+        for (let i = 0; i < tokenStates.length; i += 1) {
+          if (tokenStates[i]) {
+            const amountBN = BigNumber.from(0)
+            if (amountBN.gt(tokenStates[i].allowance ?? 0)) {
+              approvalState = true
+            }
+          }
+        }
+        if (parsedAmount?.greaterThan(erc.allowance.toString())) {
+          approvalState = true
+        }
+        if (approvalState) {
+          if (levApproval !== ApprovalState.PENDING) {
+            setLevApproval(ApprovalState.NOT_APPROVED)
+          }
+        } else {
+          setLevApproval(ApprovalState.APPROVED)
+        }
+      }
+    }
+    if (leverage) {
+      if (parsedAmount && !parsedAmount.equalTo('0')) checkLeverageApproval()
+      else if (levApproval !== ApprovalState.PENDING) setLevApproval(ApprovalState.UNKNOWN)
+    }
+  }, [account, chainId, lpToken?.lp, lpToken?.tokens, provider, parsedAmount, levApproval, leverage])
 
   useEffect(() => {
     const fetchInfo = async () => {
@@ -245,7 +318,7 @@ export default function StakingModal({
   }, [bank, proxyOracle, coreOracle, provider, stakingInfo?.tokens, leverage, dummyPair, positionInfo])
 
   useEffect(() => {
-    if (typedValue && info?.lpPrice && info?.lpFactor && leverage) {
+    if (typedValue && Number(typedValue) !== 0 && info?.lpPrice && info?.lpFactor && leverage) {
       const weightedSuppliedCollateralValue =
         Number(typedValue) *
           (Number(formatEther(info?.lpPrice)) / Number(formatEther(scale))) *
@@ -410,6 +483,9 @@ export default function StakingModal({
   const onUserInput = useCallback((typedValue: string) => {
     setTypedValue(typedValue)
     setInit(false)
+    if (!typedValue || Number(typedValue) === 0) {
+      initialize()
+    }
   }, [])
 
   // used for max input button
@@ -425,6 +501,26 @@ export default function StakingModal({
     if (!liquidityAmount) throw new Error('missing liquidity amount')
 
     approveCallback()
+  }
+
+  async function onAttemptToLevApprove() {
+    try {
+      setLevApproval(ApprovalState.PENDING)
+      const kit = await getConnectedKit()
+      const ERCToken = new kit.web3.eth.Contract(ERC20_ABI as AbiItem[], lpToken?.lp ?? '') as unknown as any
+      await ERCToken.methods
+        .approve(
+          Bank[chainId],
+          BigNumber.from('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff').toString()
+        )
+        .send({
+          from: kit.defaultAccount,
+          gasPrice: toWei('0.5', 'gwei'),
+        })
+    } catch (e) {
+      console.log(e)
+      setLevApproval(ApprovalState.NOT_APPROVED)
+    }
   }
 
   return (
@@ -528,29 +624,58 @@ export default function StakingModal({
           </HypotheticalRewardRate>
 
           <RowBetween>
-            <ButtonConfirmed
-              mr="0.5rem"
-              onClick={onAttemptToApprove}
-              confirmed={approval === ApprovalState.APPROVED}
-              disabled={approval !== ApprovalState.NOT_APPROVED}
-            >
-              {approval === ApprovalState.PENDING ? (
-                <AutoRow gap="6px" justify="center">
-                  Approving <Loader stroke="white" />
-                </AutoRow>
-              ) : (
-                `${t('approve')}`
-              )}
-            </ButtonConfirmed>
+            {leverage ? (
+              <ButtonConfirmed
+                mr="0.5rem"
+                onClick={onAttemptToLevApprove}
+                confirmed={levApproval === ApprovalState.APPROVED}
+                disabled={levApproval !== ApprovalState.NOT_APPROVED}
+              >
+                {levApproval === ApprovalState.PENDING ? (
+                  <AutoRow gap="6px" justify="center">
+                    Approving <Loader stroke="white" />
+                  </AutoRow>
+                ) : (
+                  `${t('approve')}`
+                )}
+              </ButtonConfirmed>
+            ) : (
+              <ButtonConfirmed
+                mr="0.5rem"
+                onClick={onAttemptToApprove}
+                confirmed={approval === ApprovalState.APPROVED}
+                disabled={approval !== ApprovalState.NOT_APPROVED}
+              >
+                {approval === ApprovalState.PENDING ? (
+                  <AutoRow gap="6px" justify="center">
+                    Approving <Loader stroke="white" />
+                  </AutoRow>
+                ) : (
+                  `${t('approve')}`
+                )}
+              </ButtonConfirmed>
+            )}
+
             <ButtonError
-              disabled={!!error || approval !== ApprovalState.APPROVED || (leverage && debtRatio >= 100)}
+              disabled={
+                !!error || leverage
+                  ? levApproval !== ApprovalState.APPROVED
+                  : approval !== ApprovalState.APPROVED || (leverage && debtRatio >= 100) || Number(typedValue) === 0
+              }
               error={(!!error && !!parsedAmount) || (leverage && debtRatio >= 90)}
               onClick={onStake}
             >
-              {leverage && debtRatio >= 100 ? 'Debt ratio too high' : error ?? `${t('deposit')}`}
+              {Number(typedValue) === 0
+                ? 'Enter an amount'
+                : leverage && debtRatio >= 100
+                ? 'Debt ratio too high'
+                : error ?? `${t('deposit')}`}
             </ButtonError>
           </RowBetween>
-          <ProgressCircles steps={[approval === ApprovalState.APPROVED]} disabled={true} />
+          <ProgressCircles
+            steps={[leverage ? levApproval === ApprovalState.APPROVED : approval === ApprovalState.APPROVED]}
+            disabled={true}
+          />
         </ContentWrapper>
       )}
       {attempting &&
