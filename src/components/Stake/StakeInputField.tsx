@@ -6,9 +6,7 @@ import styled from 'styled-components'
 
 import useTheme from '../../hooks/useTheme'
 import { useCurrencyBalance } from '../../state/wallet/hooks'
-import { TYPE } from '../../theme'
 import { Input as NumericalInput } from '../NumericalInput'
-import { RowBetween } from '../Row'
 
 const InputRow = styled.div<{ selected: boolean }>`
   ${({ theme }) => theme.flexRowNoWrap}
@@ -68,6 +66,27 @@ const StyledControlButton = styled.button`
     margin-right: 0.1rem;
   `};
 `
+
+const AmountWrapper = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+`
+
+const AmountDescriptionWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  width: unset;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 0.5rem;
+  color: ${({ theme }) => theme.text2};
+  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
+    width: 100%;
+`};
+`
 const ButtonGroup = styled.div``
 
 interface StakeInputFieldProps {
@@ -107,34 +126,27 @@ export default function StakeInputField({
       <Container hideInput={hideInput}>
         {!hideInput && (
           <LabelRow>
-            <RowBetween>
+            <AmountWrapper>
               {account && (
                 <>
-                  <TYPE.body
-                    color={theme.text2}
-                    fontWeight={500}
-                    fontSize={14}
-                    style={{ display: 'inline', cursor: 'pointer' }}
-                  >
-                    {'Current Stake: ' + (stakeBalance ? stakeBalance.toFixed(2, { groupSeparator: ',' }) : '--')}
-                  </TYPE.body>
-                  <TYPE.body
-                    onClick={onMax}
-                    color={theme.text2}
-                    fontWeight={500}
-                    fontSize={14}
-                    style={{ display: 'inline', cursor: 'pointer' }}
-                  >
-                    {!hideBalance && !!currency && selectedCurrencyBalance
-                      ? (customBalanceText ?? 'Wallet Balance: ') + selectedCurrencyBalance?.toSignificant(4)
-                      : ' -'}
-                  </TYPE.body>
+                  <AmountDescriptionWrapper>
+                    <span>Current Stake:&nbsp;</span>
+                    <span>{stakeBalance ? stakeBalance.toFixed(2, { groupSeparator: ',' }) : '--'}</span>
+                  </AmountDescriptionWrapper>
+                  <AmountDescriptionWrapper>
+                    <span>Wallet Balance:&nbsp; </span>
+                    <span>
+                      {!hideBalance && !!currency && selectedCurrencyBalance
+                        ? selectedCurrencyBalance?.toSignificant(4)
+                        : '--'}
+                    </span>
+                  </AmountDescriptionWrapper>
                 </>
               )}
-            </RowBetween>
+            </AmountWrapper>
           </LabelRow>
         )}
-        <InputRow style={hideInput ? { padding: '0', borderRadius: '8px' } : {}} selected={true}>
+        <InputRow style={{ marginTop: '-0.5rem' }} selected={true}>
           {!hideInput && (
             <>
               <NumericalInput
