@@ -4,7 +4,6 @@ import { darken } from 'polished'
 import React from 'react'
 import styled from 'styled-components'
 
-import useTheme from '../../hooks/useTheme'
 import { useCurrencyBalance } from '../../state/wallet/hooks'
 import { Input as NumericalInput } from '../NumericalInput'
 
@@ -97,7 +96,6 @@ interface StakeInputFieldProps {
   hideBalance?: boolean
   hideInput?: boolean
   id: string
-  customBalanceText?: string
   chainId?: ChainId
   stakeBalance?: TokenAmount
   walletBalance?: TokenAmount
@@ -111,7 +109,6 @@ export default function StakeInputField({
   hideBalance = false,
   hideInput = false,
   id,
-  customBalanceText,
   stakeBalance,
   walletBalance,
 }: StakeInputFieldProps) {
@@ -119,7 +116,6 @@ export default function StakeInputField({
 
   const userBalance = useCurrencyBalance(account ?? undefined, currency ?? undefined)
   const selectedCurrencyBalance = walletBalance ?? userBalance
-  const theme = useTheme()
 
   return (
     <InputPanel id={id}>
