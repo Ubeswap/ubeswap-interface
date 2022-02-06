@@ -18,14 +18,14 @@ import { Interface } from '@ethersproject/abi'
 
 import DUAL_REWARDS_ABI from 'constants/abis/moola/MoolaStakingRewards.json'
 
-interface TokenPortfolioData {
+export interface TokenPortfolioData {
   token: Token
   amount: TokenAmount
   cusdPrice: Price // cUSD price of a unit token
   cusdAmount: TokenAmount
 }
 
-interface TokenPortfolio {
+export interface TokenPortfolio {
   tokens: TokenPortofolioData[]
   valueCUSD: TokenAmount // Total cUSD value of all token holdings
 }
@@ -84,14 +84,14 @@ export const useTokenPortfolio = (): TokenPortfolio => {
   )
 }
 
-interface LPPortfolioData {
+export interface LPPortfolioData {
   pair: Pair
   amount: TokenAmount
   cusdPrice: Price // cUSD price of a unit token
   cusdAmount: TokenAmount
 }
 
-interface LPPortfolio {
+export interface LPPortfolio {
   tokens: LPPortofolioData[]
   valueCUSD: TokenAmount // Total cUSD value of all token holdings
 }
@@ -238,6 +238,8 @@ export const useCombinedLPPortfolio = (): LPPortfolio => {
 }
 
 const useCalculateLPPortfolio = (v2Pairs, v2PairsBalances): LPPortfolio => {
+  const allTokens = useAllTokens()
+
   const { network } = useContractKit()
   const chainId = network.chainId as unknown as ChainId
   // Get all the underlying tokens for the LP pairs with balance so we can lookup their prices
@@ -254,6 +256,7 @@ const useCalculateLPPortfolio = (v2Pairs, v2PairsBalances): LPPortfolio => {
     },
     [v2Pairs]
   )
+
   const baseTokenPrices: Price[] = useCUSDPrices(Object.values(baseTokens))
   // We now have a map of base token address to price, which we can reuse to calculate LP price
   const baseTokenPricesMap: Record<string, Price> = {}
@@ -288,8 +291,16 @@ const useCalculateLPPortfolio = (v2Pairs, v2PairsBalances): LPPortfolio => {
 	// Price of a unit LP token will be the total cUSD value of the balance divided by the balance itself
 	const conversionFraction = cusdAmount.divide(v2PairsBalances[pairAddress])
 	const cusdPrice = new Price(pair.liquidityToken, cUSD[chainId], conversionFraction.denominator, conversionFraction.numerator)
+
+	// Need to construct a new Pair using the tokens from the useAllTokens hook since some tokens may not be WrappedTokenInfo
+	// objects, which causes issues when fetching token images.
+	const newPair = new Pair(
+	  new TokenAmount(allTokens[pair.token0.address], pair.tokenAmounts[0].raw),
+	  new TokenAmount(allTokens[pair.token1.address], pair.tokenAmounts[1].raw)
+	)
+
 	const lpPortfolioData: LPPortfolioData = {
-	  pair,
+	  pair: newPair,
 	  amount: v2PairsBalances[pairAddress],
 	  cusdPrice: cusdPrice,
 	  cusdAmount: cusdAmount
@@ -305,6 +316,6 @@ const useCalculateLPPortfolio = (v2Pairs, v2PairsBalances): LPPortfolio => {
 	valueCUSD
       }
     },
-    [baseTokenPricesMap, totalPoolTokensMap]
+    [baseTokenPricesMap, totalPoolTokensMap, allTokens]
   )
 }

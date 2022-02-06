@@ -1,27 +1,32 @@
-import { CardNoise, CardSection, DataCard } from './styled'
+import { CardNoise, CardSection, DataCard, portfolioColors } from './styled'
 import React from 'react'
 import { TokenPortfolio, LPPortfolio } from 'pages/Portfolio/usePortfolio'
 import { useTranslation } from 'react-i18next'
 import { RowBetween } from '../Row'
-import { ExternalLink, TYPE } from '../../theme'
+import { ExternalLink, TYPE, colors } from '../../theme'
 import { PieChart } from 'react-minimal-pie-chart'
-
+import { useIsDarkMode } from 'state/user/hooks'
 import ReactApexChart from 'react-apexcharts'
 
 import styled from 'styled-components'
 import { AutoColumn } from '../Column'
 
 const Wrapper = styled(AutoColumn)<{ showBackground: boolean; bgColor: any }>`
-  border-radius: 12px;
-  width: 100%;
-  overflow: hidden;
-  position: relative;
-  background: ${({ bgColor }) => `radial-gradient(91.85% 100% at 1.84% 0%, ${bgColor} 0%, #212429 100%) `};
-  color: ${({ theme, showBackground }) => (showBackground ? theme.white : theme.text1)} !important;
-  ${({ showBackground }) =>
-    showBackground &&
-    `  box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04),
-    0px 24px 32px rgba(0, 0, 0, 0.01);`}
+border-radius: 12px;
+border-style: solid;
+border-width: 2px;
+border-color: grey;
+margin: 20px;
+padding: 20px;
+width: 100%;
+display: flex;
+flex-direction: column;
+align-items: center;
+flex-grow: 1;
+`
+
+const ChartWrapper = styled(AutoColumn)`
+width: 100%
 `
 
 interface Props {
@@ -30,38 +35,43 @@ interface Props {
 }
 
 const DataRow = styled(RowBetween)`
-${({ theme }) => theme.mediaWidth.upToSmall`
-flex-direction: column;
-`};
+flex-direction: row;
+padding: .5em;
+width: 100%;
 `
 
-const Header: React.FC = ({ children }) => {
-  return (
-    <DataRow style={{ alignItems: 'baseline', marginBottom: '12px' }}>
-      <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{children}</TYPE.mediumHeader>
-    </DataRow>
-  )
-}
+const DataRowRight = styled(RowBetween)`
+flex-direction: row;
+justify-content: flex-end;
+`
 
 export const PortfolioCard: React.FC<Props> = ({ tokenPortfolio, lpPortfolio }: Props) => {
   const { t } = useTranslation()
 
+  const darkMode = useIsDarkMode()
+  const themeColors = colors(darkMode)
+
+  if (!(tokenPortfolio && tokenPortfolio.tokens.length) || !(lpPortfolio && lpPortfolio.tokens.length)) {
+    return (<></>)
+  }
+
+  const valueTokens = parseFloat(tokenPortfolio.valueCUSD.toFixed(2))
+  const valueLiquidity = parseFloat(lpPortfolio.valueCUSD.toFixed(2))
+  const totalValue = tokenPortfolio.valueCUSD.add(lpPortfolio.valueCUSD)
+
+  const fractionTokens = (parseFloat(tokenPortfolio.valueCUSD.divide(totalValue).toFixed(2))*100).toFixed(2)
+  const fractionLiquidity = (parseFloat(lpPortfolio.valueCUSD.divide(totalValue).toFixed(2))*100).toFixed(2)
+
   const series = [
-    parseFloat(tokenPortfolio.valueCUSD.toSignificant()),
-    parseFloat(lpPortfolio.valueCUSD.toSignificant())
+    valueTokens,
+    valueLiquidity
   ]
-  console.log(series)
+
   const chartOptions = {
     chart: {
-      width: '100%',
       type: 'pie'
     },
-    labels: ['Tokens', 'Ubeswap Liquidity'],
-    theme: {
-      monochrome: {
-	enabled: true
-      }
-    },
+    labels: [t('Tokens'), t('StakedUnstakedLiquidity')],
     plotOptions: {
       pie: {
         dataLabels: {
@@ -71,15 +81,36 @@ export const PortfolioCard: React.FC<Props> = ({ tokenPortfolio, lpPortfolio }: 
     },
     legend: {
       show: false
-    }
+    },
+    theme: {
+      monochrome: {
+	enabled: true,
+	color: themeColors.primary1,
+	shadeTo: 'light',
+	shadeIntensity: .6
+      }
+    },
   }
   return (
     <Wrapper>
-      <TYPE.largeHeader>{t('portfolioDistribution')}</TYPE.largeHeader>
-      <Header>{t('portfolioDistribution')}</Header>
-      <CardSection>
+      <TYPE.largeHeader padding='10px'>{t('portfolioDistribution')}</TYPE.largeHeader>
+      <ChartWrapper>
       <ReactApexChart options={chartOptions} series={series} type="pie"/>
-      </CardSection>
+      </ChartWrapper>
+      <DataRow>
+      <TYPE.mediumHeader>{t('Tokens')}:</TYPE.mediumHeader>
+      <DataRowRight>
+      <TYPE.mediumHeader paddingRight='10px'>${valueTokens}</TYPE.mediumHeader>
+      <TYPE.subHeader>({fractionTokens}%)</TYPE.subHeader>
+      </DataRowRight>
+      </DataRow>
+      <DataRow>
+      <TYPE.mediumHeader>{t('Liquidity')}:</TYPE.mediumHeader>
+    <DataRowRight>
+      <TYPE.mediumHeader paddingRight='10px'>${valueLiquidity}</TYPE.mediumHeader>
+      <TYPE.subHeader>({fractionLiquidity}%)</TYPE.subHeader>
+      </DataRowRight>
+    </DataRow>
     </Wrapper>
   )
 }

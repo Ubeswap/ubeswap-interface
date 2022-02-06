@@ -49,4 +49,10 @@ export const CardSection = styled(AutoColumn)<{ disabled?: boolean }>`
   padding: 1rem;
   z-index: 1;
   opacity: ${({ disabled }) => disabled && '0.4'};
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 `
+
+export const portfolioColors = ['#8878C3', '#B3C379']
