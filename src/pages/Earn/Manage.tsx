@@ -180,7 +180,8 @@ export default function Manage({
 
   const toggleLeverage = () => {
     const leverage = !leverageFarm
-    if (stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0))) {
+
+    if (stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0)) || leverageError) {
       setShowLeverageModal(leverage)
     } else {
       setLeverageFarm(leverage)
@@ -196,7 +197,9 @@ export default function Manage({
   const [positionInfo, setPositionInfo] = useState<any>(undefined)
   const [myPosition, setMyPosition] = useState<any>(undefined)
   const [poolAPR, setPoolAPR] = useState<number>(0)
+  const [leverageError, setLeverageError] = useState<string | null>(null)
   const [init, setInit] = useState<boolean>(true)
+  const [leverageLoading, setLeverageLoading] = useState<boolean>(false)
   const [scale] = useState<BigNumber>(BigNumber.from(2).pow(112))
 
   const provider = useMemo(() => new Web3Provider(window.ethereum as ethers.providers.ExternalProvider).getSigner(), [])
@@ -222,7 +225,6 @@ export default function Manage({
       if (coreOracle && lpToken && stakingInfo && pairLP) {
         setMyPosition(undefined)
         const nextPositionId = await bank.nextPositionId()
-        console.log(nextPositionId.toNumber())
         let posInfo: any = undefined
         if (nextPositionId.toNumber() > 1 && !showAddLiquidityButton) {
           const batch = []
@@ -310,6 +312,7 @@ export default function Manage({
       try {
         if (bank && provider && stakingInfo && lpToken && init && dummyPair) {
           setInit(false)
+          setLeverageLoading(true)
           const secondsPerYear = BigNumber.from(31540000)
           const pairLP = new ethers.Contract(
             lpToken.lp,
@@ -328,13 +331,17 @@ export default function Manage({
             COREORACLE_ABI.abi as ContractInterface,
             provider
           ) as unknown as CoreOracle
+          setProxyOracle(proxyOracle)
+          setCoreOracle(coreOracle)
+          setPairLP(pairLP)
+
           let externalRewards = BigNumber.from(0)
           const wmstaking = new ethers.Contract(
             lpToken.wrapper,
             WMSTAKING.abi as ContractInterface,
             provider
           ) as unknown as WMStakingRewards
-          let _stakingAddress = stakingAddress
+          let _stakingAddress = await wmstaking.staking()
           const depth = Number(await wmstaking.depth())
           let amountDeposited = BigNumber.from(0)
           let staking = new ethers.Contract(
@@ -365,13 +372,15 @@ export default function Manage({
           const apr = Number(formatEther(_apr)) * 100
           const leverage = await loadPosition(coreOracle, pairLP, apr)
           setLeverageFarm(leverage)
-          setProxyOracle(proxyOracle)
-          setCoreOracle(coreOracle)
-          setPairLP(pairLP)
           setPoolAPR(apr)
+          setLeverageLoading(false)
         }
-      } catch (err) {
-        setInit(true)
+      } catch (err: any) {
+        // setInit(true)
+        if (err?.data?.message.includes('delayed celo update time')) {
+          setLeverageError("Can't enable leverage since oracle price is too old")
+        }
+        setLeverageLoading(false)
         console.log(err)
       }
     }
@@ -447,7 +456,7 @@ export default function Manage({
           </PoolData>
         </DataRow>
       )}
-      {stakingInfo && (!lpToken || (lpToken && coreOracle)) ? (
+      {stakingInfo && (!lpToken || (lpToken && coreOracle)) && !leverageLoading ? (
         <>
           {!showAddLiquidityButton && lpToken && (
             <RowEnd>
@@ -501,10 +510,12 @@ export default function Manage({
 
           <LeverageModal
             isOpen={showLeverageModal}
+            leverageError={leverageError}
             turnOnLeverage={() => setLeverageFarm(true)}
             onClose={() => setShowLeverageModal(false)}
             stakingInfo={stakingInfo}
           />
+
           <StakingModal
             isOpen={showStakingModal}
             onDismiss={() => setShowStakingModal(false)}
