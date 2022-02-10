@@ -1,3 +1,5 @@
+import { faArrowDownWideShort, faFilter } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { ErrorBoundary } from '@sentry/react'
 import { Token } from '@ubeswap/sdk'
 import TokenSelect from 'components/CurrencyInputPanel/TokenSelect'
@@ -8,6 +10,7 @@ import React, { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useOwnerStakedPools } from 'state/stake/useOwnerStakedPools'
 import styled from 'styled-components'
+import { fromWei, toBN } from 'web3-utils'
 
 import { AutoColumn, ColumnCenter, TopSection } from '../../components/Column'
 import { PoolCard } from '../../components/earn/PoolCard'
@@ -59,6 +62,7 @@ const Option = styled(FancyButton)<{ active: boolean }>`
   }
   background-color: ${({ active, theme }) => active && theme.primary1};
   color: ${({ active, theme }) => (active ? theme.white : theme.text1)};
+  font-weight: 500;
 `
 
 const Header: React.FC = ({ children }) => {
@@ -79,18 +83,28 @@ export default function Earn() {
   const [filteringToken, setFilteringToken] = useTokenFilter()
   const farmSummaries = useFarmRegistry()
   const [leverage, setLeverage] = useState<boolean>(false)
+  const [depositSort, setDepositSort] = useState<boolean>(false)
+  const [yieldSort, setYieldSort] = useState<boolean>(false)
   const filteredFarms = useMemo(() => {
-    const tmpFarmSummaries = !leverage
+    const levFarmSummaries = !leverage
       ? [...farmSummaries]
       : farmSummaries.filter((farm) => FARMS.find((levFarm) => farm.lpAddress === levFarm.lp))
+    const depositSortedSummaries = !depositSort
+      ? [...levFarmSummaries]
+      : levFarmSummaries.sort((a, b) => {
+          return Number(fromWei(toBN(b.tvlUSD).sub(toBN(a.tvlUSD))))
+        })
+    const yieldSortedSummaries = !yieldSort
+      ? [...depositSortedSummaries]
+      : depositSortedSummaries.sort((a, b) => Number(fromWei(toBN(b.rewardsUSDPerYear).sub(toBN(a.rewardsUSDPerYear)))))
     if (filteringToken === null) {
-      return tmpFarmSummaries
+      return yieldSortedSummaries
     } else {
-      return tmpFarmSummaries.filter(
+      return yieldSortedSummaries.filter(
         (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
       )
     }
-  }, [filteringToken, farmSummaries, leverage])
+  }, [filteringToken, farmSummaries, leverage, depositSort, yieldSort])
 
   const { stakedFarms, featuredFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms)
   return (
@@ -127,13 +141,34 @@ export default function Earn() {
           <RowStart>
             <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
             <Option
-              style={{ marginLeft: '10px' }}
+              style={{ marginLeft: '8px', marginBottom: '10px' }}
               onClick={() => {
                 setLeverage(!leverage)
               }}
               active={leverage}
             >
-              Leverage Yield Farms
+              <FontAwesomeIcon icon={faFilter} />
+              &nbsp;Leverage
+            </Option>
+            <Option
+              onClick={() => {
+                setDepositSort(!depositSort)
+                setYieldSort(false)
+              }}
+              active={depositSort}
+            >
+              <FontAwesomeIcon icon={faArrowDownWideShort} />
+              &nbsp;Deposit
+            </Option>
+            <Option
+              onClick={() => {
+                setYieldSort(!yieldSort)
+                setDepositSort(false)
+              }}
+              active={yieldSort}
+            >
+              <FontAwesomeIcon icon={faArrowDownWideShort} />
+              &nbsp;Yield
             </Option>
           </RowStart>
         </AutoColumn>
