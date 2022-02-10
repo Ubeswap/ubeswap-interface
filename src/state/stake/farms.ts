@@ -96,6 +96,14 @@ export const multiRewardPools: MultiRewardPool[] = [
     numRewards: 3,
     active: true,
   },
+  // ABR-mcUSD
+  {
+    address: '0x3904056570Ca95Cc3371E349A7733b5BfaeD64e5',
+    underlyingPool: '0xD94E14358f66A3C0D13ae76ec45Fe1c92Dd7Fb23',
+    basePool: '0xD94E14358f66A3C0D13ae76ec45Fe1c92Dd7Fb23',
+    numRewards: 2,
+    active: true,
+  },
 
   // ** D4P ** //
   // UBE-CELO
@@ -223,6 +231,14 @@ export const multiRewardPools: MultiRewardPool[] = [
     address: '0x83470506ba97dB33Df0EBe01E876C6718C762Df6',
     underlyingPool: '0x33cD870547DD6F30db86e7EE7707DC78e7825289',
     basePool: '0x33cD870547DD6F30db86e7EE7707DC78e7825289',
+    numRewards: 2,
+    active: true,
+  },
+  // CELO-mCREAL
+  {
+    address: '0x1dF0A9C8313a005793501bAC2150DFb895D10Fad',
+    underlyingPool: '0xdD8A979B6524A806EA1f1Fc8231c4c9faC40cFeB',
+    basePool: '0xdD8A979B6524A806EA1f1Fc8231c4c9faC40cFeB',
     numRewards: 2,
     active: true,
   },
