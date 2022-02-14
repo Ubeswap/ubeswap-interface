@@ -74,7 +74,7 @@ export default function TokenSelect(props: Props) {
             ) : (
               <>
                 <FontAwesomeIcon icon={faFilter} />
-                <StyledTokenName>Filter By Token</StyledTokenName>
+                <StyledTokenName>Token</StyledTokenName>
               </>
             )}
           </Aligner>

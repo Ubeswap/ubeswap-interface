@@ -96,7 +96,7 @@ export default function Earn() {
         })
     const yieldSortedSummaries = !yieldSort
       ? [...depositSortedSummaries]
-      : depositSortedSummaries.sort((a, b) => Number(fromWei(toBN(b.rewardsUSDPerYear).sub(toBN(a.rewardsUSDPerYear)))))
+      : depositSortedSummaries.sort((a, b) => Number(b.apy) - Number(a.apy))
     if (filteringToken === null) {
       return yieldSortedSummaries
     } else {
