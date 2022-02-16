@@ -5,7 +5,7 @@ import { useOnClickOutside } from '../../hooks/useOnClickOutside'
 import { ApplicationModal } from '../../state/application/actions'
 import { useModalOpen, useToggleModal } from '../../state/application/hooks'
 import { ExternalLink } from '../../theme'
-import { StyledNavMenu } from './BridgeMenuGroup'
+import { StyledNavMenu } from './NavMenu'
 
 const StyledMenu = styled.div`
   display: flex;
