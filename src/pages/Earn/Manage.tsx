@@ -532,7 +532,7 @@ export default function Manage({
             dummyPair={dummyPair}
             lpToken={lpToken}
             provider={provider}
-            existingPosition={myPosition.reserves}
+            existingPosition={myPosition ? myPosition.reserves : undefined}
             positionInfo={positionInfo}
           />
           <UnstakingModal

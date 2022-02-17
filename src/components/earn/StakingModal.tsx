@@ -91,7 +91,7 @@ interface StakingModalProps {
   lpToken: Farm | undefined
   provider: ethers.providers.Web3Provider | ethers.providers.JsonRpcSigner
   positionInfo: any
-  existingPosition: BigNumber[]
+  existingPosition: BigNumber[] | undefined
 }
 
 export default function StakingModal({
@@ -360,14 +360,15 @@ export default function StakingModal({
     if (info && typedValue && Number(typedValue) !== 0) {
       const individualBorrow = amounts.map(
         (x, i) =>
-          (Number(x) + Number(positionInfo && info?.prevBorrow ? Number(formatEther(info?.prevBorrow[i])) : 0)) *
+          (Number(x) +
+            Number(positionInfo && info?.prevBorrow.length > 0 ? Number(formatEther(info?.prevBorrow[i])) : 0)) *
           (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale)))
       )
       const borrowValue = individualBorrow ? individualBorrow.reduce((sum, current) => sum + current, 0) : 0
       const supplyValue = stakingInfo.tokens
         .map(
           (x, i) =>
-            Number(positionInfo && info?.prevCollateral ? Number(formatEther(info.prevCollateral[i])) : 0) *
+            Number(positionInfo && info?.prevCollateral.length > 0 ? Number(formatEther(info.prevCollateral[i])) : 0) *
             (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale)))
         )
         .reduce(
