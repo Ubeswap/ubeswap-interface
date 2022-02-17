@@ -1,9 +1,8 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { getAddress, isAddress } from '@ethersproject/address'
 import { BigNumber } from '@ethersproject/bignumber'
-import { JsonRpcSigner } from '@ethersproject/providers'
 import { formatEther } from '@ethersproject/units'
-import { Pair, TokenAmount } from '@ubeswap/sdk'
+import { ChainId, Pair, TokenAmount } from '@ubeswap/sdk'
 import { LightCard } from 'components/Card'
 import Loader from 'components/Loader'
 import { useDoTransaction } from 'components/swap/routing'
@@ -12,8 +11,11 @@ import { ContractInterface, ethers } from 'ethers'
 import { ProxyOracle } from 'generated'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useDispatch } from 'react-redux'
 import { Text } from 'rebass'
+import { AppDispatch } from 'state'
 import { tryParseAmount } from 'state/swap/hooks'
+import { addTransaction } from 'state/transactions/actions'
 import styled, { ThemeContext } from 'styled-components'
 import { AbiItem, toBN, toWei } from 'web3-utils'
 
@@ -87,8 +89,9 @@ interface StakingModalProps {
   coreOracle: CoreOracle | null
   dummyPair: Pair | undefined
   lpToken: Farm | undefined
-  provider: JsonRpcSigner
+  provider: ethers.providers.Web3Provider | ethers.providers.JsonRpcSigner
   positionInfo: any
+  existingPosition: BigNumber[]
 }
 
 export default function StakingModal({
@@ -106,10 +109,12 @@ export default function StakingModal({
   lpToken,
   provider,
   positionInfo,
+  existingPosition,
 }: StakingModalProps) {
   const { getConnectedKit, network, address: account } = useContractKit()
-  const { chainId } = network
+  const chainId = network.chainId as unknown as ChainId
   const library = useProvider()
+  const dispatch = useDispatch<AppDispatch>()
   // track and parse user input
   const [typedValue, setTypedValue] = useState('')
   const { parsedAmount, error } = useDerivedStakeInfo(typedValue, stakingInfo.stakingToken, userLiquidityUnstaked)
@@ -265,22 +270,9 @@ export default function StakingModal({
           existingBorrow = await bank.getBorrowCELOValue(positionInfo.positionId)
         }
 
-        let reserve0: BigNumber
-        let reserve1: BigNumber
-        if (stakingInfo.tokens[0] !== undefined && dummyPair.token0 === stakingInfo.tokens[0]) {
-          reserve0 = BigNumber.from(dummyPair.reserve0.toExact())
-          reserve1 = BigNumber.from(dummyPair.reserve1.toExact())
-        } else {
-          reserve0 = BigNumber.from(dummyPair.reserve1.toExact())
-          reserve1 = BigNumber.from(dummyPair.reserve0.toExact())
-        }
-
         const prevBorrow: BigNumber[] = []
         let prevCollateral: BigNumber[] = []
-        if (positionInfo) {
-          const existingPosition = [reserve0, reserve1].map((reserve) =>
-            reserve.mul(positionInfo.collateralSize).div(positionInfo.totalSupply)
-          )
+        if (positionInfo && existingPosition) {
           const positionDebts = await bank.getPositionDebts(positionInfo.positionId)
           for (let i = 0; i < stakingInfo.tokens.length; i += 1) {
             const token = stakingInfo.tokens[i]
@@ -300,8 +292,6 @@ export default function StakingModal({
           celoPrices: prices,
           lpFactor,
           lpPrice,
-          reserve0,
-          reserve1,
           borrows,
           availableBorrows,
           existingCollateral,
@@ -315,7 +305,17 @@ export default function StakingModal({
       }
     }
     fetchInfo()
-  }, [bank, proxyOracle, coreOracle, provider, stakingInfo?.tokens, leverage, dummyPair, positionInfo])
+  }, [
+    bank,
+    proxyOracle,
+    coreOracle,
+    provider,
+    stakingInfo?.tokens,
+    leverage,
+    dummyPair,
+    positionInfo,
+    existingPosition,
+  ])
 
   useEffect(() => {
     if (typedValue && Number(typedValue) !== 0 && info?.lpPrice && info?.lpFactor && leverage) {
@@ -360,14 +360,14 @@ export default function StakingModal({
     if (info && typedValue && Number(typedValue) !== 0) {
       const individualBorrow = amounts.map(
         (x, i) =>
-          (Number(x) + positionInfo ? Number(formatEther(info?.prevBorrow[i])) : 0) *
+          (Number(x) + Number(positionInfo && info?.prevBorrow ? Number(formatEther(info?.prevBorrow[i])) : 0)) *
           (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale)))
       )
       const borrowValue = individualBorrow ? individualBorrow.reduce((sum, current) => sum + current, 0) : 0
       const supplyValue = stakingInfo.tokens
         .map(
           (x, i) =>
-            (positionInfo ? Number(info.prevCollateral[i]) : 0) *
+            Number(positionInfo && info?.prevCollateral ? Number(formatEther(info.prevCollateral[i])) : 0) *
             (Number(formatEther(info?.celoPrices[i])) / Number(formatEther(scale)))
         )
         .reduce(
@@ -457,6 +457,14 @@ export default function StakingModal({
             gasPrice: toWei('0.5', 'gwei'),
           })
         setHash(tx.transactionHash)
+        dispatch(
+          addTransaction({
+            hash: tx.transactionHash,
+            from: account ? account : '',
+            chainId,
+            summary: `${t('LeverageYieldFarm')}`,
+          })
+        )
         onLevDepositSuccess()
       } catch (e) {
         console.log(e)
@@ -508,7 +516,7 @@ export default function StakingModal({
       setLevApproval(ApprovalState.PENDING)
       const kit = await getConnectedKit()
       const ERCToken = new kit.web3.eth.Contract(ERC20_ABI as AbiItem[], lpToken?.lp ?? '') as unknown as any
-      await ERCToken.methods
+      const tx = await ERCToken.methods
         .approve(
           Bank[chainId],
           BigNumber.from('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff').toString()
@@ -517,6 +525,14 @@ export default function StakingModal({
           from: kit.defaultAccount,
           gasPrice: toWei('0.5', 'gwei'),
         })
+      dispatch(
+        addTransaction({
+          hash: tx.transactionHash,
+          from: account ? account : '',
+          chainId,
+          summary: `Approve ${parsedAmount?.currency.symbol}`,
+        })
+      )
     } catch (e) {
       console.log(e)
       setLevApproval(ApprovalState.NOT_APPROVED)

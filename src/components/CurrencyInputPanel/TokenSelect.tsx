@@ -73,7 +73,7 @@ export default function TokenSelect(props: Props) {
               </>
             ) : (
               <>
-                <FontAwesomeIcon icon={faFilter} />
+                <FontAwesomeIcon icon={faFilter} width={'16px'} />
                 <StyledTokenName>Token</StyledTokenName>
               </>
             )}

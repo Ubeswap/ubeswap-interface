@@ -1,6 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { getAddress } from '@ethersproject/address'
-import { Web3Provider } from '@ethersproject/providers'
 import { formatEther } from '@ethersproject/units'
 import { ChainId as UbeswapChainId, cUSD, JSBI, Pair, TokenAmount } from '@ubeswap/sdk'
 import StakedAmountsHelper from 'components/earn/StakedAmountsHelper'
@@ -13,6 +12,7 @@ import { Link, RouteComponentProps } from 'react-router-dom'
 import { usePairStakingInfo } from 'state/stake/useStakingInfo'
 import styled, { ThemeContext } from 'styled-components'
 import { CountUp } from 'use-count-up'
+import { getProviderOrSigner } from 'utils'
 
 import { WMStakingRewards } from '../..//generated/WMStakingRewards'
 import { ButtonEmpty, ButtonPrimary } from '../../components/Button'
@@ -202,7 +202,9 @@ export default function Manage({
   const [leverageLoading, setLeverageLoading] = useState<boolean>(false)
   const [scale] = useState<BigNumber>(BigNumber.from(2).pow(112))
 
-  const provider = useMemo(() => new Web3Provider(window.ethereum as ethers.providers.ExternalProvider).getSigner(), [])
+  const library = useProvider()
+  const provider = getProviderOrSigner(library, account ? account : undefined)
+  // const provider = useMemo(() => new Web3Provider(window.ethereum as ethers.providers.ExternalProvider).getSigner(), [])
 
   const bank = useMemo(
     () => new ethers.Contract(Bank[chainId], BANK_ABI.abi as ContractInterface, provider) as unknown as HomoraBank,
@@ -530,6 +532,7 @@ export default function Manage({
             dummyPair={dummyPair}
             lpToken={lpToken}
             provider={provider}
+            existingPosition={myPosition.reserves}
             positionInfo={positionInfo}
           />
           <UnstakingModal
