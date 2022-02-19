@@ -69,61 +69,61 @@ export const useMultiRewardPool = (): MultiRewardPool[] => {
   const library = useProvider()
   const farmSummaries = useFarmRegistry()
 
-  const [rwdPool, setRwdPool] = React.useState<MultiRewardPool[]>([])
+  const [multiRewardPools, setMultiRewardPools] = React.useState<MultiRewardPool[]>([])
 
   const call = React.useCallback(async () => {
     const multiRwdPools: MultiRewardPool[] = []
 
-    // loop through each farm to find those with double and triple rewards
-    for (let i = 0; i < farmSummaries.length; i++) {
-      let poolContract = new Contract(
-        farmSummaries[i].stakingAddress,
-        DUAL_REWARDS_ABI,
-        getProviderOrSigner(library) as any
-      )
-      const rewardsToken = []
-      const externalStakingRwdAddresses = []
+    await Promise.all(
+      farmSummaries.map(async (fs) => {
+        let poolContract = new Contract(fs.stakingAddress, DUAL_REWARDS_ABI, getProviderOrSigner(library) as any)
+        const rewardsToken = []
+        const externalStakingRwdAddresses = []
 
-      // the first reward token at the top level
-      rewardsToken.push(await poolContract.rewardsToken())
+        // the first reward token at the top level
+        rewardsToken.push(await poolContract.rewardsToken())
 
-      // last time the contract was updated - set isActive to false if it has been longer than 2 months
-      const periodFinish = await poolContract.periodFinish()
-      const isActive = Math.floor(Date.now() / 1000) - periodFinish > 5259492 ? false : true
+        // last time the contract was updated - set isActive to false if it has been longer than 2 months
+        const periodFinish = await poolContract.periodFinish()
+        const isActive = Math.floor(Date.now() / 1000) - periodFinish > 5259492 ? false : true
 
-      let baseContractFound = false
-      // recursivley find underlying and base pool contracts
-      while (!baseContractFound) {
-        try {
-          const externalStakingRewardAddr = await poolContract.externalStakingRewards()
-          externalStakingRwdAddresses.push(externalStakingRewardAddr)
-          poolContract = new Contract(externalStakingRewardAddr, DUAL_REWARDS_ABI, getProviderOrSigner(library) as any)
-          rewardsToken.push(await poolContract.rewardsToken())
-        } catch (e) {
-          //set true when externalStakingRewards() throws an error
-          baseContractFound = true
+        let baseContractFound = false
+        // recursivley find underlying and base pool contracts
+        while (!baseContractFound) {
+          try {
+            const externalStakingRewardAddr = await poolContract.externalStakingRewards()
+            externalStakingRwdAddresses.push(externalStakingRewardAddr)
+            poolContract = new Contract(
+              externalStakingRewardAddr,
+              DUAL_REWARDS_ABI,
+              getProviderOrSigner(library) as any
+            )
+            rewardsToken.push(await poolContract.rewardsToken())
+          } catch (e) {
+            //set true when externalStakingRewards() throws an error
+            baseContractFound = true
+          }
         }
-      }
 
-      if (rewardsToken.length > 1) {
-        multiRwdPools.push({
-          address: farmSummaries[i].stakingAddress,
-          underlyingPool: externalStakingRwdAddresses[0],
-          basePool: externalStakingRwdAddresses[1] ? externalStakingRwdAddresses[1] : externalStakingRwdAddresses[0],
-          numRewards: rewardsToken.length,
-          active: isActive,
-        })
-      }
-    }
-
-    setRwdPool(multiRwdPools)
+        if (rewardsToken.length > 1) {
+          multiRwdPools.push({
+            address: fs.stakingAddress,
+            underlyingPool: externalStakingRwdAddresses[0],
+            basePool: externalStakingRwdAddresses[1] ? externalStakingRwdAddresses[1] : externalStakingRwdAddresses[0],
+            numRewards: rewardsToken.length,
+            active: isActive,
+          })
+        }
+      })
+    )
+    setMultiRewardPools(multiRwdPools)
   }, [farmSummaries])
 
   useEffect(() => {
     call()
   }, [call])
 
-  return rwdPool
+  return multiRewardPools
 }
 
 export const usePairMultiStakingInfo = (
