@@ -117,7 +117,7 @@ export const useMultiRewardPool = (): MultiRewardPool[] => {
       })
     )
     setMultiRewardPools(multiRwdPools)
-  }, [farmSummaries])
+  }, [farmSummaries, library])
 
   useEffect(() => {
     call()
@@ -136,7 +136,7 @@ export const usePairMultiStakingInfo = (
     return multiRewardPools
       .filter((x) => x.address.toLowerCase() === stakingAddress.toLowerCase())
       .find((x) => x.basePool.toLowerCase() === stakingInfo?.poolInfo.poolAddress.toLowerCase())
-  }, [multiRewardPools])
+  }, [multiRewardPools, stakingAddress, stakingInfo?.poolInfo.poolAddress])
 
   const isTriple = multiRewardPool?.numRewards === 3
 
