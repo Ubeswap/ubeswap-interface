@@ -9,7 +9,7 @@ import { useAllTokens } from 'hooks/Tokens'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import zip from 'lodash/zip'
 // Hooks
-import { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 
 import ERC_20_INTERFACE from '../../constants/abis/erc20'
 import DUAL_REWARDS_ABI from '../../constants/abis/moola/MoolaStakingRewards.json'
@@ -26,7 +26,7 @@ import {
   useSingleContractMultipleData,
 } from '../multicall/hooks'
 import { tryParseAmount } from '../swap/hooks'
-import { MultiRewardPool, multiRewardPools } from './farms'
+import { MultiRewardPool } from './farms'
 import { useMultiStakeRewards } from './useDualStakeRewards'
 import useStakingInfo from './useStakingInfo'
 
@@ -65,67 +65,78 @@ export interface StakingInfo {
   readonly rewardTokens: Token[]
 }
 
-export const useMultiRewardPool = async (): Promise<MultiRewardPool[]> => {
+export const useMultiRewardPool = (): MultiRewardPool[] => {
   const library = useProvider()
-  const farmSummaries = await useFarmRegistry()
+  const farmSummaries = useFarmRegistry()
 
-  const multiRwdPools: MultiRewardPool[] = []
+  const [rwdPool, setRwdPool] = React.useState<MultiRewardPool[]>([])
 
-  // loop through each farm to find those with double and triple rewards
-  for (let i = 0; i < farmSummaries.length; i++) {
-    console.log(i)
-    let poolContract = new Contract(
-      farmSummaries[i].stakingAddress,
-      DUAL_REWARDS_ABI,
-      getProviderOrSigner(library) as any
-    )
-    const rewardsToken = []
-    const externalStakingRwdAddresses = []
+  const call = React.useCallback(async () => {
+    const multiRwdPools: MultiRewardPool[] = []
 
-    // the first reward token at the top level
-    rewardsToken.push(await poolContract.rewardsToken())
+    // loop through each farm to find those with double and triple rewards
+    for (let i = 0; i < farmSummaries.length; i++) {
+      let poolContract = new Contract(
+        farmSummaries[i].stakingAddress,
+        DUAL_REWARDS_ABI,
+        getProviderOrSigner(library) as any
+      )
+      const rewardsToken = []
+      const externalStakingRwdAddresses = []
 
-    // last time the contract was updated - set isActive to false if it has been longer than 2 months
-    const periodFinish = await poolContract.periodFinish()
-    const isActive = Math.floor(Date.now() / 1000) - periodFinish > 5259492 ? false : true
+      // the first reward token at the top level
+      rewardsToken.push(await poolContract.rewardsToken())
 
-    let baseContractFound = false
-    // recursivley find underlying and base pool contracts
-    while (!baseContractFound) {
-      try {
-        const externalStakingRewardAddr = await poolContract.externalStakingRewards()
-        externalStakingRwdAddresses.push(externalStakingRewardAddr)
-        poolContract = new Contract(externalStakingRewardAddr, DUAL_REWARDS_ABI, getProviderOrSigner(library) as any)
-        rewardsToken.push(await poolContract.rewardsToken())
-      } catch (e) {
-        //set true when externalStakingRewards() throws an error
-        baseContractFound = true
+      // last time the contract was updated - set isActive to false if it has been longer than 2 months
+      const periodFinish = await poolContract.periodFinish()
+      const isActive = Math.floor(Date.now() / 1000) - periodFinish > 5259492 ? false : true
+
+      let baseContractFound = false
+      // recursivley find underlying and base pool contracts
+      while (!baseContractFound) {
+        try {
+          const externalStakingRewardAddr = await poolContract.externalStakingRewards()
+          externalStakingRwdAddresses.push(externalStakingRewardAddr)
+          poolContract = new Contract(externalStakingRewardAddr, DUAL_REWARDS_ABI, getProviderOrSigner(library) as any)
+          rewardsToken.push(await poolContract.rewardsToken())
+        } catch (e) {
+          //set true when externalStakingRewards() throws an error
+          baseContractFound = true
+        }
+      }
+
+      if (rewardsToken.length > 1) {
+        multiRwdPools.push({
+          address: farmSummaries[i].stakingAddress,
+          underlyingPool: externalStakingRwdAddresses[0],
+          basePool: externalStakingRwdAddresses[1] ? externalStakingRwdAddresses[1] : externalStakingRwdAddresses[0],
+          numRewards: rewardsToken.length,
+          active: isActive,
+        })
       }
     }
 
-    if (rewardsToken.length > 1) {
-      multiRwdPools.push({
-        address: farmSummaries[i].stakingAddress,
-        underlyingPool: externalStakingRwdAddresses[0],
-        basePool: externalStakingRwdAddresses[1] ? externalStakingRwdAddresses[1] : externalStakingRwdAddresses[0],
-        numRewards: rewardsToken.length,
-        active: isActive,
-      })
-    }
-  }
+    setRwdPool(multiRwdPools)
+  }, [farmSummaries])
 
-  console.log(multiRwdPools)
-  return multiRwdPools
+  useEffect(() => {
+    call()
+  }, [call])
+
+  return rwdPool
 }
 
 export const usePairMultiStakingInfo = (
   stakingInfo: StakingInfo | undefined,
   stakingAddress: string
 ): StakingInfo | null => {
-  const multiRwdPools = useMultiRewardPool()
-  const multiRewardPool = multiRewardPools
-    .filter((x) => x.address.toLowerCase() === stakingAddress.toLowerCase())
-    .find((x) => x.basePool.toLowerCase() === stakingInfo?.poolInfo.poolAddress.toLowerCase())
+  const multiRewardPools = useMultiRewardPool()
+
+  const multiRewardPool = useMemo(() => {
+    return multiRewardPools
+      .filter((x) => x.address.toLowerCase() === stakingAddress.toLowerCase())
+      .find((x) => x.basePool.toLowerCase() === stakingInfo?.poolInfo.poolAddress.toLowerCase())
+  }, [multiRewardPools])
 
   const isTriple = multiRewardPool?.numRewards === 3
 
