@@ -1,8 +1,9 @@
-import { ChainId, useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { BigNumber } from '@ethersproject/bignumber'
 import { ChainId as UbeswapChainId, JSBI, Pair, Token, TokenAmount } from '@ubeswap/sdk'
 import { POOL_MANAGER } from 'constants/poolManager'
 import { UBE } from 'constants/tokens'
+import { Contract } from 'ethers'
 import { PoolManager } from 'generated/'
 import { useAllTokens } from 'hooks/Tokens'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
@@ -11,10 +12,13 @@ import zip from 'lodash/zip'
 import { useMemo } from 'react'
 
 import ERC_20_INTERFACE from '../../constants/abis/erc20'
+import DUAL_REWARDS_ABI from '../../constants/abis/moola/MoolaStakingRewards.json'
 import { STAKING_REWARDS_INTERFACE } from '../../constants/abis/staking-rewards'
 // Interfaces
 import { UNISWAP_V2_PAIR_INTERFACE } from '../../constants/abis/uniswap-v2-pair'
 import { usePoolManagerContract, useTokenContract } from '../../hooks/useContract'
+import { useFarmRegistry } from '../../pages/Earn/useFarmRegistry'
+import { getProviderOrSigner } from '../../utils/index'
 import {
   NEVER_RELOAD,
   useMultipleContractSingleData,
@@ -22,7 +26,7 @@ import {
   useSingleContractMultipleData,
 } from '../multicall/hooks'
 import { tryParseAmount } from '../swap/hooks'
-import { multiRewardPools } from './farms'
+import { MultiRewardPool, multiRewardPools } from './farms'
 import { useMultiStakeRewards } from './useDualStakeRewards'
 import useStakingInfo from './useStakingInfo'
 
@@ -61,10 +65,64 @@ export interface StakingInfo {
   readonly rewardTokens: Token[]
 }
 
+export const useMultiRewardPool = async (): Promise<MultiRewardPool[]> => {
+  const library = useProvider()
+  const farmSummaries = await useFarmRegistry()
+
+  const multiRwdPools: MultiRewardPool[] = []
+
+  // loop through each farm to find those with double and triple rewards
+  for (let i = 0; i < farmSummaries.length; i++) {
+    console.log(i)
+    let poolContract = new Contract(
+      farmSummaries[i].stakingAddress,
+      DUAL_REWARDS_ABI,
+      getProviderOrSigner(library) as any
+    )
+    const rewardsToken = []
+    const externalStakingRwdAddresses = []
+
+    // the first reward token at the top level
+    rewardsToken.push(await poolContract.rewardsToken())
+
+    // last time the contract was updated - set isActive to false if it has been longer than 2 months
+    const periodFinish = await poolContract.periodFinish()
+    const isActive = Math.floor(Date.now() / 1000) - periodFinish > 5259492 ? false : true
+
+    let baseContractFound = false
+    // recursivley find underlying and base pool contracts
+    while (!baseContractFound) {
+      try {
+        const externalStakingRewardAddr = await poolContract.externalStakingRewards()
+        externalStakingRwdAddresses.push(externalStakingRewardAddr)
+        poolContract = new Contract(externalStakingRewardAddr, DUAL_REWARDS_ABI, getProviderOrSigner(library) as any)
+        rewardsToken.push(await poolContract.rewardsToken())
+      } catch (e) {
+        //set true when externalStakingRewards() throws an error
+        baseContractFound = true
+      }
+    }
+
+    if (rewardsToken.length > 1) {
+      multiRwdPools.push({
+        address: farmSummaries[i].stakingAddress,
+        underlyingPool: externalStakingRwdAddresses[0],
+        basePool: externalStakingRwdAddresses[1] ? externalStakingRwdAddresses[1] : externalStakingRwdAddresses[0],
+        numRewards: rewardsToken.length,
+        active: isActive,
+      })
+    }
+  }
+
+  console.log(multiRwdPools)
+  return multiRwdPools
+}
+
 export const usePairMultiStakingInfo = (
   stakingInfo: StakingInfo | undefined,
   stakingAddress: string
 ): StakingInfo | null => {
+  const multiRwdPools = useMultiRewardPool()
   const multiRewardPool = multiRewardPools
     .filter((x) => x.address.toLowerCase() === stakingAddress.toLowerCase())
     .find((x) => x.basePool.toLowerCase() === stakingInfo?.poolInfo.poolAddress.toLowerCase())
