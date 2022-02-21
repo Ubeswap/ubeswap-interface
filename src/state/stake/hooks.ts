@@ -32,6 +32,7 @@ import useStakingInfo from './useStakingInfo'
 
 export const STAKING_GENESIS = 1619100000
 const ACTIVE_CONTRACT_UPDATED_THRESHOLD = 5259492
+const UNPREDICTABLE_GAS_LIMIT_ERROR_CODE = 'UNPREDICTABLE_GAS_LIMIT'
 
 export interface StakingInfo {
   // the address of the reward contract
@@ -100,7 +101,12 @@ export const useMultiRewardPools = (): MultiRewardPool[] => {
               getProviderOrSigner(library) as any
             )
             rewardsTokens.push(await poolContract.rewardsToken())
-          } catch (e) {
+          } catch (e: any) {
+            //if the error is not what is expected - log it
+            if (e.code !== UNPREDICTABLE_GAS_LIMIT_ERROR_CODE) {
+              console.log(e)
+            }
+
             //set true when externalStakingRewards() throws an error
             baseContractFound = true
           }
