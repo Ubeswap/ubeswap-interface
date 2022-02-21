@@ -105,7 +105,7 @@ export const useMultiRewardPools = (): MultiRewardPool[] => {
           }
         }
 
-        if (externalStakingRwdAddresses.length > 0) {
+        if (externalStakingRwdAddresses.length) {
           multiRwdPools.push({
             address: fs.stakingAddress,
             underlyingPool: externalStakingRwdAddresses[0],
