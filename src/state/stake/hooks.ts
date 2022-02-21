@@ -3,8 +3,7 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { ChainId as UbeswapChainId, JSBI, Pair, Token, TokenAmount } from '@ubeswap/sdk'
 import { POOL_MANAGER } from 'constants/poolManager'
 import { UBE } from 'constants/tokens'
-import { Contract } from 'ethers'
-import { PoolManager } from 'generated/'
+import { MoolaStakingRewards__factory, PoolManager } from 'generated/'
 import { useAllTokens } from 'hooks/Tokens'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import zip from 'lodash/zip'
@@ -12,13 +11,11 @@ import zip from 'lodash/zip'
 import React, { useEffect, useMemo } from 'react'
 
 import ERC_20_INTERFACE from '../../constants/abis/erc20'
-import DUAL_REWARDS_ABI from '../../constants/abis/moola/MoolaStakingRewards.json'
 import { STAKING_REWARDS_INTERFACE } from '../../constants/abis/staking-rewards'
 // Interfaces
 import { UNISWAP_V2_PAIR_INTERFACE } from '../../constants/abis/uniswap-v2-pair'
 import { usePoolManagerContract, useTokenContract } from '../../hooks/useContract'
 import { useFarmRegistry } from '../../pages/Earn/useFarmRegistry'
-import { getProviderOrSigner } from '../../utils/index'
 import {
   NEVER_RELOAD,
   useMultipleContractSingleData,
@@ -78,7 +75,7 @@ export const useMultiRewardPools = (): MultiRewardPool[] => {
 
     await Promise.all(
       farmSummaries.map(async (fs) => {
-        let poolContract = new Contract(fs.stakingAddress, DUAL_REWARDS_ABI, getProviderOrSigner(library) as any)
+        let poolContract = MoolaStakingRewards__factory.connect(fs.stakingAddress, library)
         const rewardsTokens = []
         const externalStakingRwdAddresses = []
 
@@ -87,7 +84,7 @@ export const useMultiRewardPools = (): MultiRewardPool[] => {
 
         // last time the contract was updated - set isActive to false if it has been longer than 2 months
         const periodFinish = await poolContract.periodFinish()
-        const isActive = Math.floor(Date.now() / 1000) - periodFinish < ACTIVE_CONTRACT_UPDATED_THRESHOLD
+        const isActive = Math.floor(Date.now() / 1000) - periodFinish.toNumber() < ACTIVE_CONTRACT_UPDATED_THRESHOLD
 
         let baseContractFound = false
         // recursivley find underlying and base pool contracts
@@ -95,11 +92,7 @@ export const useMultiRewardPools = (): MultiRewardPool[] => {
           try {
             const externalStakingRewardAddr = await poolContract.externalStakingRewards()
             externalStakingRwdAddresses.push(externalStakingRewardAddr)
-            poolContract = new Contract(
-              externalStakingRewardAddr,
-              DUAL_REWARDS_ABI,
-              getProviderOrSigner(library) as any
-            )
+            poolContract = MoolaStakingRewards__factory.connect(externalStakingRewardAddr, library)
             rewardsTokens.push(await poolContract.rewardsToken())
           } catch (e: any) {
             //if the error is not what is expected - log it
