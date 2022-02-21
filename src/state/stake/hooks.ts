@@ -31,6 +31,7 @@ import { useMultiStakeRewards } from './useDualStakeRewards'
 import useStakingInfo from './useStakingInfo'
 
 export const STAKING_GENESIS = 1619100000
+const ACTIVE_CONTRACT_UPDATED_THRESHOLD = 5259492
 
 export interface StakingInfo {
   // the address of the reward contract
@@ -65,7 +66,7 @@ export interface StakingInfo {
   readonly rewardTokens: Token[]
 }
 
-export const useMultiRewardPool = (): MultiRewardPool[] => {
+export const useMultiRewardPools = (): MultiRewardPool[] => {
   const library = useProvider()
   const farmSummaries = useFarmRegistry()
 
@@ -77,15 +78,15 @@ export const useMultiRewardPool = (): MultiRewardPool[] => {
     await Promise.all(
       farmSummaries.map(async (fs) => {
         let poolContract = new Contract(fs.stakingAddress, DUAL_REWARDS_ABI, getProviderOrSigner(library) as any)
-        const rewardsToken = []
+        const rewardsTokens = []
         const externalStakingRwdAddresses = []
 
         // the first reward token at the top level
-        rewardsToken.push(await poolContract.rewardsToken())
+        rewardsTokens.push(await poolContract.rewardsToken())
 
         // last time the contract was updated - set isActive to false if it has been longer than 2 months
         const periodFinish = await poolContract.periodFinish()
-        const isActive = Math.floor(Date.now() / 1000) - periodFinish > 5259492 ? false : true
+        const isActive = Math.floor(Date.now() / 1000) - periodFinish < ACTIVE_CONTRACT_UPDATED_THRESHOLD
 
         let baseContractFound = false
         // recursivley find underlying and base pool contracts
@@ -98,19 +99,19 @@ export const useMultiRewardPool = (): MultiRewardPool[] => {
               DUAL_REWARDS_ABI,
               getProviderOrSigner(library) as any
             )
-            rewardsToken.push(await poolContract.rewardsToken())
+            rewardsTokens.push(await poolContract.rewardsToken())
           } catch (e) {
             //set true when externalStakingRewards() throws an error
             baseContractFound = true
           }
         }
 
-        if (rewardsToken.length > 1) {
+        if (externalStakingRwdAddresses.length > 0) {
           multiRwdPools.push({
             address: fs.stakingAddress,
             underlyingPool: externalStakingRwdAddresses[0],
-            basePool: externalStakingRwdAddresses[1] ? externalStakingRwdAddresses[1] : externalStakingRwdAddresses[0],
-            numRewards: rewardsToken.length,
+            basePool: externalStakingRwdAddresses[externalStakingRwdAddresses.length - 1],
+            numRewards: rewardsTokens.length,
             active: isActive,
           })
         }
@@ -130,7 +131,7 @@ export const usePairMultiStakingInfo = (
   stakingInfo: StakingInfo | undefined,
   stakingAddress: string
 ): StakingInfo | null => {
-  const multiRewardPools = useMultiRewardPool()
+  const multiRewardPools = useMultiRewardPools()
 
   const multiRewardPool = useMemo(() => {
     return multiRewardPools
