@@ -1,5 +1,17 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { CELO, ChainId as UbeswapChainId, currencyEquals, cUSD, Price, Token } from '@ubeswap/sdk'
+import {
+  CELO,
+  ChainId as UbeswapChainId,
+  currencyEquals,
+  cUSD,
+  JSBI,
+  Pair,
+  Price,
+  Token,
+  TokenAmount,
+} from '@ubeswap/sdk'
+import { useTotalSupply } from 'data/TotalSupply'
+import { useToken } from 'hooks/Tokens'
 import { useMemo } from 'react'
 
 import { MCUSD } from '../constants/index'
@@ -17,14 +29,12 @@ export function useCUSDPrices(tokens?: Token[]): (Price | undefined)[] | undefin
   } = useContractKit()
   const CUSD = cUSD[chainId as unknown as UbeswapChainId]
   const celo = CELO[chainId as unknown as UbeswapChainId]
-  const mcUSD = MCUSD[chainId as unknown as UbeswapChainId]
   const tokenPairs: TokenPair[] = useMemo(
     () =>
       tokens
         ?.map((token) => [
           [token && currencyEquals(token, CUSD) ? undefined : token, CUSD],
           [token && currencyEquals(token, celo) ? undefined : token, celo],
-          [token && mcUSD && currencyEquals(token, mcUSD) ? undefined : token, mcUSD],
           [celo, CUSD],
         ])
         .flat() as TokenPair[],
@@ -52,10 +62,6 @@ export function useCUSDPrices(tokens?: Token[]): (Price | undefined)[] | undefin
         return new Price(CUSD, CUSD, '1', '1')
       }
 
-      if (mcUSDPair) {
-        console.log('mcUSDPair found')
-      }
-
       if (cUSDPair) {
         return cUSDPair.priceOf(token)
       }
@@ -71,23 +77,28 @@ export function useCUSDPrices(tokens?: Token[]): (Price | undefined)[] | undefin
 
 /**
  * Returns the price in cUSD of the input currency
- * @param currency currency to compute the cUSD price of
+ * @param token the token to get the cUSD price of
+ * @param totalSupplyOfStakingToken token's total lp supply
  */
-export function useCUSDPrice(token?: Token): Price | undefined {
+export function useCUSDPrice(token?: Token, totalSupplyOfStakingToken?: TokenAmount): Price | undefined {
   const {
     network: { chainId },
   } = useContractKit()
   const CUSD = cUSD[chainId as unknown as UbeswapChainId]
   const celo = CELO[chainId as unknown as UbeswapChainId]
+  const mcUSD = MCUSD[chainId as unknown as UbeswapChainId]
   const tokenPairs: [Token | undefined, Token | undefined][] = useMemo(
     () => [
       [token && currencyEquals(token, CUSD) ? undefined : token, CUSD],
       [token && currencyEquals(token, celo) ? undefined : token, celo],
+      [token && mcUSD && currencyEquals(token, mcUSD) ? undefined : token, mcUSD ? mcUSD : undefined],
       [celo, CUSD],
     ],
-    [CUSD, celo, token]
+    [CUSD, celo, mcUSD, token]
   )
-  const [[, cUSDPair], [, celoPair], [, celoCUSDPair]] = usePairs(tokenPairs)
+  const [[, cUSDPair], [, celoPair], [, mcUSDPair], [, celoCUSDPair]] = usePairs(tokenPairs)
+  const cusdPairAddr = token ? Pair.getAddress(token, CUSD) : undefined
+  const cusdPairTotalSupply = useTotalSupply(useToken(cusdPairAddr) || undefined)
 
   return useMemo(() => {
     if (!token || !chainId) {
@@ -99,6 +110,23 @@ export function useCUSDPrice(token?: Token): Price | undefined {
       return new Price(CUSD, CUSD, '1', '1')
     }
 
+    if (mcUSDPair && cUSDPair && totalSupplyOfStakingToken && mcUSD && cusdPairTotalSupply) {
+      try {
+        if (
+          JSBI.greaterThan(
+            mcUSDPair.getLiquidityMinted(totalSupplyOfStakingToken, mcUSDPair.reserve0, mcUSDPair.reserve1).raw,
+            cUSDPair.getLiquidityMinted(cusdPairTotalSupply, cUSDPair.reserve0, cUSDPair.reserve1).raw
+          )
+        ) {
+          return mcUSDPair.priceOf(token)
+        }
+      } catch (e: any) {
+        if (e.message != 'Invariant failed: LIQUIDITY') {
+          console.log(e)
+        }
+      }
+    }
+
     if (cUSDPair) {
       return cUSDPair.priceOf(token)
     }
@@ -108,5 +136,5 @@ export function useCUSDPrice(token?: Token): Price | undefined {
     }
 
     return undefined
-  }, [chainId, token, CUSD, cUSDPair, celo, celoCUSDPair, celoPair])
+  }, [chainId, token, CUSD, cUSDPair, celo, celoCUSDPair, celoPair, mcUSD, mcUSDPair, cusdPairTotalSupply])
 }
