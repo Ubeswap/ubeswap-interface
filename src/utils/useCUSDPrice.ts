@@ -50,12 +50,7 @@ export function useCUSDPrices(tokens?: Token[]): (Price | undefined)[] | undefin
 
     return tokens.map((token, idx) => {
       const start = idx * 3
-      const [cUSDPair, celoPair, mcUSDPair, celoCUSDPair] = [
-        pairs[start],
-        pairs[start + 1],
-        pairs[start + 2],
-        pairs[start + 3],
-      ]
+      const [cUSDPair, celoPair, celoCUSDPair] = [pairs[start], pairs[start + 1], pairs[start + 2]]
 
       // handle cUSD
       if (token.equals(CUSD)) {
@@ -136,5 +131,16 @@ export function useCUSDPrice(token?: Token, totalSupplyOfStakingToken?: TokenAmo
     }
 
     return undefined
-  }, [chainId, token, CUSD, cUSDPair, celo, celoCUSDPair, celoPair, mcUSDPair, cusdPairTotalSupply])
+  }, [
+    chainId,
+    token,
+    CUSD,
+    cUSDPair,
+    celo,
+    celoCUSDPair,
+    celoPair,
+    mcUSDPair,
+    cusdPairTotalSupply,
+    totalSupplyOfStakingToken,
+  ])
 }
