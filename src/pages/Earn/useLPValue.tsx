@@ -40,10 +40,9 @@ export const useLPValue = (stakedAmount: BigNumber, farmSummary: FarmSummary): I
   ) {
     // take the total amount of LP tokens staked, multiply by ETH value of all LP tokens, divide by all LP tokens
 
-    const amount =
-      cusdPrice0 && farmSummary.token0Address !== '0x218c3c3D49d0E7B37aff0D8bB079de36Ae61A4c0'
-        ? cusdPrice0.quote(stakingTokenPair.reserve0)
-        : cusdPrice1?.quote(stakingTokenPair.reserve1)
+    const amount = cusdPrice0
+      ? cusdPrice0.quote(stakingTokenPair.reserve0)
+      : cusdPrice1?.quote(stakingTokenPair.reserve1)
     if (amount) {
       valueOfUserStakedAmountInCUSD = new TokenAmount(
         cusd,
