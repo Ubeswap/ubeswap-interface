@@ -110,7 +110,7 @@ export function useCUSDPrice(token?: Token, totalSupplyOfStakingToken?: TokenAmo
       return new Price(CUSD, CUSD, '1', '1')
     }
 
-    if (mcUSDPair && cUSDPair && totalSupplyOfStakingToken && mcUSD && cusdPairTotalSupply) {
+    if (mcUSDPair && cUSDPair && totalSupplyOfStakingToken && cusdPairTotalSupply) {
       try {
         if (
           JSBI.greaterThan(
@@ -136,5 +136,5 @@ export function useCUSDPrice(token?: Token, totalSupplyOfStakingToken?: TokenAmo
     }
 
     return undefined
-  }, [chainId, token, CUSD, cUSDPair, celo, celoCUSDPair, celoPair, mcUSD, mcUSDPair, cusdPairTotalSupply])
+  }, [chainId, token, CUSD, cUSDPair, celo, celoCUSDPair, celoPair, mcUSDPair, cusdPairTotalSupply])
 }

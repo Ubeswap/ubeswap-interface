@@ -23,7 +23,7 @@ export const useStakingPoolValue = (
   const totalSupplyOfStakingToken = useTotalSupply(stakingInfo?.stakingToken)
 
   const cusd = cUSD[chainId as unknown as UbeswapChainId]
-  const cusdPrice0 = useCUSDPrice(stakingTokenPair?.token0)
+  const cusdPrice0 = useCUSDPrice(stakingTokenPair?.token0, totalSupplyOfStakingToken)
   const cusdPrice1 = useCUSDPrice(stakingTokenPair?.token1)
 
   let valueOfTotalStakedAmountInCUSD: TokenAmount | undefined
