@@ -23,7 +23,6 @@ import {
   useSingleContractMultipleData,
 } from '../multicall/hooks'
 import { tryParseAmount } from '../swap/hooks'
-import { MultiRewardPool } from './farms'
 import { useMultiStakeRewards } from './useDualStakeRewards'
 import useStakingInfo from './useStakingInfo'
 
@@ -62,6 +61,14 @@ export interface StakingInfo {
   readonly nextPeriodRewards: TokenAmount
   readonly poolInfo: IRawPool
   readonly rewardTokens: Token[]
+}
+
+type MultiRewardPool = {
+  address: string
+  underlyingPool: string
+  basePool: string
+  numRewards: number
+  active: boolean
 }
 
 export const useMultiRewardPools = (): MultiRewardPool[] => {
