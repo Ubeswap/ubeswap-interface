@@ -1,5 +1,5 @@
 import { useContractKit, useGetConnectedSigner } from '@celo-tools/use-contractkit'
-import { Signer } from '@ethersproject/abstract-signer'
+import { JsonRpcSigner } from '@ethersproject/providers'
 import { ChainId, Trade } from '@ubeswap/sdk'
 import { BigNumber, BigNumberish, CallOverrides, Contract, ContractTransaction, PayableOverrides } from 'ethers'
 import { useCallback } from 'react'
@@ -29,7 +29,7 @@ type DoTransactionFn = <
 export interface TradeExecutor<T extends Trade> {
   (args: {
     trade: T
-    signer: Signer
+    signer: JsonRpcSigner
     chainId: ChainId.MAINNET | ChainId.ALFAJORES
     doTransaction: DoTransactionFn
   }): Promise<{

@@ -16,7 +16,7 @@ import { LimitOrderTrade } from './routing/limit/LimitOrderTrade'
 import { MoolaDirectTrade } from './routing/moola/MoolaDirectTrade'
 import { SwapShowAcceptChanges, TruncatedText } from './styleds'
 
-export default function SwapModalHeader({
+export default function LimitOrderModalHeader({
   trade,
   allowedSlippage,
   recipient,
