@@ -185,11 +185,7 @@ export default function LimitOrder() {
   )
 
   // the callback to execute the swap
-  const { callback: swapCallback, error: swapCallbackError } = useTradeCallback(
-    tradeToConfirm,
-    allowedSlippage,
-    recipient
-  )
+  const { callback: swapCallback } = useTradeCallback(tradeToConfirm, allowedSlippage, recipient)
 
   const [singleHopOnly] = useUserSingleHopOnly()
 
@@ -283,7 +279,7 @@ export default function LimitOrder() {
 
   const swapIsUnsupported = useIsTransactionUnsupported(currencies?.INPUT, currencies?.OUTPUT)
 
-  const { isEstimate, makeLabel } = describeTrade(trade)
+  const { isEstimate } = describeTrade(trade)
 
   return (
     <>
@@ -294,7 +290,7 @@ export default function LimitOrder() {
       />
       <OpticsV1Warning />
       <AppBody>
-        <SwapHeader title={t('limitOrder')} />
+        <SwapHeader title={t('limitOrder')} hideSettings={true} />
         <Wrapper id="swap-page">
           <ConfirmSwapModal
             isOpen={showConfirm}
