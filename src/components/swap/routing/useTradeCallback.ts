@@ -5,6 +5,8 @@ import { useMemo } from 'react'
 
 import { INITIAL_ALLOWED_SLIPPAGE } from '../../../constants'
 import { useDoTransaction } from '.'
+import { LimitOrderTrade } from './limit/LimitOrderTrade'
+import { queueLimitOrderTrade } from './limit/queueLimitOrderTrade'
 import { executeMoolaDirectTrade } from './moola/executeMoolaDirectTrade'
 import { MoolaDirectTrade } from './moola/MoolaDirectTrade'
 
@@ -50,6 +52,12 @@ export const useTradeCallback = (
       return {
         state: SwapCallbackState.VALID,
         callback: async () => (await executeMoolaDirectTrade({ ...env, trade })).hash,
+        error: null,
+      }
+    } else if (trade instanceof LimitOrderTrade) {
+      return {
+        state: SwapCallbackState.VALID,
+        callback: async () => (await queueLimitOrderTrade({ ...env, trade })).hash,
         error: null,
       }
     } else if (swapCallback) {

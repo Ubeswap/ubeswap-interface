@@ -113,6 +113,7 @@ function Updaters() {
 ReactDOM.render(
   <StrictMode>
     <FixedGlobalStyle />
+    {/* TODO: Mainnet, not alfajores */}
     <ContractKitProvider
       dapp={{
         name: 'Ubeswap',
@@ -121,7 +122,7 @@ ReactDOM.render(
         url: 'https://app.ubeswap.org',
         icon: 'https://info.ubeswap.org/favicon.png',
       }}
-      network={CeloMainnet}
+      network={Alfajores}
       networks={[CeloMainnet, Alfajores]}
       connectModal={{
         reactModalProps: {

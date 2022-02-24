@@ -1,0 +1,255 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "contract ILimitOrderProtocol",
+        "name": "_limitOrderProtocol",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "maker",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "orderHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "OrderBroadcasted",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "salt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "makerAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "takerAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "maker",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "receiver",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "allowedSender",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "makingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "takingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "makerAssetData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "takerAssetData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "getMakerAmount",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "getTakerAmount",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "predicate",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "permit",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "interaction",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct ILimitOrderProtocol.Order",
+        "name": "_order",
+        "type": "tuple"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "broadcastOrder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "limitOrderProtocol",
+    "outputs": [
+      {
+        "internalType": "contract ILimitOrderProtocol",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_orderHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "orders",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "salt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "makerAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "takerAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "maker",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "receiver",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "allowedSender",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "makingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "takingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "makerAssetData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "takerAssetData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "getMakerAmount",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "getTakerAmount",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "predicate",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "permit",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "interaction",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct ILimitOrderProtocol.Order",
+        "name": "order",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "signatures",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
