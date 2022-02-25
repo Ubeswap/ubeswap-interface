@@ -169,11 +169,13 @@ export default function WithdrawLPModal({
           prevCollateral,
         }
         setInfo((prevInfo: any) => ({ ...prevInfo, ..._info }))
+        setReceiveAmounts()
       } catch (error) {
         console.log(error)
       }
     }
     fetchInfo()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     bank,
     proxyOracle,
