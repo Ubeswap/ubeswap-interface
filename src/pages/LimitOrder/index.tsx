@@ -29,7 +29,7 @@ import { ArrowWrapper, BottomGrouping, SwapCallbackError, Wrapper } from '../../
 import SwapHeader from '../../components/swap/SwapHeader'
 import TradePrice from '../../components/swap/TradePrice'
 import TokenWarningModal from '../../components/TokenWarningModal'
-import { INITIAL_ALLOWED_SLIPPAGE, LIMIT_ORDER_ADDRESS } from '../../constants'
+import { INITIAL_ALLOWED_SLIPPAGE, LIMIT_ORDER_ADDRESS, ORDER_BOOK_ADDRESS } from '../../constants'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { useToggleSettingsMenu, useWalletModalToggle } from '../../state/application/hooks'
@@ -48,6 +48,9 @@ import AppBody from '../AppBody'
 import { ClickableText } from '../Pool/styleds'
 
 const PRICE_PRECISION = 6
+// TODO: HARDCODE
+const FEE_BPS = JSBI.BigInt(5)
+const BPS = JSBI.BigInt(1000)
 
 export default function LimitOrder() {
   const { t } = useTranslation()
@@ -104,8 +107,8 @@ export default function LimitOrder() {
 
   const [price, setPrice] = useState(trade?.executionPrice.raw)
   useEffect(() => {
-    setPrice(trade?.executionPrice)
-  }, [trade?.executionPrice])
+    if (trade?.executionPrice.toSignificant(2) !== price?.toSignificant(2)) setPrice(trade?.executionPrice)
+  }, [price, trade])
 
   const parsedAmounts = {
     [Field.INPUT]: independentField === Field.INPUT ? parsedAmount : price ? parsedAmount?.divide(price) : undefined,
@@ -165,17 +168,28 @@ export default function LimitOrder() {
 
   // check whether the user has approved the router on the input token
   // TODO: inputAmount may not work if it is the dependent field
-  const [approval, approveCallback] = useApproveCallback(trade?.inputAmount, LIMIT_ORDER_ADDRESS[chainId])
+  const [limitOrderApproval, limitOrderApprovalCallback] = useApproveCallback(
+    trade?.inputAmount,
+    LIMIT_ORDER_ADDRESS[chainId]
+  )
+  const orderFee = trade
+    ? new TokenAmount(trade.inputAmount.currency, JSBI.divide(JSBI.multiply(trade.inputAmount.raw, FEE_BPS), BPS))
+    : undefined
+  const [orderBookApproval, orderBookApprovalCallback] = useApproveCallback(orderFee, ORDER_BOOK_ADDRESS[chainId])
+  const approvalCallback = useCallback(() => {
+    limitOrderApprovalCallback()
+    orderBookApprovalCallback()
+  }, [])
 
-  // check if user has gone through approval process, used to show two step buttons, reset on token change
+  // check if user has gone through orderBookApproval process, used to show two step buttons, reset on token change
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
-  // mark when a user has submitted an approval, reset onTokenSelection for input field
+  // mark when a user has submitted an orderBookApproval, reset onTokenSelection for input field
   useEffect(() => {
-    if (approval === ApprovalState.PENDING) {
+    if (orderBookApproval === ApprovalState.PENDING) {
       setApprovalSubmitted(true)
     }
-  }, [approval, approvalSubmitted])
+  }, [orderBookApproval, approvalSubmitted])
 
   const maxAmountInput: TokenAmount | undefined = maxAmountSpend(currencyBalances[Field.INPUT])
   const atMaxAmountInput = Boolean(maxAmountInput && parsedAmounts[Field.INPUT]?.equalTo(maxAmountInput))
@@ -232,9 +246,9 @@ export default function LimitOrder() {
   // never show if price impact is above threshold in non expert mode
   const showApproveFlow =
     !swapInputError &&
-    (approval === ApprovalState.NOT_APPROVED ||
-      approval === ApprovalState.PENDING ||
-      (approvalSubmitted && approval === ApprovalState.APPROVED))
+    (orderBookApproval === ApprovalState.NOT_APPROVED ||
+      orderBookApproval === ApprovalState.PENDING ||
+      (approvalSubmitted && orderBookApproval === ApprovalState.APPROVED))
 
   const handleConfirmDismiss = useCallback(() => {
     setSwapState({ showConfirm: false, tradeToConfirm, attemptingTxn, swapErrorMessage, txHash })
@@ -377,16 +391,26 @@ export default function LimitOrder() {
             <Card padding={'0px'} borderRadius={'20px'}>
               <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
                 {Boolean(trade) && (
-                  <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Price
-                    </Text>
-                    <TradePrice
-                      price={trade?.executionPrice}
-                      showInverted={showInverted}
-                      setShowInverted={setShowInverted}
-                    />
-                  </RowBetween>
+                  <>
+                    <RowBetween align="center">
+                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                        Price
+                      </Text>
+                      <TradePrice
+                        price={trade?.executionPrice}
+                        showInverted={showInverted}
+                        setShowInverted={setShowInverted}
+                      />
+                    </RowBetween>
+                    <RowBetween align="center">
+                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                        Order Fee
+                      </Text>
+                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                        {orderFee?.toSignificant(2)} {orderFee?.currency.symbol}
+                      </Text>
+                    </RowBetween>
+                  </>
                 )}
                 {allowedSlippage !== INITIAL_ALLOWED_SLIPPAGE && (
                   <RowBetween align="center">
@@ -425,17 +449,17 @@ export default function LimitOrder() {
             ) : (
               <RowBetween>
                 <ButtonConfirmed
-                  onClick={approveCallback}
-                  disabled={approval !== ApprovalState.NOT_APPROVED || approvalSubmitted}
+                  onClick={approvalCallback}
+                  disabled={orderBookApproval !== ApprovalState.NOT_APPROVED || approvalSubmitted}
                   width="48%"
-                  altDisabledStyle={approval === ApprovalState.PENDING} // show solid button while waiting
-                  confirmed={approval === ApprovalState.APPROVED}
+                  altDisabledStyle={orderBookApproval === ApprovalState.PENDING} // show solid button while waiting
+                  confirmed={orderBookApproval === ApprovalState.APPROVED}
                 >
-                  {approval === ApprovalState.PENDING ? (
+                  {orderBookApproval === ApprovalState.PENDING ? (
                     <AutoRow gap="6px" justify="center">
                       Approving <Loader stroke="white" />
                     </AutoRow>
-                  ) : approvalSubmitted && approval === ApprovalState.APPROVED ? (
+                  ) : approvalSubmitted && orderBookApproval === ApprovalState.APPROVED ? (
                     'Approved'
                   ) : (
                     'Approve ' + currencies[Field.INPUT]?.symbol
@@ -465,7 +489,7 @@ export default function LimitOrder() {
                   }}
                   width="48%"
                   id="swap-button"
-                  disabled={!isValid || approval !== ApprovalState.APPROVED}
+                  disabled={!isValid || orderBookApproval !== ApprovalState.APPROVED}
                 >
                   <Text fontSize={16} fontWeight={500}>
                     {t('placeOrder')}
@@ -475,7 +499,7 @@ export default function LimitOrder() {
             )}
             {showApproveFlow && (
               <Column style={{ marginTop: '1rem' }}>
-                <ProgressSteps steps={[approval === ApprovalState.APPROVED]} />
+                <ProgressSteps steps={[orderBookApproval === ApprovalState.APPROVED]} />
               </Column>
             )}
             {isExpertMode && swapErrorMessage ? <SwapCallbackError error={swapErrorMessage} /> : null}
