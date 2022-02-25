@@ -23,7 +23,6 @@ import Circle from '../../assets/images/blue-loader.svg'
 import Slider from '../../components/Slider'
 import CERC20_ABI from '../../constants/abis/CErc20Immutable.json'
 import ERC20_ABI from '../../constants/abis/ERC20-Youth.json'
-import BANK_ABI from '../../constants/abis/HomoraBank.json'
 import IERC20_ABI from '../../constants/abis/IERC20.json'
 import UBE_SPELL from '../../constants/abis/UbeswapMSRSpellV1.json'
 import { Farm } from '../../constants/leverageYieldFarm'
@@ -79,7 +78,6 @@ export const humanFriendlyNumber = (v: number | string) => {
 interface StakingModalProps {
   isOpen: boolean
   onDismiss: () => void
-  onLevDepositSuccess: () => void
   stakingInfo: StakingInfo
   userLiquidityUnstaked: TokenAmount | undefined
   leverage: boolean
@@ -97,7 +95,6 @@ interface StakingModalProps {
 export default function StakingModal({
   isOpen,
   onDismiss,
-  onLevDepositSuccess,
   stakingInfo,
   userLiquidityUnstaked,
   leverage,
@@ -450,23 +447,20 @@ export default function StakingModal({
             lpToken?.wrapper ?? ''
           )
           .encodeABI()
-        const bank = new kit.web3.eth.Contract(BANK_ABI.abi as AbiItem[], getAddress(Bank[chainId])) as unknown as any
-        const tx = await bank.methods
-          .execute(positionInfo ? positionInfo.positionId : 0, lpToken?.spell ?? '', bytes)
-          .send({
-            from: kit.defaultAccount,
-            gasPrice: toWei('0.5', 'gwei'),
-          })
-        setHash(tx.transactionHash)
+        // const bank = new kit.web3.eth.Contract(BANK_ABI.abi as AbiItem[], getAddress(Bank[chainId])) as unknown as any
+        const tx = await bank.execute(positionInfo ? positionInfo.positionId : 0, lpToken?.spell ?? '', bytes, {
+          from: kit.defaultAccount,
+          gasPrice: toWei('0.5', 'gwei'),
+        })
+        setHash(tx.hash)
         dispatch(
           addTransaction({
-            hash: tx.transactionHash,
+            hash: tx.hash,
             from: account ? account : '',
             chainId,
-            summary: `${t('LeverageYieldFarm')}`,
+            summary: `${t('StakeDepositedLiquidity')}`,
           })
         )
-        onLevDepositSuccess()
       } catch (e) {
         console.log(e)
         setAttempting(false)
@@ -613,7 +607,6 @@ export default function StakingModal({
                         currency={token}
                         balance={maxAmounts[i]}
                       />
-                      <RowCenter padding={'0.5rem'}></RowCenter>
                     </div>
                   ))}{' '}
                 </LightCard>
@@ -621,24 +614,26 @@ export default function StakingModal({
             </LightCard>
           )}
 
-          <HypotheticalRewardRate dim={false}>
-            <div>
-              <TYPE.black fontWeight={600}>Weekly Rewards</TYPE.black>
-            </div>
+          {!leverage && (
+            <HypotheticalRewardRate dim={false}>
+              <div>
+                <TYPE.black fontWeight={600}>Weekly Rewards</TYPE.black>
+              </div>
 
-            <div>
-              {hypotheticalRewardRates &&
-                hypotheticalRewardRates.map((hypotheticalRewardRate, idx) => {
-                  return (
-                    <TYPE.black key={idx}>
-                      {hypotheticalRewardRate
-                        .multiply((60 * 60 * 24 * 7).toString())
-                        .toSignificant(4, { groupSeparator: ',' }) + ` ${hypotheticalRewardRate.token.symbol} / week`}
-                    </TYPE.black>
-                  )
-                })}
-            </div>
-          </HypotheticalRewardRate>
+              <div>
+                {hypotheticalRewardRates &&
+                  hypotheticalRewardRates.map((hypotheticalRewardRate, idx) => {
+                    return (
+                      <TYPE.black key={idx}>
+                        {hypotheticalRewardRate
+                          .multiply((60 * 60 * 24 * 7).toString())
+                          .toSignificant(4, { groupSeparator: ',' }) + ` ${hypotheticalRewardRate.token.symbol} / week`}
+                      </TYPE.black>
+                    )
+                  })}
+              </div>
+            </HypotheticalRewardRate>
+          )}
 
           <RowBetween>
             {leverage ? (

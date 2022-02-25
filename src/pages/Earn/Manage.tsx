@@ -3,6 +3,7 @@ import { getAddress } from '@ethersproject/address'
 import { formatEther } from '@ethersproject/units'
 import { ChainId as UbeswapChainId, cUSD, JSBI, Pair, TokenAmount } from '@ubeswap/sdk'
 import StakedAmountsHelper from 'components/earn/StakedAmountsHelper'
+import WithdrawLPModal from 'components/earn/WithdrawLPModal'
 import Loader from 'components/Loader'
 import { Bank, FARMS } from 'constants/leverageYieldFarm'
 import { BigNumber, ContractInterface, ethers } from 'ethers'
@@ -141,6 +142,7 @@ export default function Manage({
   // toggle for staking modal and unstaking modal
   const [showLeverageModal, setShowLeverageModal] = useState(false)
   const [showStakingModal, setShowStakingModal] = useState(false)
+  const [showWithdrawLPModal, setShowWithdrawLPModal] = useState(false)
   const [showUnstakingModal, setShowUnstakingModal] = useState(false)
   const [showClaimRewardModal, setShowClaimRewardModal] = useState(false)
 
@@ -199,6 +201,7 @@ export default function Manage({
   const [poolAPR, setPoolAPR] = useState<number>(0)
   const [leverageError, setLeverageError] = useState<string | null>(null)
   const [init, setInit] = useState<boolean>(true)
+  const [initialLoading, setInitialLoading] = useState<boolean>(true)
   const [leverageLoading, setLeverageLoading] = useState<boolean>(false)
   const [scale] = useState<BigNumber>(BigNumber.from(2).pow(112))
 
@@ -224,8 +227,7 @@ export default function Manage({
   const loadPosition = useCallback(
     async (coreOracle: CoreOracle | null, pairLP: IUniswapV2Pair | null, apr: number): Promise<boolean> => {
       let leverage = false
-      if (coreOracle && lpToken && stakingInfo && pairLP) {
-        setMyPosition(undefined)
+      if (proxyOracle && coreOracle && lpToken && stakingInfo && pairLP) {
         const nextPositionId = await bank.nextPositionId()
         let posInfo: any = undefined
         if (nextPositionId.toNumber() > 1 && !showAddLiquidityButton) {
@@ -265,9 +267,14 @@ export default function Manage({
           const ret = await bank.getPositionDebts(posInfo.positionId)
           let debtValue = 0
           let debtInterest = 0
+          // const maxBorrows = 0
+          const prices = []
+          const yourDeposits = []
+          console.log(ret.tokens.length)
           for (let i = 0; i < ret.tokens.length; i += 1) {
             const token = ret.tokens[i]
             const price = await coreOracle.getCELOPx(token)
+            prices.push(price)
             debtValue += Number(formatEther(ret.debts[i])) * (Number(formatEther(price)) / Number(formatEther(scale)))
             const bankInfo = await bank.getBankInfo(token)
             const cToken = new ethers.Contract(
@@ -278,10 +285,22 @@ export default function Manage({
             const blocksPerYear = BigNumber.from(6311520)
             const borrowRate = (await cToken.borrowRatePerBlock()).mul(blocksPerYear)
             debtInterest += debtValue * Number(formatEther(borrowRate))
+
+            // const factor = await proxyOracle.tokenFactors(token)
+            // const totalSupply = await cToken.totalSupply()
+            // const totalBorrows = await cToken.totalBorrows()
+            // const totalReserves = await cToken.totalReserves()
+            // console.log(factor.borrowFactor)
+            // maxBorrows +=
+            //   Number(formatEther(totalSupply.sub(totalBorrows).sub(totalReserves))) *
+            //   (Number(formatEther(price)) / Number(formatEther(scale))) *
+            //   (factor.borrowFactor / 10000)
           }
           const numer = await bank.getBorrowCELOValue(posInfo.positionId)
           const denom = await bank.getCollateralCELOValue(posInfo.positionId)
           const debtRatio = Number(formatEther(numer)) / Number(formatEther(denom))
+          // const maxDebtRatio = maxBorrows / Number(formatEther(denom))
+          // console.log(maxDebtRatio)
           const apy = (totalValue * (apr / 100) - debtInterest) / (totalValue - debtValue)
           let reserve0: BigNumber
           let reserve1: BigNumber
@@ -293,29 +312,49 @@ export default function Manage({
             reserve0 = reserves.reserve1
             reserve1 = reserves.reserve0
           }
+          if (stakingInfo.tokens[0] !== undefined && ret.tokens[0] === stakingInfo.tokens[0].address) {
+            for (let i = 0; i < ret.tokens.length; i += 1) {
+              const tmpScale = Number(formatEther(prices[i])) / Number(formatEther(scale))
+              yourDeposits.push((totalValue - debtValue) / tmpScale)
+            }
+          } else {
+            for (let i = ret.tokens.length - 1; i >= 0; i -= 1) {
+              const tmpScale = Number(formatEther(prices[i])) / Number(formatEther(scale))
+              yourDeposits.push((totalValue - debtValue) / tmpScale)
+            }
+          }
+          const debts: BigNumber[] = []
+          for (let i = 0; i < stakingInfo.tokens.length; i += 1) {
+            for (let j = 0; j < ret.tokens.length; j += 1) {
+              if (getAddress(stakingInfo.tokens[i].address) === getAddress(ret.tokens[j])) {
+                debts.push(ret.debts[j])
+                break
+              }
+            }
+            if (debts.length === i) debts.push(BigNumber.from(0))
+          }
           setMyPosition({
             debtValue,
             totalValue,
             debtRatio,
+            yourDeposits,
             apy,
             reserves: [reserve0, reserve1].map((reserve) =>
               reserve.mul(posInfo.collateralSize).div(posInfo.totalSupply)
             ),
+            debts,
           })
         }
       }
       return leverage
     },
-    [account, bank, dummyPair?.token0, lpToken, provider, scale, showAddLiquidityButton, stakingInfo]
+    [account, bank, dummyPair?.token0, lpToken, provider, scale, showAddLiquidityButton, stakingInfo, proxyOracle]
   )
 
   useEffect(() => {
     const connectContract = async () => {
       try {
-        if (bank && provider && stakingInfo && lpToken && init && dummyPair) {
-          setInit(false)
-          setLeverageLoading(true)
-          const secondsPerYear = BigNumber.from(31540000)
+        if (bank && provider && lpToken && initialLoading) {
           const pairLP = new ethers.Contract(
             lpToken.lp,
             UNI_PAIR.abi as ContractInterface,
@@ -336,7 +375,34 @@ export default function Manage({
           setProxyOracle(proxyOracle)
           setCoreOracle(coreOracle)
           setPairLP(pairLP)
+          setInitialLoading(false)
+        }
+      } catch (err: any) {
+        console.log(err)
+      }
+    }
+    connectContract()
+  }, [
+    bank,
+    provider,
+    stakingInfo,
+    initialLoading,
+    lpToken,
+    stakingAddress,
+    account,
+    scale,
+    dummyPair,
+    showAddLiquidityButton,
+    loadPosition,
+  ])
 
+  useEffect(() => {
+    const connectContract = async () => {
+      try {
+        if (provider && stakingInfo && lpToken && dummyPair && coreOracle && pairLP && !leverageLoading) {
+          const initVal = init
+          setLeverageLoading(true)
+          const secondsPerYear = BigNumber.from(31540000)
           let externalRewards = BigNumber.from(0)
           const wmstaking = new ethers.Contract(
             lpToken.wrapper,
@@ -373,22 +439,30 @@ export default function Manage({
           const _apr = externalRewards.mul(BigNumber.from(10).pow(BigNumber.from(18))).div(valueDeposited)
           const apr = Number(formatEther(_apr)) * 100
           const leverage = await loadPosition(coreOracle, pairLP, apr)
-          setLeverageFarm(leverage)
+          setInit(false)
+          if (initVal) {
+            setLeverageFarm(leverage)
+          }
+          setLeverageError(null)
           setPoolAPR(apr)
           setLeverageLoading(false)
         }
       } catch (err: any) {
         // setInit(true)
-        if (err?.data?.message.includes('delayed celo update time')) {
-          setLeverageError("Can't enable leverage since oracle price is too old")
-        }
+        // if (
+        //   err?.data?.message.includes('delayed celo update time') ||
+        //   err?.data?.message.includes('delayed update time')
+        // ) {
+        //   setLeverageError("Can't enable leverage since oracle price is too old")
+        // }
+        setInit(false)
+        setLeverageError("Can't enable leverage since oracle price is too old")
         setLeverageLoading(false)
         console.log(err)
       }
     }
     connectContract()
   }, [
-    bank,
     provider,
     stakingInfo,
     init,
@@ -399,6 +473,9 @@ export default function Manage({
     dummyPair,
     showAddLiquidityButton,
     loadPosition,
+    coreOracle,
+    pairLP,
+    leverageLoading,
   ])
 
   useEffect(() => {
@@ -409,6 +486,13 @@ export default function Manage({
     }
   }, [coreOracle, stakingInfo?.stakedAmount])
 
+  const handleWithdraw = () => {
+    if (leverageFarm) {
+      setShowWithdrawLPModal(true)
+    } else {
+      setShowUnstakingModal(true)
+    }
+  }
   return (
     <PageWrapper gap="lg" justify="center">
       <RowBetween style={{ gap: '24px' }}>
@@ -458,7 +542,7 @@ export default function Manage({
           </PoolData>
         </DataRow>
       )}
-      {stakingInfo && (!lpToken || (lpToken && coreOracle)) && !leverageLoading ? (
+      {stakingInfo && (!lpToken || (lpToken && coreOracle)) && !init ? (
         <>
           {!showAddLiquidityButton && lpToken && (
             <RowEnd>
@@ -517,11 +601,9 @@ export default function Manage({
             onClose={() => setShowLeverageModal(false)}
             stakingInfo={stakingInfo}
           />
-
           <StakingModal
             isOpen={showStakingModal}
             onDismiss={() => setShowStakingModal(false)}
-            onLevDepositSuccess={() => loadPosition(coreOracle, pairLP, poolAPR)}
             stakingInfo={stakingInfo}
             userLiquidityUnstaked={userLiquidityUnstaked}
             leverage={leverageFarm}
@@ -533,6 +615,21 @@ export default function Manage({
             lpToken={lpToken}
             provider={provider}
             existingPosition={myPosition ? myPosition.reserves : undefined}
+            positionInfo={positionInfo}
+          />
+          <WithdrawLPModal
+            isOpen={showWithdrawLPModal}
+            onDismiss={() => setShowWithdrawLPModal(false)}
+            stakingInfo={stakingInfo}
+            poolAPY={poolAPR}
+            bank={bank}
+            proxyOracle={proxyOracle}
+            coreOracle={coreOracle}
+            dummyPair={dummyPair}
+            lpToken={lpToken}
+            provider={provider}
+            existingPosition={myPosition ? myPosition.reserves : undefined}
+            debts={myPosition ? myPosition.debts : undefined}
             positionInfo={positionInfo}
           />
           <UnstakingModal
@@ -557,27 +654,35 @@ export default function Manage({
                   <CardSection>
                     <CardNoise />
                     <AutoColumn gap="lg">
-                      {positionInfo ? (
-                        <>
-                          <RowBetween>
-                            <TYPE.white fontWeight={600}>Your Position</TYPE.white>
-                          </RowBetween>
-                          {/* {myPosition &&
-                        myPosition.reserves &&
-                        stakingInfo.tokens.map((token, i) => (
-                          <RowBetween key={i} style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-                            <TYPE.white>
-                              {humanFriendlyNumber(formatEther(myPosition.reserves[i]))
-                                .concat(' ')
-                                .concat(token?.symbol ?? '')}
-                            </TYPE.white>
-                          </RowBetween>
-                        ))} */}
-                          <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                      <RowBetween>
+                        <TYPE.white fontSize={20} fontWeight={600}>
+                          Your Position
+                        </TYPE.white>
+                      </RowBetween>
+                      {stakingInfo.tokens.map((token, i) => (
+                        <RowBetween key={i} style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                          <TYPE.white fontSize={16}>{i === 0 && "I'm Borrowing"}</TYPE.white>
+                          <TYPE.white>
+                            {(myPosition
+                              ? humanFriendlyNumber(formatEther(myPosition.reserves[i])).concat(' ')
+                              : '-- ') + token?.symbol ?? ''}
+                          </TYPE.white>
+                        </RowBetween>
+                      ))}
+                      {stakingInfo.tokens.map((token, i) => (
+                        <RowBetween key={i} style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                          <TYPE.white fontSize={16}>{i === 0 && 'Your Deposits'}</TYPE.white>
+                          <TYPE.white>
+                            {(myPosition ? humanFriendlyNumber(myPosition.yourDeposits[i]).concat(' ') : '-- ') +
+                              token?.symbol ?? ''}
+                          </TYPE.white>
+                        </RowBetween>
+                      ))}
+                      {/* <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
                             <TYPE.white fontSize={16}>Borrow Value</TYPE.white>
                             <TYPE.white>
                               {myPosition ? (
-                                humanFriendlyNumber(myPosition.debtValue).concat(' Celo')
+                                humanFriendlyNumber(myPosition.debtValue).concat(' CELO')
                               ) : (
                                 <Loader size="16px" />
                               )}
@@ -592,29 +697,17 @@ export default function Manage({
                                 <Loader size="16px" />
                               )}
                             </TYPE.white>
-                          </RowBetween>
-                          <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-                            <TYPE.white fontSize={16}>Debt Ratio</TYPE.white>
-                            <TYPE.white>
-                              {myPosition ? (
-                                humanFriendlyNumber(myPosition.debtRatio * 100).concat(' %')
-                              ) : (
-                                <Loader size="16px" />
-                              )}
-                            </TYPE.white>
-                          </RowBetween>
-                          <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-                            <TYPE.white fontSize={16}>Position APR</TYPE.white>
-                            <TYPE.white>
-                              {myPosition ? humanFriendlyNumber(poolAPR).concat(' %') : <Loader size="16px" />}
-                            </TYPE.white>
-                          </RowBetween>
-                        </>
-                      ) : (
-                        <RowBetween>
-                          <TYPE.white fontWeight={600}>You don&apos;t have a position</TYPE.white>
-                        </RowBetween>
-                      )}
+                          </RowBetween> */}
+                      <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                        <TYPE.white fontSize={16}>Debt Ratio</TYPE.white>
+                        <TYPE.white>
+                          {(myPosition ? humanFriendlyNumber(myPosition.debtRatio * 100) : '--') + ' %'}
+                        </TYPE.white>
+                      </RowBetween>
+                      <RowBetween style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
+                        <TYPE.white fontSize={16}>Position APR</TYPE.white>
+                        <TYPE.white>{(myPosition ? humanFriendlyNumber(poolAPR) : '--') + ' %'}</TYPE.white>
+                      </RowBetween>
                     </AutoColumn>
                   </CardSection>
                 </StyledDataCard>
@@ -725,30 +818,34 @@ export default function Manage({
                 </>
               )}
             </BottomSection>
-            <TYPE.main style={{ textAlign: 'center' }} fontSize={14}>
-              <span role="img" aria-label="wizard-icon" style={{ marginRight: '8px' }}>
-                ⭐️
-              </span>
-              {t('withdrawTip')}
-            </TYPE.main>
+            {!leverageFarm && (
+              <TYPE.main style={{ textAlign: 'center' }} fontSize={14}>
+                <span role="img" aria-label="wizard-icon" style={{ marginRight: '8px' }}>
+                  ⭐️
+                </span>
+                {t('withdrawTip')}
+              </TYPE.main>
+            )}
 
             {!showAddLiquidityButton && (
               <DataRow style={{ marginBottom: '1rem' }}>
                 {stakingInfo && stakingInfo.active && (
                   <ButtonPrimary padding="8px" borderRadius="8px" width="160px" onClick={handleDepositClick}>
-                    {stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0))
+                    {stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0)) || leverageFarm
                       ? t('deposit')
                       : `${t('deposit')} UBE-LP Tokens`}
                   </ButtonPrimary>
                 )}
 
-                {stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0)) && (
+                {(stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0)) || (leverageFarm && positionInfo)) && (
                   <>
                     <ButtonPrimary
                       padding="8px"
                       borderRadius="8px"
                       width="160px"
-                      onClick={() => setShowUnstakingModal(true)}
+                      onClick={() => {
+                        handleWithdraw()
+                      }}
                     >
                       {t('withdraw')}
                     </ButtonPrimary>

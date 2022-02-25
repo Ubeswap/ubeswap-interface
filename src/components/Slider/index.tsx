@@ -103,6 +103,7 @@ interface InputSliderProps {
   min?: number
   max?: number
   size?: number
+  isWithdrawSlider?: boolean
   isCurrencyAmount?: boolean
   currency?: Token | null
   balance?: TokenAmount | null
@@ -115,6 +116,7 @@ export default function Slider({
   step = 1,
   max = 100,
   size = 28,
+  isWithdrawSlider = false,
   isCurrencyAmount = false,
   currency = null,
   balance = null,
@@ -147,14 +149,25 @@ export default function Slider({
         </AutoRow>
       ) : null}
 
+      {isWithdrawSlider ? (
+        <AutoRow justify="space-between">
+          <Text fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
+            0
+          </Text>
+          <Text fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
+            {value}%
+          </Text>
+        </AutoRow>
+      ) : null}
+
       <StyledRangeInput
         size={isCurrencyAmount ? 18 : size}
         type="range"
         value={isCurrencyAmount ? parseInt(((value / Number(balance)) * 100).toFixed(0)) : value}
         style={{
-          width: isCurrencyAmount ? ' 100%' : '90%',
-          marginLeft: isCurrencyAmount ? 0 : 15,
-          marginRight: isCurrencyAmount ? 0 : 15,
+          width: isCurrencyAmount || isWithdrawSlider ? ' 100%' : '90%',
+          marginLeft: isCurrencyAmount || isWithdrawSlider ? 0 : 15,
+          marginRight: isCurrencyAmount || isWithdrawSlider ? 0 : 15,
           padding: '15px 0',
         }}
         onChange={changeCallback}
