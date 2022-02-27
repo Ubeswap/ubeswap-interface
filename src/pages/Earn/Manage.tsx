@@ -440,7 +440,7 @@ export default function Manage({
           const apr = Number(formatEther(_apr)) * 100
           const leverage = await loadPosition(coreOracle, pairLP, apr)
           setInit(false)
-          if (initVal) {
+          if (initVal && stakingInfo?.stakedAmount?.equalTo(JSBI.BigInt(0))) {
             setLeverageFarm(leverage)
           }
           setLeverageError(null)
@@ -542,7 +542,7 @@ export default function Manage({
           </PoolData>
         </DataRow>
       )}
-      {stakingInfo && (!lpToken || (lpToken && coreOracle)) && !init ? (
+      {stakingInfo && (!lpToken || (lpToken && coreOracle && !init)) ? (
         <>
           {!showAddLiquidityButton && lpToken && (
             <RowEnd>
