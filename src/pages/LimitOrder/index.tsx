@@ -105,15 +105,26 @@ export default function LimitOrder() {
   } = useDerivedSwapInfo()
   const { address: recipientAddress } = useENS(recipient)
 
-  const [price, setPrice] = useState(trade?.executionPrice.raw)
+  const [price, setPrice] = useState<string>('')
+  const [marketPrice, setMarketPrice] = useState(trade?.executionPrice.raw)
   useEffect(() => {
-    if (trade?.executionPrice.toSignificant(2) !== price?.toSignificant(2)) setPrice(trade?.executionPrice)
-  }, [price, trade])
+    if (trade?.executionPrice.toSignificant(2) !== marketPrice?.toSignificant(2)) setMarketPrice(trade?.executionPrice)
+  }, [marketPrice, trade])
 
+  const priceParsed = price === '' ? '0' : parseUnits(price, PRICE_PRECISION).toString()
+  const priceFraction = new Fraction(
+    JSBI.BigInt(Number(priceParsed)),
+    JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(PRICE_PRECISION))
+  )
   const parsedAmounts = {
-    [Field.INPUT]: independentField === Field.INPUT ? parsedAmount : price ? parsedAmount?.divide(price) : undefined,
+    [Field.INPUT]:
+      independentField === Field.INPUT ? parsedAmount : priceFraction ? parsedAmount?.divide(priceFraction) : undefined,
     [Field.OUTPUT]:
-      independentField === Field.OUTPUT ? parsedAmount : price ? parsedAmount?.multiply(price) : undefined,
+      independentField === Field.OUTPUT
+        ? parsedAmount
+        : priceFraction
+        ? parsedAmount?.multiply(priceFraction)
+        : undefined,
   }
 
   const { onSwitchTokens, onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
@@ -127,13 +138,14 @@ export default function LimitOrder() {
     [onUserInput]
   )
   const handleTypePrice = useCallback((value: string) => {
-    if (value === '') setPrice(undefined)
+    if (value === '') {
+      setPrice('')
+      return
+    }
     try {
       const typedValueParsed = parseUnits(value, PRICE_PRECISION).toString()
       if (typedValueParsed !== '0') {
-        setPrice(
-          new Fraction(JSBI.BigInt(typedValueParsed), JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(PRICE_PRECISION)))
-        )
+        setPrice(value)
       }
     } catch (e) {
       console.error(e)
@@ -177,19 +189,23 @@ export default function LimitOrder() {
     : undefined
   const [orderBookApproval, orderBookApprovalCallback] = useApproveCallback(orderFee, ORDER_BOOK_ADDRESS[chainId])
   const approvalCallback = useCallback(() => {
-    limitOrderApprovalCallback()
-    orderBookApprovalCallback()
-  }, [])
+    if (limitOrderApproval === ApprovalState.NOT_APPROVED) {
+      limitOrderApprovalCallback()
+    }
+    if (orderBookApproval === ApprovalState.NOT_APPROVED) {
+      orderBookApprovalCallback()
+    }
+  }, [limitOrderApproval, orderBookApproval, limitOrderApprovalCallback, orderBookApprovalCallback])
 
   // check if user has gone through orderBookApproval process, used to show two step buttons, reset on token change
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
   // mark when a user has submitted an orderBookApproval, reset onTokenSelection for input field
   useEffect(() => {
-    if (orderBookApproval === ApprovalState.PENDING) {
+    if (limitOrderApproval === ApprovalState.PENDING || orderBookApproval === ApprovalState.PENDING) {
       setApprovalSubmitted(true)
     }
-  }, [orderBookApproval, approvalSubmitted])
+  }, [limitOrderApproval, orderBookApproval, approvalSubmitted])
 
   const maxAmountInput: TokenAmount | undefined = maxAmountSpend(currencyBalances[Field.INPUT])
   const atMaxAmountInput = Boolean(maxAmountInput && parsedAmounts[Field.INPUT]?.equalTo(maxAmountInput))
@@ -339,9 +355,10 @@ export default function LimitOrder() {
               id="swap-currency-input"
             />
             <PriceInputPanel
-              value={price?.toSignificant(PRICE_PRECISION) || ''}
+              value={price}
               onUserInput={handleTypePrice}
               id="swap-currency-input"
+              placeholder={marketPrice?.toSignificant(PRICE_PRECISION)}
             />
             <AutoColumn justify="space-between">
               <AutoRow justify={isExpertMode ? 'space-between' : 'center'} style={{ padding: '0 1rem' }}>

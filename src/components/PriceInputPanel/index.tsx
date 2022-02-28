@@ -25,21 +25,23 @@ const Container = styled.div<{ hideInput: boolean }>`
   background-color: ${({ theme }) => theme.bg1};
 `
 
-interface CurrencyInputPanelProps {
+interface PriceInputPanelProps {
   value: string
+  placeholder?: string
   onUserInput: (value: string) => void
   disableCurrencySelect?: boolean
   hideInput?: boolean
   id: string
 }
 
-export default function CurrencyInputPanel({
+export default function PriceInputPanel({
   value,
+  placeholder,
   onUserInput,
   disableCurrencySelect = false,
   hideInput = false,
   id,
-}: CurrencyInputPanelProps) {
+}: PriceInputPanelProps) {
   const { t } = useTranslation()
 
   return (
@@ -55,6 +57,7 @@ export default function CurrencyInputPanel({
                 onUserInput={(val) => {
                   onUserInput(val)
                 }}
+                placeholder={placeholder}
               />
             </>
           )}
