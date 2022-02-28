@@ -232,5 +232,8 @@
   "youWillRemove": "You will remove",
   "unstakedLPTokens": "You have unstaked {{poolName}} LP tokens",
   "stakeIntoFarmingPool": "Farm into the {{poolName}} farming pool to an additional rewards on your LP tokens",
-  "farmUBE": "Farm UBE"
+  "farmUBE": "Farm UBE",
+  "youHaveUnclaimedRewards": "You have {{count}} farms with unclaimed rewards",
+  "claimAllRewards": "Claim all rewards",
+  "featuredPools": "Featured Pools"
 }

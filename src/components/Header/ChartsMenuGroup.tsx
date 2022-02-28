@@ -44,30 +44,24 @@ const MenuItem = styled(ExternalLink)`
   }
 `
 
-export default function BridgeMenuGroup() {
+export default function ChartsMenuGroup() {
   const node = useRef<HTMLDivElement>()
-  const open = useModalOpen(ApplicationModal.BRIDGE)
-  const toggle = useToggleModal(ApplicationModal.BRIDGE)
+  const open = useModalOpen(ApplicationModal.CHARTS)
+  const toggle = useToggleModal(ApplicationModal.CHARTS)
   useOnClickOutside(node, open ? toggle : undefined)
 
   return (
     // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/30451
     <StyledMenu ref={node as any}>
-      <StyledNavMenu onClick={toggle}>Bridge</StyledNavMenu>
+      <StyledNavMenu onClick={toggle}>Charts</StyledNavMenu>
 
       {open && (
         <MenuFlyout>
-          <MenuItem id="link" href="https://allbridge.io/">
-            Allbridge
+          <MenuItem id="link" href="https://info.ubeswap.org/">
+            Analytics
           </MenuItem>
-          <MenuItem id="link" href="https://app.multichain.org/#/router">
-            Multichain
-          </MenuItem>
-          <MenuItem id="link" href="https://optics.app/">
-            Optics
-          </MenuItem>
-          <MenuItem id="link" href="https://bridge.orbitchain.io/">
-            Orbit
+          <MenuItem id="link" href="https://celotracker.com">
+            Celo Tracker
           </MenuItem>
         </MenuFlyout>
       )}

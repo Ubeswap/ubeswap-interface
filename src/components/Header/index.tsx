@@ -29,6 +29,7 @@ import Menu from '../Menu'
 import Row, { RowFixed } from '../Row'
 import Web3Status from '../Web3Status'
 import BridgeMenuGroup from './BridgeMenuGroup'
+import ChartsMenuGroup from './ChartsMenuGroup'
 import UbeBalanceContent from './UbeBalanceContent'
 
 const HeaderFrame = styled.div`
@@ -405,9 +406,7 @@ export default function Header() {
           <StyledNavLink id="portfolio-nav-link" to="/portfolio">
             {t('portfolio')}
           </StyledNavLink>
-          <StyledExternalLink id={`stake-nav-link`} href={'https://info.ubeswap.org'}>
-            {t('charts')} <span style={{ fontSize: '11px' }}>↗</span>
-          </StyledExternalLink>
+          <ChartsMenuGroup />
         </HeaderLinks>
         <BurgerElement>
           <Hamburger size={18} hideOutline={false} label="show menu" toggled={drawerVisible} onToggle={onToggle} />
@@ -431,13 +430,18 @@ export default function Header() {
                 </StyledDrawerExternalLink>
               </StyledSubMenuItem>
               <StyledSubMenuItem>
-                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://anyswap.exchange/#/router'}>
-                  Anyswap
+                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://app.multichain.org/#/router'}>
+                  Multichain
                 </StyledDrawerExternalLink>
               </StyledSubMenuItem>
               <StyledSubMenuItem>
                 <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://optics.app/'}>
                   Optics
+                </StyledDrawerExternalLink>
+              </StyledSubMenuItem>
+              <StyledSubMenuItem>
+                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://bridge.orbitchain.io/'}>
+                  Orbit
                 </StyledDrawerExternalLink>
               </StyledSubMenuItem>
               <StyledMenuItem>
@@ -446,10 +450,20 @@ export default function Header() {
                 </StyledNavLink>
               </StyledMenuItem>
               <StyledMenuItem>
-                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://info.ubeswap.org'}>
-                  {t('charts')}
-                </StyledDrawerExternalLink>
+                <StyledNavLink id={'charts-drawer-nav-link'} to={'#'}>
+                  Charts
+                </StyledNavLink>
               </StyledMenuItem>
+              <StyledSubMenuItem>
+                <StyledDrawerExternalLink id={`charts-analytics-drawer-nav-link`} href={'https://info.ubeswap.org/'}>
+                  Analytics
+                </StyledDrawerExternalLink>
+              </StyledSubMenuItem>
+              <StyledSubMenuItem>
+                <StyledDrawerExternalLink id={`charts-celo-tracker-drawer-nav-link`} href={'https://celotracker.com/'}>
+                  Celo Tracker
+                </StyledDrawerExternalLink>
+              </StyledSubMenuItem>
             </StyledMenu>
           </StyledDrawer>
         </BurgerElement>
