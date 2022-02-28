@@ -134,10 +134,6 @@ function parseStringOrBytes32(str: string | undefined, bytes32: string | undefin
     : defaultValue
 }
 
-export function useTokens(tokenAddresses: string): { [address: string]: Token } {
-
-}
-
 // undefined if invalid or does not exist
 // null if loading
 // otherwise returns the token
