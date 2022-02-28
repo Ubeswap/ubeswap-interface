@@ -261,10 +261,13 @@ export default function LimitOrder() {
   // show approve flow when: no error on inputs, not approved or pending, or approved in current session
   // never show if price impact is above threshold in non expert mode
   const showApproveFlow =
-    !swapInputError &&
-    (orderBookApproval === ApprovalState.NOT_APPROVED ||
-      orderBookApproval === ApprovalState.PENDING ||
-      (approvalSubmitted && orderBookApproval === ApprovalState.APPROVED))
+    (!swapInputError &&
+      (orderBookApproval === ApprovalState.NOT_APPROVED ||
+        orderBookApproval === ApprovalState.PENDING ||
+        (approvalSubmitted && orderBookApproval === ApprovalState.APPROVED))) ||
+    limitOrderApproval === ApprovalState.NOT_APPROVED ||
+    limitOrderApproval === ApprovalState.PENDING ||
+    (approvalSubmitted && limitOrderApproval === ApprovalState.APPROVED)
 
   const handleConfirmDismiss = useCallback(() => {
     setSwapState({ showConfirm: false, tradeToConfirm, attemptingTxn, swapErrorMessage, txHash })
@@ -467,12 +470,20 @@ export default function LimitOrder() {
               <RowBetween>
                 <ButtonConfirmed
                   onClick={approvalCallback}
-                  disabled={orderBookApproval !== ApprovalState.NOT_APPROVED || approvalSubmitted}
+                  disabled={
+                    (limitOrderApproval !== ApprovalState.NOT_APPROVED &&
+                      orderBookApproval !== ApprovalState.NOT_APPROVED) ||
+                    approvalSubmitted
+                  }
                   width="48%"
-                  altDisabledStyle={orderBookApproval === ApprovalState.PENDING} // show solid button while waiting
-                  confirmed={orderBookApproval === ApprovalState.APPROVED}
+                  altDisabledStyle={
+                    limitOrderApproval === ApprovalState.PENDING || orderBookApproval === ApprovalState.PENDING
+                  } // show solid button while waiting
+                  confirmed={
+                    limitOrderApproval === ApprovalState.APPROVED && orderBookApproval === ApprovalState.APPROVED
+                  }
                 >
-                  {orderBookApproval === ApprovalState.PENDING ? (
+                  {limitOrderApproval === ApprovalState.PENDING || orderBookApproval === ApprovalState.PENDING ? (
                     <AutoRow gap="6px" justify="center">
                       Approving <Loader stroke="white" />
                     </AutoRow>
@@ -506,7 +517,11 @@ export default function LimitOrder() {
                   }}
                   width="48%"
                   id="swap-button"
-                  disabled={!isValid || orderBookApproval !== ApprovalState.APPROVED}
+                  disabled={
+                    !isValid ||
+                    limitOrderApproval !== ApprovalState.APPROVED ||
+                    orderBookApproval !== ApprovalState.APPROVED
+                  }
                 >
                   <Text fontSize={16} fontWeight={500}>
                     {t('placeOrder')}
