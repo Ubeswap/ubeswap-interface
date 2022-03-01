@@ -90,17 +90,25 @@ export const useMultiRewardPools = (): MultiRewardPool[] => {
         rewardsTokens.push(await poolContract.rewardsToken())
 
         // last time the contract was updated - set isActive to false if it has been longer than 2 months
-        const periodFinish = await poolContract.periodFinish()
-        const isActive = Math.floor(Date.now() / 1000) - periodFinish.toNumber() < ACTIVE_CONTRACT_UPDATED_THRESHOLD
+        let periodFinish = await poolContract.periodFinish()
+        let isActive = Math.floor(Date.now() / 1000) - periodFinish.toNumber() < ACTIVE_CONTRACT_UPDATED_THRESHOLD
 
         let baseContractFound = false
         // recursivley find underlying and base pool contracts
         while (!baseContractFound) {
           try {
+            // find the underlying contract if one exists
             const externalStakingRewardAddr = await poolContract.externalStakingRewards()
             externalStakingRwdAddresses.push(externalStakingRewardAddr)
+
+            // capture the contract's reward token
             poolContract = MoolaStakingRewards__factory.connect(externalStakingRewardAddr, library)
             rewardsTokens.push(await poolContract.rewardsToken())
+
+            // determine if the underlying contract is active or not
+            periodFinish = await poolContract.periodFinish()
+            isActive =
+              Math.floor(Date.now() / 1000) - periodFinish.toNumber() < ACTIVE_CONTRACT_UPDATED_THRESHOLD || isActive
           } catch (e: any) {
             //if the error is not what is expected - log it
             if (e.code !== UNPREDICTABLE_GAS_LIMIT_ERROR_CODE) {
