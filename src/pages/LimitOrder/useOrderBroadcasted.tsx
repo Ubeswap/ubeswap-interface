@@ -1,25 +1,80 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { ChainId } from '@ubeswap/sdk'
+import { LimitOrderProtocol__factory, Multicall__factory } from 'generated'
 import React, { useEffect } from 'react'
+import { multicallBatch } from 'utils/multicall'
 import { AbiItem } from 'web3-utils'
 
+import { LIMIT_ORDER_ADDRESS } from '../../constants'
 import orderBookAbi from '../../constants/abis/limit/OrderBook.json'
 
+const CREATION_BLOCK = 9840049
+
 export const useOrderBroadcasted = () => {
-  const { kit } = useContractKit()
-  const [orderBroadcasts, setOrderBroadcasts] = React.useState<any[]>([])
+  const { kit, account } = useContractKit()
+  const [orderBroadcasts, setOrderBroadcasts] = React.useState<string[]>([])
 
   const call = React.useCallback(async () => {
+    if (!account) {
+      return
+    }
     console.log('in useOrderBroadcasted')
-    const orderBook = new kit.web3.eth.Contract(orderBookAbi as AbiItem[], '0xDA84179917d8C482b407295793D28FA38086338c')
-
-    const orderBookEvents = await orderBook.getPastEvents('OrderBroadcasted', {})
-    console.log(orderBookEvents)
-    setOrderBroadcasts(orderBookEvents)
-  }, [kit.web3.eth])
+    console.log(account)
+    const orderBook = new kit.web3.eth.Contract(orderBookAbi as AbiItem[], '0x0560FE2659c8c63933e97283D8c648abDb72de51')
+    const lastBlock = await kit.web3.eth.getBlockNumber()
+    const orderBookEvents = await orderBook.getPastEvents('OrderBroadcasted', {
+      fromBlock: CREATION_BLOCK,
+      toBlock: lastBlock,
+      filter: {
+        maker: account,
+      },
+    })
+    const orderHashes: string[] = orderBookEvents.map((orderBookEvent) => {
+      return orderBookEvent.returnValues.orderHash as string
+    })
+    console.log(orderHashes)
+    setOrderBroadcasts(orderHashes)
+  }, [kit.web3.eth, account])
 
   useEffect(() => {
     call()
   }, [call])
 
   return orderBroadcasts
+}
+
+export const useRemaining = () => {
+  const orderHashForWallet = useOrderBroadcasted()
+  const provider = useProvider()
+  const { network } = useContractKit()
+  const chainId = network.chainId as unknown as ChainId
+  const limitOrderAddr = LIMIT_ORDER_ADDRESS[chainId]
+
+  const call = React.useCallback(async () => {
+    const multicall = Multicall__factory.connect('0x387ce7960b5DA5381De08Ea4967b13a7c8cAB3f6', provider)
+
+    const limitOrder = LimitOrderProtocol__factory.connect(limitOrderAddr, provider)
+
+    const orderRemaining = await multicallBatch(
+      multicall,
+      orderHashForWallet.map((orHash) => {
+        return {
+          target: limitOrderAddr,
+          callData: limitOrder.interface.encodeFunctionData('remainingRaw', [orHash]),
+        }
+      }, 1_000)
+    )
+    console.log('orderRemaining')
+    console.log(orderRemaining)
+
+    const andThen = orderRemaining.map((orRemain) => {
+      return limitOrder.interface.decodeFunctionResult('remainingRaw', orRemain)[0].toNumber()
+    })
+    console.log('orderRemainingDECODED')
+    console.log(andThen)
+  }, [orderHashForWallet, provider, limitOrderAddr])
+
+  useEffect(() => {
+    call()
+  }, [call])
 }

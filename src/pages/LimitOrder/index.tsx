@@ -46,7 +46,7 @@ import { LinkStyledButton, TYPE } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import AppBody from '../AppBody'
 import { ClickableText } from '../Pool/styleds'
-import { useOrderBroadcasted } from './useOrderBroadcasted'
+import { useOrderBroadcasted, useRemaining } from './useOrderBroadcasted'
 
 const PRICE_PRECISION = 6
 
@@ -165,6 +165,8 @@ export default function LimitOrder() {
     [independentField]: typedValue,
     [dependentField]: parsedAmounts[dependentField]?.toSignificant(6) ?? '',
   }
+
+  const remaining = useRemaining()
 
   // check whether the user has approved the router on the input token
   // TODO: inputAmount may not work if it is the dependent field
