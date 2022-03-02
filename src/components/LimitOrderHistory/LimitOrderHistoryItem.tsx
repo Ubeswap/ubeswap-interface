@@ -65,6 +65,7 @@ interface LimitOrderHistoryItemProps {
   takingAmount: string
   orderHash: string
   remainingOrderToFill: string
+  isOrderOpen: boolean
 }
 
 export default function LimitOrderHistoryItem({
@@ -74,6 +75,7 @@ export default function LimitOrderHistoryItem({
   takingAmount,
   orderHash,
   remainingOrderToFill,
+  isOrderOpen,
 }: LimitOrderHistoryItemProps) {
   const { address: account } = useContractKit()
 
@@ -98,7 +100,7 @@ export default function LimitOrderHistoryItem({
           &#10140;
         </TYPE.body>
         <AssetSymbol>{takerAssetSymbol}</AssetSymbol>
-        <StyledControlButton onClick={handleCancelOrder}>Cancel</StyledControlButton>
+        {isOrderOpen && <StyledControlButton onClick={handleCancelOrder}>Cancel</StyledControlButton>}
       </AssetRow>
       <SellText>
         Sell {makingAmount} {makerAssetSymbol} for {takingAmount} {takerAssetSymbol}

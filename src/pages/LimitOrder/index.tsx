@@ -4,7 +4,10 @@ import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { CELO, ChainId as UbeswapChainId, Fraction, JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
 import OpticsV1Warning from 'components/Header/OpticsV1Warning'
 import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistoryBody'
-import { LimitOrderHistoryButton } from 'components/LimitOrderHistory/LimitOrderHistoryButton'
+import {
+  LimitOrderHistoryButton,
+  LimitOrderHistoryCompletedButton,
+} from 'components/LimitOrderHistory/LimitOrderHistoryButton'
 import LimitOrderHistoryItem from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { describeTrade } from 'components/swap/routing/describeTrade'
 import { LimitOrderTrade } from 'components/swap/routing/limit/LimitOrderTrade'
@@ -508,7 +511,7 @@ export default function LimitOrder() {
       <LimitOrderHistoryBody>
         <div style={{ display: 'inline-block', width: '-webkit-fill-available', padding: '1rem' }}>
           <LimitOrderHistoryButton onClick={showOpenOrders}>Open</LimitOrderHistoryButton>
-          <LimitOrderHistoryButton onClick={showCompleteOrders}>Completed</LimitOrderHistoryButton>
+          <LimitOrderHistoryCompletedButton onClick={showCompleteOrders}>Completed</LimitOrderHistoryCompletedButton>
         </div>
 
         <Wrapper id="limit-order-history">
@@ -522,6 +525,7 @@ export default function LimitOrder() {
                 makingAmount={limitOrderHist.makingAmount}
                 takingAmount={limitOrderHist.takingAmount}
                 remainingOrderToFill={limitOrderHist.remainingOrderToFill}
+                isOrderOpen={limitOrderHist.isOrderOpen}
               />
             )
           })}
