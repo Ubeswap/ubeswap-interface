@@ -4,6 +4,7 @@ import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { CELO, ChainId as UbeswapChainId, Fraction, JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
 import OpticsV1Warning from 'components/Header/OpticsV1Warning'
 import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistoryBody'
+import { LimitOrderHistoryButton } from 'components/LimitOrderHistory/LimitOrderHistoryButton'
 import LimitOrderHistoryItem from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { describeTrade } from 'components/swap/routing/describeTrade'
 import { LimitOrderTrade } from 'components/swap/routing/limit/LimitOrderTrade'
@@ -73,7 +74,21 @@ export default function LimitOrder() {
   // dismiss warning if all imported tokens are in active lists
   const defaultTokens = useAllTokens()
 
+  const [limitOrderHistoryDisplay, setLimitOrderHistoryDisplay] = useState<Array<any>>([])
   const limitOrderHistory = useLimitOrdersHistory()
+
+  const showOpenOrders = () => {
+    setLimitOrderHistoryDisplay(limitOrderHistory.filter((orderHistory) => orderHistory.isOrderOpen))
+  }
+
+  const showCompleteOrders = () => {
+    setLimitOrderHistoryDisplay(limitOrderHistory.filter((orderHistory) => !orderHistory.isOrderOpen))
+  }
+
+  useEffect(() => {
+    showOpenOrders()
+  }, [limitOrderHistory])
+
   const importTokensNotInDefault =
     urlLoadedTokens &&
     urlLoadedTokens.filter((token: Token) => {
@@ -489,9 +504,13 @@ export default function LimitOrder() {
       </AppBody>
 
       <LimitOrderHistoryBody>
-        <SwapHeader title={'History'} hideSettings={true} />
+        <div style={{ display: 'inline-block', width: '-webkit-fill-available', padding: '1rem' }}>
+          <LimitOrderHistoryButton onClick={showOpenOrders}>Open</LimitOrderHistoryButton>
+          <LimitOrderHistoryButton onClick={showCompleteOrders}>Completed</LimitOrderHistoryButton>
+        </div>
+
         <Wrapper id="limit-order-history">
-          {limitOrderHistory.map((limitOrderHist) => {
+          {limitOrderHistoryDisplay.map((limitOrderHist) => {
             return (
               <LimitOrderHistoryItem
                 key={limitOrderHist.orderHash}
