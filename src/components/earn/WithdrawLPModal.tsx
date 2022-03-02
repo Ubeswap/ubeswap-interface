@@ -231,6 +231,7 @@ export default function WithdrawLPModal({
         ((Number(formatEther(positionInfo.collateralSize)) - Number(formatEther(info?.removeLp))) *
           Number(formatEther(info?.lpPrice))) /
         Number(formatEther(scale))
+      console.log(supplyValue, borrowValue)
       const lever = 1 + borrowValue / supplyValue
       const apy =
         ((borrowValue + supplyValue) * (poolAPY / 100) -
@@ -377,7 +378,7 @@ export default function WithdrawLPModal({
                         onChange={(e) => {
                           onChangeRemovePcnt(e)
                         }}
-                        max={99}
+                        max={100}
                         size={18}
                         isWithdrawSlider={true}
                       />

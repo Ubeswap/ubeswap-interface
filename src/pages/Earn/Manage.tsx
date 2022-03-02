@@ -183,7 +183,7 @@ export default function Manage({
   const toggleLeverage = () => {
     const leverage = !leverageFarm
 
-    if (stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0)) || leverageError) {
+    if (stakingInfo?.stakedAmount?.greaterThan(JSBI.BigInt(0)) || (leverageError && leverageError !== 'none')) {
       setShowLeverageModal(leverage)
     } else {
       setLeverageFarm(leverage)
@@ -230,7 +230,7 @@ export default function Manage({
       if (proxyOracle && coreOracle && lpToken && stakingInfo && pairLP) {
         const nextPositionId = await bank.nextPositionId()
         let posInfo: any = undefined
-        if (nextPositionId.toNumber() > 1 && !showAddLiquidityButton) {
+        if (nextPositionId.toNumber() > 1) {
           const batch = []
           for (let i = 1; i < Number(nextPositionId); i += 1) {
             batch.push(bank.getPositionInfo(i))
@@ -260,7 +260,7 @@ export default function Manage({
           }
           setPositionInfo(posInfo)
         }
-        if (posInfo && !showAddLiquidityButton) {
+        if (posInfo) {
           const price = await coreOracle.getCELOPx(lpToken.lp)
           const totalValue =
             Number(formatEther(posInfo.collateralSize)) * (Number(formatEther(price)) / Number(formatEther(scale)))
@@ -354,7 +354,7 @@ export default function Manage({
   useEffect(() => {
     const connectContract = async () => {
       try {
-        if (bank && provider && lpToken && initialLoading) {
+        if (bank && provider && lpToken && initialLoading && (!proxyOracle || !coreOracle || !pairLP)) {
           const pairLP = new ethers.Contract(
             lpToken.lp,
             UNI_PAIR.abi as ContractInterface,
@@ -382,6 +382,7 @@ export default function Manage({
       }
     }
     connectContract()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     bank,
     provider,
@@ -443,7 +444,10 @@ export default function Manage({
           if (initVal && stakingInfo?.stakedAmount?.equalTo(JSBI.BigInt(0))) {
             setLeverageFarm(leverage)
           }
-          setLeverageError(null)
+          if (leverageError) {
+            setLeverageError('none')
+            setShowLeverageModal(false)
+          }
           setPoolAPR(apr)
           setLeverageLoading(false)
         }
@@ -455,28 +459,18 @@ export default function Manage({
         // ) {
         //   setLeverageError("Can't enable leverage since oracle price is too old")
         // }
+        if (init) {
+          setLeverageError('Pinnata oracle is down, please try again later')
+          setShowLeverageModal(true)
+        }
         setInit(false)
-        setLeverageError("Can't enable leverage since oracle price is too old")
         setLeverageLoading(false)
         console.log(err)
       }
     }
     connectContract()
-  }, [
-    provider,
-    stakingInfo,
-    init,
-    lpToken,
-    stakingAddress,
-    account,
-    scale,
-    dummyPair,
-    showAddLiquidityButton,
-    loadPosition,
-    coreOracle,
-    pairLP,
-    leverageLoading,
-  ])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stakingInfo, lpToken, stakingAddress, dummyPair, showAddLiquidityButton, loadPosition, coreOracle, pairLP])
 
   useEffect(() => {
     if (coreOracle) {
@@ -544,7 +538,7 @@ export default function Manage({
       )}
       {stakingInfo && (!lpToken || (lpToken && coreOracle && !init)) ? (
         <>
-          {!showAddLiquidityButton && lpToken && (
+          {lpToken && (
             <RowEnd>
               <RowBetween width={'240px'}>
                 <RowFixed>
@@ -643,14 +637,10 @@ export default function Manage({
             stakingInfo={stakingInfo}
           />
 
-          <PositionInfo gap="lg" justify="center" dim={showAddLiquidityButton}>
+          <PositionInfo gap="lg" justify="center" dim={leverageFarm ? false : showAddLiquidityButton}>
             <BottomSection gap="lg" justify="center">
               {leverageFarm ? (
-                <StyledDataCard
-                  disabled={disableTop}
-                  bgColor={backgroundColor}
-                  showBackground={!showAddLiquidityButton}
-                >
+                <StyledDataCard disabled={disableTop} bgColor={backgroundColor} showBackground={true}>
                   <CardSection>
                     <CardNoise />
                     <AutoColumn gap="lg">
@@ -661,7 +651,7 @@ export default function Manage({
                       </RowBetween>
                       {stakingInfo.tokens.map((token, i) => (
                         <RowBetween key={i} style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
-                          <TYPE.white fontSize={16}>{i === 0 && "I'm Borrowing"}</TYPE.white>
+                          <TYPE.white fontSize={16}>{i === 0 && 'My Borrows'}</TYPE.white>
                           <TYPE.white>
                             {(myPosition
                               ? humanFriendlyNumber(formatEther(myPosition.reserves[i])).concat(' ')
@@ -857,6 +847,20 @@ export default function Manage({
                   </TYPE.main>
                 )}
               </DataRow>
+            )}
+            {showAddLiquidityButton && leverageFarm && positionInfo && (
+              <>
+                <ButtonPrimary
+                  padding="8px"
+                  borderRadius="8px"
+                  width="160px"
+                  onClick={() => {
+                    handleWithdraw()
+                  }}
+                >
+                  {t('withdraw')}
+                </ButtonPrimary>
+              </>
             )}
             {!userLiquidityUnstaked ? null : userLiquidityUnstaked.equalTo('0') ? null : !stakingInfo?.active ? null : (
               <TYPE.main>{userLiquidityUnstaked.toSignificant(6)} UBE LP tokens available</TYPE.main>

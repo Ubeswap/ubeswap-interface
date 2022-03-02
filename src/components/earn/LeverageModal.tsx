@@ -102,7 +102,7 @@ export default function LeverageModal({
           <AutoColumn gap="lg">
             <AutoColumn gap="lg" style={{ padding: '0 2rem', marginTop: '2rem' }}>
               <Text fontWeight={400} fontSize={18} mb={'1rem'}>
-                {leverageError}
+                {leverageError === 'none' ? 'Pinnata oracle is down, please try again later' : leverageError}
               </Text>
               <RowBetween>
                 <ButtonSecondary mr="0.5rem" padding="18px" onClick={onDismiss}>{`${t('Close')}`}</ButtonSecondary>
