@@ -178,6 +178,8 @@ export default function LimitOrder() {
     txHash: undefined,
   })
 
+  const [orderHashToCancel, setOrderHashToCancel] = useState(undefined)
+
   const formattedAmounts = {
     [independentField]: typedValue,
     [dependentField]: parsedAmounts[dependentField]?.toSignificant(6) ?? '',

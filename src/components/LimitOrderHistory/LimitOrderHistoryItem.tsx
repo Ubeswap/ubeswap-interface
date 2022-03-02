@@ -1,9 +1,9 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import React, { useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import React, { useCallback } from 'react'
 import styled from 'styled-components'
 
 import useTheme from '../../hooks/useTheme'
+import { useCancelOrderCallback } from '../../pages/LimitOrder/useCancelOrderCallback'
 import { TYPE } from '../../theme'
 import { RowFlat } from '../Row'
 
@@ -66,11 +66,17 @@ export default function LimitOrderHistoryItem({
   takingAmount,
   orderHash,
 }: LimitOrderHistoryItemProps) {
-  const { t } = useTranslation()
-
-  const [modalOpen, setModalOpen] = useState(false)
   const { address: account } = useContractKit()
+
+  const { callback: cancelOrderCallback } = useCancelOrderCallback(orderHash)
   const theme = useTheme()
+
+  const handleCancelOrder = useCallback(() => {
+    if (!cancelOrderCallback) {
+      return
+    }
+    cancelOrderCallback()
+  }, [cancelOrderCallback, orderHash])
 
   return (
     <Container>
@@ -83,7 +89,7 @@ export default function LimitOrderHistoryItem({
           &#10140;
         </TYPE.body>
         <AssetSymbol>{takerAssetSymbol}</AssetSymbol>
-        <StyledControlButton>Cancel</StyledControlButton>
+        <StyledControlButton onClick={handleCancelOrder}>Cancel</StyledControlButton>
       </AssetRow>
       <SellText>
         Sell {makingAmount} {makerAssetSymbol} for {takingAmount} {takerAssetSymbol}

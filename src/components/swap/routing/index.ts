@@ -37,6 +37,17 @@ export interface TradeExecutor<T extends Trade> {
   }>
 }
 
+export interface CancelLimitOrderExecutor {
+  (args: {
+    orderHash: string
+    signer: JsonRpcSigner
+    chainId: ChainId.MAINNET | ChainId.ALFAJORES
+    doTransaction: DoTransactionFn
+  }): Promise<{
+    hash: string
+  }>
+}
+
 type ContractCall = {
   contract: Contract
   methodName: string
