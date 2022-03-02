@@ -120,11 +120,19 @@ export const useLimitOrdersHistory = () => {
       return limitOrderFactory.interface.decodeFunctionResult('remainingRaw', orRemain)[0].toNumber()
     })
 
-    const limitOrdersForWallet = orderHashForWallet.map((orderHash, idx) => ({
-      orderHash,
-      isOrderOpen: decodedOrderRemaining[idx] === 0,
-      ...decodedOrderBookOrdersWithSymbol[idx],
-    }))
+    const limitOrdersForWallet = orderHashForWallet.map((orderHash, idx) => {
+      const orderRemaining = decodedOrderRemaining[idx]
+      const makingAmount = decodedOrderBookOrdersWithSymbol[idx].makingAmount
+      const remainingOrderToFill =
+        orderRemaining === 1 ? undefined : orderRemaining === 0 ? makingAmount : orderRemaining - 1
+
+      return {
+        orderHash,
+        isOrderOpen: decodedOrderRemaining[idx] != 1,
+        ...decodedOrderBookOrdersWithSymbol[idx],
+        remainingOrderToFill,
+      }
+    })
     console.log('orderRemainingDECODED')
     console.log(limitOrdersForWallet)
     setLimitOrderHistory(limitOrdersForWallet)

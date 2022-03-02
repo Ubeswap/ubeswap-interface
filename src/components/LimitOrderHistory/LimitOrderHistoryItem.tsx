@@ -23,12 +23,19 @@ const AssetRow = styled(RowFlat)`
 `
 const SellText = styled.div`
   font-weight: 700;
+  margin-top: 0.25rem;
+`
+
+const OrderToFill = styled.div`
+  font-weight: 300;
+  font-size: 14px;
+  margin-top: 0.25rem;
 `
 
 const StyledControlButton = styled.button`
-  height: 28px;
-  background-color: ${({ theme }) => theme.primary5};
-  border: 1px solid ${({ theme }) => theme.primary5};
+  height: 24px;
+  background-color: ${({ theme }) => theme.red1};
+  border: 1px solid ${({ theme }) => theme.red3};
   border-radius: 0.5rem;
   font-size: 0.875rem;
 
@@ -57,6 +64,7 @@ interface LimitOrderHistoryItemProps {
   makingAmount: string
   takingAmount: string
   orderHash: string
+  remainingOrderToFill: string
 }
 
 export default function LimitOrderHistoryItem({
@@ -65,6 +73,7 @@ export default function LimitOrderHistoryItem({
   makingAmount,
   takingAmount,
   orderHash,
+  remainingOrderToFill,
 }: LimitOrderHistoryItemProps) {
   const { address: account } = useContractKit()
 
@@ -94,6 +103,13 @@ export default function LimitOrderHistoryItem({
       <SellText>
         Sell {makingAmount} {makerAssetSymbol} for {takingAmount} {takerAssetSymbol}
       </SellText>
+      {remainingOrderToFill ? (
+        <OrderToFill>
+          Remaining Order to Fill: {remainingOrderToFill} {makerAssetSymbol}
+        </OrderToFill>
+      ) : (
+        <></>
+      )}
     </Container>
   )
 }

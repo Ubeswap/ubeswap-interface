@@ -521,6 +521,7 @@ export default function LimitOrder() {
                 takerAssetSymbol={limitOrderHist.takerAssetSymbol}
                 makingAmount={limitOrderHist.makingAmount}
                 takingAmount={limitOrderHist.takingAmount}
+                remainingOrderToFill={limitOrderHist.remainingOrderToFill}
               />
             )
           })}
