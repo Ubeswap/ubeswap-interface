@@ -15,5 +15,5 @@ export const LimitOrderHistoryButton = styled(ButtonLight)<{
   font-size: 12px;
   display: inline-block;
   padding: 0.75rem;
-  margin: 0.75rem 0.05rem 0.5rem 1rem;
+  margin: 0.5rem 0.05rem 0.5rem 0.5rem;
 `
