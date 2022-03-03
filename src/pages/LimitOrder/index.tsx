@@ -567,7 +567,7 @@ export default function LimitOrder() {
       </AppBody>
 
       <LimitOrderHistoryBody>
-        <div style={{ display: 'inline-block', width: '-webkit-fill-available', padding: '1rem' }}>
+        <div style={{ display: 'inline-block', textAlign: 'center', width: '-webkit-fill-available', padding: '1rem' }}>
           <LimitOrderHistoryButton active={openOrdersTabActive} onClick={showOpenOrders}>
             Open
           </LimitOrderHistoryButton>
