@@ -16,20 +16,32 @@ interface DecodedOrderBookOrderWithSymbol {
   takerAsset: string
   makerAssetSymbol: string
   takerAssetSymbol: string
+  makingAmount: any
+  takingAmount: any
+}
+
+export interface LimitOrdersHistory {
+  orderHash: string
+  isOrderOpen: boolean
+  makerAssetSymbol: string
+  takerAssetSymbol: string
   makingAmount: string
   takingAmount: string
+  remainingOrderToFill: string | undefined
 }
 
 export const useOrderBroadcasted = () => {
-  const { kit, account } = useContractKit()
-  const [orderBroadcasts, setOrderBroadcasts] = React.useState<string[]>([])
+  const { kit, account, network } = useContractKit()
+  const chainId = network.chainId as unknown as ChainId
+  const orderBookAddr = ORDER_BOOK_ADDRESS[chainId]
 
+  const [orderBroadcasts, setOrderBroadcasts] = React.useState<string[]>([])
   // use the orderbook contract OrderBroadcasted Event to get order hash for the account
   const call = React.useCallback(async () => {
     if (!account) {
       return
     }
-    const orderBook = new kit.web3.eth.Contract(orderBookAbi as AbiItem[], '0x0560FE2659c8c63933e97283D8c648abDb72de51')
+    const orderBook = new kit.web3.eth.Contract(orderBookAbi as AbiItem[], orderBookAddr)
     const lastBlock = await kit.web3.eth.getBlockNumber()
     const orderBookEvents = await orderBook.getPastEvents(ORDER_BROADCASTED_EVENT, {
       fromBlock: CREATION_BLOCK,
@@ -51,7 +63,7 @@ export const useOrderBroadcasted = () => {
   return orderBroadcasts
 }
 
-export const useLimitOrdersHistory = () => {
+export const useLimitOrdersHistory = (): LimitOrdersHistory[] => {
   const orderHashForWallet = useOrderBroadcasted()
   const provider = useProvider()
   const { network } = useContractKit()
@@ -60,7 +72,7 @@ export const useLimitOrdersHistory = () => {
   const orderBookAddr = ORDER_BOOK_ADDRESS[chainId]
   const multicallAddr = MULTICALL_ADDRESS[chainId]
 
-  const [limitOrderHistory, setLimitOrderHistory] = React.useState<any[]>([])
+  const [limitOrderHistory, setLimitOrderHistory] = React.useState<LimitOrdersHistory[]>([])
 
   const call = React.useCallback(async () => {
     const multicall = Multicall__factory.connect(multicallAddr, provider)
@@ -83,8 +95,8 @@ export const useLimitOrdersHistory = () => {
       return {
         makerAsset: decodedObo[1],
         takerAsset: decodedObo[2],
-        makingAmount: (decodedObo[6] / 1000000000000000000).toFixed(2).toString(),
-        takingAmount: (decodedObo[7] / 1000000000000000000).toFixed(2).toString(),
+        makingAmount: decodedObo[6],
+        takingAmount: decodedObo[7],
       }
     })
 
@@ -120,14 +132,20 @@ export const useLimitOrdersHistory = () => {
     const limitOrdersForWallet = orderHashForWallet.map((orderHash, idx) => {
       const orderRemaining = decodedOrderRemaining[idx]
       const makingAmount = decodedOrderBookOrdersWithSymbol[idx].makingAmount
+      const takingAmount = decodedOrderBookOrdersWithSymbol[idx].takingAmount
+      const readableMakerAmount = (makingAmount / 1000000000000000000).toFixed(2).toString()
+      const readableTakerAmount = (takingAmount / 1000000000000000000).toFixed(2).toString()
       const remainingOrderToFill =
-        orderRemaining === 1 ? undefined : orderRemaining === 0 ? makingAmount : orderRemaining - 1
+        orderRemaining === 1 ? undefined : orderRemaining === 0 ? readableMakerAmount : (orderRemaining - 1).toString()
 
       return {
         orderHash,
         isOrderOpen: decodedOrderRemaining[idx] != 1,
-        ...decodedOrderBookOrdersWithSymbol[idx],
         remainingOrderToFill,
+        makingAmount: readableMakerAmount,
+        takingAmount: readableTakerAmount,
+        makerAssetSymbol: decodedOrderBookOrdersWithSymbol[idx].makerAssetSymbol,
+        takerAssetSymbol: decodedOrderBookOrdersWithSymbol[idx].takerAssetSymbol,
       }
     })
 

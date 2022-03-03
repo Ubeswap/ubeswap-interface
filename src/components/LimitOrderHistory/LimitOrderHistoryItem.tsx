@@ -37,7 +37,6 @@ const StyledControlButton = styled.button`
   border: 1px solid ${({ theme }) => theme.red3};
   border-radius: 0.5rem;
   font-size: 0.875rem;
-
   font-weight: 500;
   cursor: pointer;
   margin-left: auto;
@@ -63,7 +62,7 @@ interface LimitOrderHistoryItemProps {
   makingAmount: string
   takingAmount: string
   orderHash: string
-  remainingOrderToFill: string
+  remainingOrderToFill: string | undefined
   isOrderOpen: boolean
 }
 
@@ -102,12 +101,10 @@ export default function LimitOrderHistoryItem({
       <SellText>
         Sell {makingAmount} {makerAssetSymbol} for {takingAmount} {takerAssetSymbol}
       </SellText>
-      {remainingOrderToFill ? (
+      {remainingOrderToFill && (
         <OrderToFill>
           Remaining Order to Fill: {remainingOrderToFill} {makerAssetSymbol}
         </OrderToFill>
-      ) : (
-        <></>
       )}
     </Container>
   )

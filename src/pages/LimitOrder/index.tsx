@@ -49,7 +49,7 @@ import { LinkStyledButton, TYPE } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import AppBody from '../AppBody'
 import { ClickableText } from '../Pool/styleds'
-import { useLimitOrdersHistory } from './useOrderBroadcasted'
+import { LimitOrdersHistory, useLimitOrdersHistory } from './useOrderBroadcasted'
 
 const PRICE_PRECISION = 6
 
@@ -74,7 +74,7 @@ export default function LimitOrder() {
   // dismiss warning if all imported tokens are in active lists
   const defaultTokens = useAllTokens()
 
-  const [limitOrderHistoryDisplay, setLimitOrderHistoryDisplay] = useState<Array<any>>([])
+  const [limitOrderHistoryDisplay, setLimitOrderHistoryDisplay] = useState<Array<LimitOrdersHistory>>([])
   const limitOrderHistory = useLimitOrdersHistory()
 
   const [openOrdersTabActive, setOpenOrdersTabActive] = useState<boolean>(true)
