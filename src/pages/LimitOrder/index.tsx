@@ -80,12 +80,19 @@ export default function LimitOrder() {
   const [limitOrderHistoryDisplay, setLimitOrderHistoryDisplay] = useState<Array<any>>([])
   const limitOrderHistory = useLimitOrdersHistory()
 
+  const [openOrdersTabActive, setOpenOrdersTabActive] = useState<boolean>(true)
+  const [completedOrdersTabActive, setCompletedOrdersTabActive] = useState<boolean>(false)
+
   const showOpenOrders = () => {
     setLimitOrderHistoryDisplay(limitOrderHistory.filter((orderHistory) => orderHistory.isOrderOpen))
+    setOpenOrdersTabActive(true)
+    setCompletedOrdersTabActive(false)
   }
 
   const showCompleteOrders = () => {
     setLimitOrderHistoryDisplay(limitOrderHistory.filter((orderHistory) => !orderHistory.isOrderOpen))
+    setCompletedOrdersTabActive(true)
+    setOpenOrdersTabActive(false)
   }
 
   useEffect(() => {
@@ -180,8 +187,6 @@ export default function LimitOrder() {
     swapErrorMessage: undefined,
     txHash: undefined,
   })
-
-  const [orderHashToCancel, setOrderHashToCancel] = useState(undefined)
 
   const formattedAmounts = {
     [independentField]: typedValue,
@@ -510,8 +515,12 @@ export default function LimitOrder() {
 
       <LimitOrderHistoryBody>
         <div style={{ display: 'inline-block', width: '-webkit-fill-available', padding: '1rem' }}>
-          <LimitOrderHistoryButton onClick={showOpenOrders}>Open</LimitOrderHistoryButton>
-          <LimitOrderHistoryCompletedButton onClick={showCompleteOrders}>Completed</LimitOrderHistoryCompletedButton>
+          <LimitOrderHistoryButton active={openOrdersTabActive} onClick={showOpenOrders}>
+            Open
+          </LimitOrderHistoryButton>
+          <LimitOrderHistoryCompletedButton active={completedOrdersTabActive} onClick={showCompleteOrders}>
+            Completed
+          </LimitOrderHistoryCompletedButton>
         </div>
 
         <Wrapper id="limit-order-history">
