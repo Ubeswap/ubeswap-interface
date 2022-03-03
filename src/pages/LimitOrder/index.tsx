@@ -3,6 +3,9 @@ import { parseUnits } from '@ethersproject/units'
 import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { CELO, ChainId as UbeswapChainId, Fraction, JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
 import OpticsV1Warning from 'components/Header/OpticsV1Warning'
+import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistoryBody'
+import { LimitOrderHistoryButton } from 'components/LimitOrderHistory/LimitOrderHistoryButton'
+import LimitOrderHistoryItem from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { describeTrade } from 'components/swap/routing/describeTrade'
 import { LimitOrderTrade } from 'components/swap/routing/limit/LimitOrderTrade'
 import { useTradeCallback } from 'components/swap/routing/useTradeCallback'
@@ -46,6 +49,7 @@ import { LinkStyledButton, TYPE } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import AppBody from '../AppBody'
 import { ClickableText } from '../Pool/styleds'
+import { LimitOrdersHistory, useLimitOrdersHistory } from './useOrderBroadcasted'
 
 const PRICE_PRECISION = 6
 // TODO: HARDCODE
@@ -72,6 +76,29 @@ export default function LimitOrder() {
 
   // dismiss warning if all imported tokens are in active lists
   const defaultTokens = useAllTokens()
+
+  const [limitOrderHistoryDisplay, setLimitOrderHistoryDisplay] = useState<Array<LimitOrdersHistory>>([])
+  const limitOrderHistory = useLimitOrdersHistory()
+
+  const [openOrdersTabActive, setOpenOrdersTabActive] = useState<boolean>(true)
+  const [completedOrdersTabActive, setCompletedOrdersTabActive] = useState<boolean>(false)
+
+  const showOpenOrders = () => {
+    setLimitOrderHistoryDisplay(limitOrderHistory.filter((orderHistory) => orderHistory.isOrderOpen))
+    setOpenOrdersTabActive(true)
+    setCompletedOrdersTabActive(false)
+  }
+
+  const showCompleteOrders = () => {
+    setLimitOrderHistoryDisplay(limitOrderHistory.filter((orderHistory) => !orderHistory.isOrderOpen))
+    setCompletedOrdersTabActive(true)
+    setOpenOrdersTabActive(false)
+  }
+
+  useEffect(() => {
+    showOpenOrders()
+  }, [limitOrderHistory])
+
   const importTokensNotInDefault =
     urlLoadedTokens &&
     urlLoadedTokens.filter((token: Token) => {
@@ -538,6 +565,34 @@ export default function LimitOrder() {
           </BottomGrouping>
         </Wrapper>
       </AppBody>
+
+      <LimitOrderHistoryBody>
+        <div style={{ display: 'inline-block', width: '-webkit-fill-available', padding: '1rem' }}>
+          <LimitOrderHistoryButton active={openOrdersTabActive} onClick={showOpenOrders}>
+            Open
+          </LimitOrderHistoryButton>
+          <LimitOrderHistoryButton active={completedOrdersTabActive} onClick={showCompleteOrders}>
+            Completed
+          </LimitOrderHistoryButton>
+        </div>
+
+        <Wrapper id="limit-order-history">
+          {limitOrderHistoryDisplay.map((limitOrderHist) => {
+            return (
+              <LimitOrderHistoryItem
+                key={limitOrderHist.orderHash}
+                orderHash={limitOrderHist.orderHash}
+                makerAssetSymbol={limitOrderHist.makerAssetSymbol}
+                takerAssetSymbol={limitOrderHist.takerAssetSymbol}
+                makingAmount={limitOrderHist.makingAmount}
+                takingAmount={limitOrderHist.takingAmount}
+                remainingOrderToFill={limitOrderHist.remainingOrderToFill}
+                isOrderOpen={limitOrderHist.isOrderOpen}
+              />
+            )
+          })}
+        </Wrapper>
+      </LimitOrderHistoryBody>
     </>
   )
 }

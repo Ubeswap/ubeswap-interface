@@ -33,6 +33,12 @@ export const ORDER_BOOK_ADDRESS = {
   [ChainId.BAKLAVA]: '',
 }
 
+export const MULTICALL_ADDRESS = {
+  [ChainId.MAINNET]: '0x75f59534dd892c1f8a7b172d639fa854d529ada3',
+  [ChainId.ALFAJORES]: '0x387ce7960b5DA5381De08Ea4967b13a7c8cAB3f6',
+  [ChainId.BAKLAVA]: '',
+}
+
 export const POOF = {
   [ChainId.MAINNET]: new Token(ChainId.MAINNET, '0x00400FcbF0816bebB94654259de7273f4A05c762', 18, 'POOF', 'POOF'),
   [ChainId.ALFAJORES]: new Token(ChainId.ALFAJORES, '0x00400FcbF0816bebB94654259de7273f4A05c762', 18, 'POOF', 'POOF'),
