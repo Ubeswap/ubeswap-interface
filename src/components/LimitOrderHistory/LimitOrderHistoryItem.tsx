@@ -1,4 +1,3 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import React, { useCallback } from 'react'
 import styled from 'styled-components'
 
@@ -77,8 +76,6 @@ export default function LimitOrderHistoryItem({
   remainingOrderToFill,
   isOrderOpen,
 }: LimitOrderHistoryItemProps) {
-  const { address: account } = useContractKit()
-
   const { callback: cancelOrderCallback } = useCancelOrderCallback(orderHash)
   const theme = useTheme()
 

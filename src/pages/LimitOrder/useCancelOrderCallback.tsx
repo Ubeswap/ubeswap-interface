@@ -7,7 +7,7 @@ import { executeCancelOrder } from './executCancelOrder'
 
 /**
  * Use callback to cancel open limit order
-
+ * @param orderHash the hash of the order to cancel
  * @returns
  */
 export const useCancelOrderCallback = (

@@ -5,16 +5,17 @@ import React, { useEffect } from 'react'
 import { multicallBatch } from 'utils/multicall'
 import { AbiItem } from 'web3-utils'
 
-import { LIMIT_ORDER_ADDRESS, ORDER_BOOK_ADDRESS } from '../../constants'
+import { LIMIT_ORDER_ADDRESS, MULTICALL_ADDRESS, ORDER_BOOK_ADDRESS } from '../../constants'
 import orderBookAbi from '../../constants/abis/limit/OrderBook.json'
 
 const CREATION_BLOCK = 9840049
+const ORDER_BROADCASTED_EVENT = 'OrderBroadcasted'
 
-export interface DecodedOrderBookOrderWithSymbol {
-  makerAsset: any
-  takerAsset: any
-  makerAssetSymbol: any
-  takerAssetSymbol: any
+interface DecodedOrderBookOrderWithSymbol {
+  makerAsset: string
+  takerAsset: string
+  makerAssetSymbol: string
+  takerAssetSymbol: string
   makingAmount: string
   takingAmount: string
 }
@@ -23,15 +24,14 @@ export const useOrderBroadcasted = () => {
   const { kit, account } = useContractKit()
   const [orderBroadcasts, setOrderBroadcasts] = React.useState<string[]>([])
 
+  // use the orderbook contract OrderBroadcasted Event to get order hash for the account
   const call = React.useCallback(async () => {
     if (!account) {
       return
     }
-    console.log('in useOrderBroadcasted')
-    console.log(account)
     const orderBook = new kit.web3.eth.Contract(orderBookAbi as AbiItem[], '0x0560FE2659c8c63933e97283D8c648abDb72de51')
     const lastBlock = await kit.web3.eth.getBlockNumber()
-    const orderBookEvents = await orderBook.getPastEvents('OrderBroadcasted', {
+    const orderBookEvents = await orderBook.getPastEvents(ORDER_BROADCASTED_EVENT, {
       fromBlock: CREATION_BLOCK,
       toBlock: lastBlock,
       filter: {
@@ -41,7 +41,6 @@ export const useOrderBroadcasted = () => {
     const orderHashes: string[] = orderBookEvents.map((orderBookEvent) => {
       return orderBookEvent.returnValues.orderHash as string
     })
-    console.log(orderHashes)
     setOrderBroadcasts(orderHashes)
   }, [kit.web3.eth, account])
 
@@ -59,12 +58,12 @@ export const useLimitOrdersHistory = () => {
   const chainId = network.chainId as unknown as ChainId
   const limitOrderAddr = LIMIT_ORDER_ADDRESS[chainId]
   const orderBookAddr = ORDER_BOOK_ADDRESS[chainId]
+  const multicallAddr = MULTICALL_ADDRESS[chainId]
 
   const [limitOrderHistory, setLimitOrderHistory] = React.useState<any[]>([])
 
   const call = React.useCallback(async () => {
-    console.log(`orderHashForWallet ${orderHashForWallet}`)
-    const multicall = Multicall__factory.connect('0x387ce7960b5DA5381De08Ea4967b13a7c8cAB3f6', provider)
+    const multicall = Multicall__factory.connect(multicallAddr, provider)
     const limitOrderFactory = LimitOrderProtocol__factory.connect(limitOrderAddr, provider)
 
     const orderBookFactory = OrderBook__factory.connect(orderBookAddr, provider)
@@ -93,11 +92,9 @@ export const useLimitOrdersHistory = () => {
     for (let i = 0; i < decodedOrderBookOrders.length; i++) {
       const makerAssetContract = Erc20__factory.connect(decodedOrderBookOrders[i].makerAsset, provider)
       const makerAssetSymbol = await makerAssetContract.symbol()
-      console.log(makerAssetSymbol)
 
       const takerAssetContract = Erc20__factory.connect(decodedOrderBookOrders[i].takerAsset, provider)
       const takerAssetSymbol = await takerAssetContract.symbol()
-      console.log(takerAssetSymbol)
 
       decodedOrderBookOrdersWithSymbol.push({
         ...decodedOrderBookOrders[i],
@@ -133,8 +130,7 @@ export const useLimitOrdersHistory = () => {
         remainingOrderToFill,
       }
     })
-    console.log('orderRemainingDECODED')
-    console.log(limitOrdersForWallet)
+
     setLimitOrderHistory(limitOrdersForWallet)
   }, [orderHashForWallet, provider, limitOrderAddr])
 

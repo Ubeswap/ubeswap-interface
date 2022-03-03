@@ -4,10 +4,7 @@ import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { CELO, ChainId as UbeswapChainId, Fraction, JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
 import OpticsV1Warning from 'components/Header/OpticsV1Warning'
 import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistoryBody'
-import {
-  LimitOrderHistoryButton,
-  LimitOrderHistoryCompletedButton,
-} from 'components/LimitOrderHistory/LimitOrderHistoryButton'
+import { LimitOrderHistoryButton } from 'components/LimitOrderHistory/LimitOrderHistoryButton'
 import LimitOrderHistoryItem from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { describeTrade } from 'components/swap/routing/describeTrade'
 import { LimitOrderTrade } from 'components/swap/routing/limit/LimitOrderTrade'
@@ -518,9 +515,9 @@ export default function LimitOrder() {
           <LimitOrderHistoryButton active={openOrdersTabActive} onClick={showOpenOrders}>
             Open
           </LimitOrderHistoryButton>
-          <LimitOrderHistoryCompletedButton active={completedOrdersTabActive} onClick={showCompleteOrders}>
+          <LimitOrderHistoryButton active={completedOrdersTabActive} onClick={showCompleteOrders}>
             Completed
-          </LimitOrderHistoryCompletedButton>
+          </LimitOrderHistoryButton>
         </div>
 
         <Wrapper id="limit-order-history">

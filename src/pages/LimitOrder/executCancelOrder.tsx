@@ -10,10 +10,8 @@ export const executeCancelOrder: CancelLimitOrderExecutor = async ({ signer, cha
 
   const orderBookFactory = OrderBook__factory.connect(orderBookAddr, signer)
   const limitOrderProtocolFactory = LimitOrderProtocol__factory.connect(limitOrderAddr, signer)
-  console.log('executeCancelOrder')
 
   const cancel = async (): Promise<ContractTransaction> => {
-    console.log(`cancel callback with order ${orderHash}`)
     const order = await orderBookFactory.orders(orderHash)
 
     return await doTransaction(limitOrderProtocolFactory, 'cancelOrder', {

@@ -17,20 +17,3 @@ export const LimitOrderHistoryButton = styled(ButtonLight)<{
   padding: 0.75rem;
   margin: 0.75rem 0.05rem 0.5rem 1rem;
 `
-
-export const LimitOrderHistoryCompletedButton = styled(ButtonLight)<{
-  active?: boolean
-}>`
-  background-color: initial;
-  width: 25%;
-  font-size: 12px;
-  display: inline-block;
-  padding: 0.75rem;
-  margin: 0.75rem 0.05rem 0.5rem 1rem;
-  ${({ active }) =>
-    active &&
-    `
-  box-shadow: 0 0 0 1pt;
-  background-color: #6D619A70;
-`}
-`
