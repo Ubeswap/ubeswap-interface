@@ -83,11 +83,11 @@ export default function LimitOrder() {
   const [openOrdersTabActive, setOpenOrdersTabActive] = useState<boolean>(true)
   const [completedOrdersTabActive, setCompletedOrdersTabActive] = useState<boolean>(false)
 
-  const showOpenOrders = () => {
+  const showOpenOrders = useCallback(() => {
     setLimitOrderHistoryDisplay(limitOrderHistory.filter((orderHistory) => orderHistory.isOrderOpen))
     setOpenOrdersTabActive(true)
     setCompletedOrdersTabActive(false)
-  }
+  }, [limitOrderHistory])
 
   const showCompleteOrders = () => {
     setLimitOrderHistoryDisplay(limitOrderHistory.filter((orderHistory) => !orderHistory.isOrderOpen))
@@ -97,7 +97,7 @@ export default function LimitOrder() {
 
   useEffect(() => {
     showOpenOrders()
-  }, [limitOrderHistory])
+  }, [limitOrderHistory, showOpenOrders])
 
   const importTokensNotInDefault =
     urlLoadedTokens &&

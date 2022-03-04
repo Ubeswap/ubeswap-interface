@@ -2,7 +2,7 @@
   {
     "inputs": [
       {
-        "internalType": "contract ILimitOrderProtocol",
+        "internalType": "contract LimitOrderProtocol",
         "name": "_limitOrderProtocol",
         "type": "address"
       },
@@ -68,10 +68,99 @@
         "type": "address"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "bytes32",
         "name": "orderHash",
         "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "salt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "makerAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "takerAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "maker",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "receiver",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "allowedSender",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "makingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "takingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "makerAssetData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "takerAssetData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "getMakerAmount",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "getTakerAmount",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "predicate",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "permit",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "interaction",
+            "type": "bytes"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct OrderMixin.Order",
+        "name": "order",
+        "type": "tuple"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
       }
     ],
     "name": "OrderBroadcasted",
@@ -98,7 +187,20 @@
   },
   {
     "inputs": [],
-    "name": "BPS",
+    "name": "FEE_DENOMINATOR",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_FEE",
     "outputs": [
       {
         "internalType": "uint256",
@@ -189,7 +291,7 @@
             "type": "bytes"
           }
         ],
-        "internalType": "struct ILimitOrderProtocol.Order",
+        "internalType": "struct OrderMixin.Order",
         "name": "_order",
         "type": "tuple"
       },
@@ -261,105 +363,9 @@
     "name": "limitOrderProtocol",
     "outputs": [
       {
-        "internalType": "contract ILimitOrderProtocol",
+        "internalType": "contract LimitOrderProtocol",
         "name": "",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_orderHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "orders",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "salt",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "makerAsset",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "takerAsset",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "maker",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "receiver",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "allowedSender",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "makingAmount",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "takingAmount",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bytes",
-            "name": "makerAssetData",
-            "type": "bytes"
-          },
-          {
-            "internalType": "bytes",
-            "name": "takerAssetData",
-            "type": "bytes"
-          },
-          {
-            "internalType": "bytes",
-            "name": "getMakerAmount",
-            "type": "bytes"
-          },
-          {
-            "internalType": "bytes",
-            "name": "getTakerAmount",
-            "type": "bytes"
-          },
-          {
-            "internalType": "bytes",
-            "name": "predicate",
-            "type": "bytes"
-          },
-          {
-            "internalType": "bytes",
-            "name": "permit",
-            "type": "bytes"
-          },
-          {
-            "internalType": "bytes",
-            "name": "interaction",
-            "type": "bytes"
-          }
-        ],
-        "internalType": "struct ILimitOrderProtocol.Order",
-        "name": "order",
-        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -383,25 +389,6 @@
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "name": "signatures",
-    "outputs": [
-      {
-        "internalType": "bytes",
-        "name": "",
-        "type": "bytes"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
