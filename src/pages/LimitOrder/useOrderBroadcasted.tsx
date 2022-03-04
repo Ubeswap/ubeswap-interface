@@ -8,7 +8,8 @@ import { useSingleContractMultipleData } from 'state/multicall/hooks'
 
 import { LIMIT_ORDER_ADDRESS, ORDER_BOOK_ADDRESS } from '../../constants'
 
-const CREATION_BLOCK = 9840049
+// TODO: Just do batch fetching in the future
+const CREATION_BLOCK = 10_000_000
 
 export interface LimitOrdersHistory {
   orderHash: string
@@ -47,9 +48,7 @@ export const useOrderBroadcasted = () => {
   const chainId = network.chainId as unknown as ChainId
   const orderBookAddr = ORDER_BOOK_ADDRESS[chainId]
 
-  // TODO: Refresh when order is placed. Maybe want react-query
   const [orderBroadcasts, setOrderBroadcasts] = React.useState<OrderBookEvent[]>([])
-  // use the orderbook contract OrderBroadcasted Event to get order hash for the account
   const call = React.useCallback(async () => {
     if (!account) {
       return
@@ -67,7 +66,10 @@ export const useOrderBroadcasted = () => {
   }, [account, orderBookAddr, provider])
 
   useEffect(() => {
-    call()
+    const timer = setInterval(call, 5000)
+    return () => {
+      clearInterval(timer)
+    }
   }, [call])
 
   return orderBroadcasts
@@ -93,11 +95,13 @@ export const useLimitOrdersHistory = (): LimitOrdersHistory[] => {
     if (!remainings) return []
 
     return orderEvents.map(({ orderHash, order }, idx) => {
-      const { makingAmount, takingAmount } = order
-      const remaining = remainings[idx]
+      const { makerAsset, takerAsset, makingAmount, takingAmount } = order
+      const remaining = remainings[idx].eq(0) ? makingAmount : remainings[idx].sub(1)
 
       return {
         orderHash,
+        makerAsset,
+        takerAsset,
         isOrderOpen: remaining.gt(0),
         remaining,
         makingAmount,

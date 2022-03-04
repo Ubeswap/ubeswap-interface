@@ -1,4 +1,7 @@
-import React, { useCallback } from 'react'
+import { TokenAmount } from '@ubeswap/sdk'
+import { BigNumber } from 'ethers'
+import { useToken } from 'hooks/Tokens'
+import React from 'react'
 import styled from 'styled-components'
 
 import useTheme from '../../hooks/useTheme'
@@ -57,55 +60,52 @@ const StyledControlButton = styled.button`
 `
 
 interface LimitOrderHistoryItemProps {
-  makerAssetSymbol: string
-  takerAssetSymbol: string
-  makingAmount: string
-  takingAmount: string
-  orderHash: string
-  remainingOrderToFill: string | undefined
-  isOrderOpen: boolean
+  item: {
+    orderHash: string
+    makingAmount: BigNumber
+    takingAmount: BigNumber
+    makerAsset: string
+    takerAsset: string
+    remaining: BigNumber
+    isOrderOpen: boolean
+  }
 }
 
-export default function LimitOrderHistoryItem({
-  makerAssetSymbol,
-  takerAssetSymbol,
-  makingAmount,
-  takingAmount,
-  orderHash,
-  remainingOrderToFill,
-  isOrderOpen,
-}: LimitOrderHistoryItemProps) {
-  const { callback: cancelOrderCallback } = useCancelOrderCallback(orderHash)
+export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemProps) {
+  const { callback: cancelOrder } = useCancelOrderCallback(item.orderHash)
   const theme = useTheme()
+  const makerToken = useToken(item.makerAsset)
+  const takerToken = useToken(item.takerAsset)
 
-  const handleCancelOrder = useCallback(() => {
-    if (!cancelOrderCallback) {
-      return
-    }
-    cancelOrderCallback()
-  }, [cancelOrderCallback, orderHash])
+  if (!makerToken || !takerToken) {
+    return null
+  }
+
+  const makingAmount = new TokenAmount(makerToken, item.makingAmount.toString())
+  const takingAmount = new TokenAmount(takerToken, item.takingAmount.toString())
+  const remaining = new TokenAmount(makerToken, item.remaining.toString())
 
   return (
     <Container>
       <AssetRow>
-        <AssetSymbol>{makerAssetSymbol}</AssetSymbol>
+        <AssetSymbol>{makerToken.symbol}</AssetSymbol>
         <TYPE.body
           color={theme.text2}
           style={{ display: 'inline', marginLeft: '10px', marginRight: '10px', paddingBottom: '0.5rem' }}
         >
           &#10140;
         </TYPE.body>
-        <AssetSymbol>{takerAssetSymbol}</AssetSymbol>
-        {isOrderOpen && <StyledControlButton onClick={handleCancelOrder}>Cancel</StyledControlButton>}
+        <AssetSymbol>{takerToken.symbol}</AssetSymbol>
+        {item.isOrderOpen && (
+          <StyledControlButton onClick={() => cancelOrder && cancelOrder()}>Cancel</StyledControlButton>
+        )}
       </AssetRow>
       <SellText>
-        Sell {makingAmount} {makerAssetSymbol} for {takingAmount} {takerAssetSymbol}
+        Sell {makingAmount.toSignificant(4)} {makerToken.symbol} for {takingAmount.toSignificant(4)} {takerToken.symbol}
       </SellText>
-      {remainingOrderToFill && (
-        <OrderToFill>
-          Remaining Order to Fill: {remainingOrderToFill} {makerAssetSymbol}
-        </OrderToFill>
-      )}
+      <OrderToFill>
+        Remaining Order to Fill: {remaining.toSignificant(4)} {makerToken.symbol}
+      </OrderToFill>
     </Container>
   )
 }

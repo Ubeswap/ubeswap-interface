@@ -2,55 +2,37 @@ import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistor
 import { LimitOrderHistoryButton } from 'components/LimitOrderHistory/LimitOrderHistoryButton'
 import LimitOrderHistoryItem from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { Wrapper } from 'components/swap/styleds'
-import React, { useCallback, useState } from 'react'
+import React, { useState } from 'react'
 
-import { LimitOrdersHistory, useLimitOrdersHistory } from './useOrderBroadcasted'
+import { useLimitOrdersHistory } from './useOrderBroadcasted'
 
 export const LimitOrderHistory: React.FC = () => {
-  const [limitOrderHistoryDisplay, setLimitOrderHistoryDisplay] = useState<Array<LimitOrdersHistory>>([])
   const limitOrderHistory = useLimitOrdersHistory()
 
   const [openOrdersTabActive, setOpenOrdersTabActive] = useState<boolean>(true)
-  const [completedOrdersTabActive, setCompletedOrdersTabActive] = useState<boolean>(false)
-
-  const showOpenOrders = useCallback(() => {
-    setLimitOrderHistoryDisplay(limitOrderHistory.filter((orderHistory) => orderHistory.isOrderOpen))
-    setOpenOrdersTabActive(true)
-    setCompletedOrdersTabActive(false)
-  }, [limitOrderHistory])
-
-  const showCompleteOrders = useCallback(() => {
-    setLimitOrderHistoryDisplay(limitOrderHistory.filter((orderHistory) => !orderHistory.isOrderOpen))
-    setCompletedOrdersTabActive(true)
-    setOpenOrdersTabActive(false)
-  }, [limitOrderHistory])
 
   return (
     <LimitOrderHistoryBody>
       <div style={{ display: 'inline-block', textAlign: 'center', width: '-webkit-fill-available', padding: '1rem' }}>
-        <LimitOrderHistoryButton active={openOrdersTabActive} onClick={showOpenOrders}>
+        <LimitOrderHistoryButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
           Open
         </LimitOrderHistoryButton>
-        <LimitOrderHistoryButton active={completedOrdersTabActive} onClick={showCompleteOrders}>
+        <LimitOrderHistoryButton active={!openOrdersTabActive} onClick={() => setOpenOrdersTabActive(false)}>
           Completed
         </LimitOrderHistoryButton>
       </div>
 
       <Wrapper id="limit-order-history">
-        {limitOrderHistoryDisplay.map((limitOrderHist) => {
-          return (
-            <LimitOrderHistoryItem
-              key={limitOrderHist.orderHash}
-              orderHash={limitOrderHist.orderHash}
-              makerAssetSymbol={limitOrderHist.makerAssetSymbol}
-              takerAssetSymbol={limitOrderHist.takerAssetSymbol}
-              makingAmount={limitOrderHist.makingAmount}
-              takingAmount={limitOrderHist.takingAmount}
-              remainingOrderToFill={limitOrderHist.remainingOrderToFill}
-              isOrderOpen={limitOrderHist.isOrderOpen}
-            />
-          )
-        })}
+        {limitOrderHistory
+          .filter((limitOrderHist) => {
+            if (openOrdersTabActive) {
+              return limitOrderHist.isOrderOpen
+            }
+            return !limitOrderHist.isOrderOpen
+          })
+          .map((limitOrderHist) => {
+            return <LimitOrderHistoryItem key={limitOrderHist.orderHash} item={limitOrderHist} />
+          })}
       </Wrapper>
     </LimitOrderHistoryBody>
   )
