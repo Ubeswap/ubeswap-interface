@@ -113,14 +113,23 @@ export default function LimitOrder() {
     if (trade?.executionPrice.toSignificant(2) !== marketPrice?.toSignificant(2)) setMarketPrice(trade?.executionPrice)
   }, [marketPrice, trade])
 
-  const priceParsed = price === '' ? '0' : parseUnits(price, PRICE_PRECISION).toString()
+  let priceParsed = '0'
+  try {
+    priceParsed = parseUnits(price, PRICE_PRECISION).toString()
+  } catch (e) {
+    console.warn(e)
+  }
   const priceFraction = new Fraction(
     JSBI.BigInt(Number(priceParsed)),
     JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(PRICE_PRECISION))
   )
   const parsedAmounts = {
     [Field.INPUT]:
-      independentField === Field.INPUT ? parsedAmount : priceFraction ? parsedAmount?.divide(priceFraction) : undefined,
+      independentField === Field.INPUT
+        ? parsedAmount
+        : priceFraction?.greaterThan(0)
+        ? parsedAmount?.divide(priceFraction)
+        : undefined,
     [Field.OUTPUT]:
       independentField === Field.OUTPUT
         ? parsedAmount
@@ -140,18 +149,7 @@ export default function LimitOrder() {
     [onUserInput]
   )
   const handleTypePrice = useCallback((value: string) => {
-    if (value === '') {
-      setPrice('')
-      return
-    }
-    try {
-      const typedValueParsed = parseUnits(value, PRICE_PRECISION).toString()
-      if (typedValueParsed !== '0') {
-        setPrice(value)
-      }
-    } catch (e) {
-      console.error(e)
-    }
+    setPrice(value)
   }, [])
   const handleTypeOutput = useCallback(
     (value: string) => {
