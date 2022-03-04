@@ -544,9 +544,26 @@
         "type": "bytes"
       },
       {
-        "internalType": "uint256[3]",
-        "name": "amounts",
-        "type": "uint256[3]"
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "makingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "takingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "thresholdAmount",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct OrderMixin.OrderAmounts",
+        "name": "orderAmounts",
+        "type": "tuple"
       }
     ],
     "name": "fillOrder",
@@ -898,9 +915,26 @@
         "type": "bytes"
       },
       {
-        "internalType": "uint256[3]",
-        "name": "amounts",
-        "type": "uint256[3]"
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "makingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "takingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "thresholdAmount",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct OrderMixin.OrderAmounts",
+        "name": "orderAmounts",
+        "type": "tuple"
       },
       {
         "internalType": "address",
@@ -1014,9 +1048,26 @@
         "type": "bytes"
       },
       {
-        "internalType": "uint256[3]",
-        "name": "amounts",
-        "type": "uint256[3]"
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "makingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "takingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "thresholdAmount",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct OrderMixin.OrderAmounts",
+        "name": "orderAmounts",
+        "type": "tuple"
       },
       {
         "internalType": "address",
@@ -1135,9 +1186,26 @@
         "type": "bytes"
       },
       {
-        "internalType": "uint256[3]",
-        "name": "amounts",
-        "type": "uint256[3]"
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "makingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "takingAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "thresholdAmount",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct OrderMixin.OrderAmounts",
+        "name": "orderAmounts",
+        "type": "tuple"
       },
       {
         "internalType": "address",
