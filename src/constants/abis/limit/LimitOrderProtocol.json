@@ -1025,11 +1025,11 @@
       },
       {
         "internalType": "bytes",
-        "name": "permit",
+        "name": "extraInteraction",
         "type": "bytes"
       }
     ],
-    "name": "fillOrderToWithPermit",
+    "name": "fillOrderToWithExtraInteraction",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1146,11 +1146,11 @@
       },
       {
         "internalType": "bytes",
-        "name": "extraInteraction",
+        "name": "permit",
         "type": "bytes"
       }
     ],
-    "name": "fillOrderWithExtraInteraction",
+    "name": "fillOrderToWithPermit",
     "outputs": [
       {
         "internalType": "uint256",
