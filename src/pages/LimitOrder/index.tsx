@@ -127,7 +127,7 @@ export default function LimitOrder() {
     [Field.INPUT]:
       independentField === Field.INPUT
         ? parsedAmount
-        : priceFraction?.greaterThan(0)
+        : priceFraction?.greaterThan('0')
         ? parsedAmount?.divide(priceFraction)
         : undefined,
     [Field.OUTPUT]:
