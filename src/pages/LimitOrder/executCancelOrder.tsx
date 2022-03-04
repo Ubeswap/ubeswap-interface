@@ -14,7 +14,7 @@ export const executeCancelOrder: CancelLimitOrderExecutor = async ({ signer, cha
   const cancel = async (): Promise<ContractTransaction> => {
     const orders = await orderBook.queryFilter(orderBook.filters['OrderBroadcasted'](undefined, orderHash), 0, 'latest')
     if (orders.length === 0) {
-      console.error('Error finding the order')
+      throw new Error('Error finding the order')
     } else if (orders.length > 0) {
       console.warn('More than one order was found with the same hash')
     }
