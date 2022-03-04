@@ -8,11 +8,18 @@ export const executeCancelOrder: CancelLimitOrderExecutor = async ({ signer, cha
   const orderBookAddr = ORDER_BOOK_ADDRESS[chainId]
   const limitOrderAddr = LIMIT_ORDER_ADDRESS[chainId]
 
-  const orderBookFactory = OrderBook__factory.connect(orderBookAddr, signer)
+  const orderBook = OrderBook__factory.connect(orderBookAddr, signer)
   const limitOrderProtocolFactory = LimitOrderProtocol__factory.connect(limitOrderAddr, signer)
 
   const cancel = async (): Promise<ContractTransaction> => {
-    const order = await orderBookFactory.orders(orderHash)
+    const orders = await orderBook.queryFilter(orderBook.filters['OrderBroadcasted'](undefined, orderHash), 0, 'latest')
+    if (orders.length === 0) {
+      console.error('Error finding the order')
+    } else if (orders.length > 0) {
+      console.warn('More than one order was found with the same hash')
+    }
+
+    const { order } = orders[0].args
 
     return await doTransaction(limitOrderProtocolFactory, 'cancelOrder', {
       args: [order],

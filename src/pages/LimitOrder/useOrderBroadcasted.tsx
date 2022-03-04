@@ -16,6 +16,8 @@ export interface LimitOrdersHistory {
   isOrderOpen: boolean
   makingAmount: BigNumber
   takingAmount: BigNumber
+  makerAsset: string
+  takerAsset: string
   remaining: BigNumber
 }
 
