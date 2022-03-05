@@ -122,7 +122,7 @@ ReactDOM.render(
         url: 'https://app.ubeswap.org',
         icon: 'https://info.ubeswap.org/favicon.png',
       }}
-      network={Alfajores}
+      network={CeloMainnet}
       networks={[CeloMainnet, Alfajores]}
       connectModal={{
         reactModalProps: {
