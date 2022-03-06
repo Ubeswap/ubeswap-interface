@@ -51,7 +51,7 @@ import { LimitOrderHistory } from './LimitOrderHistory'
 const PRICE_PRECISION = 6
 // TODO: HARDCODE
 const FEE_BPS = JSBI.BigInt(5)
-const BPS = JSBI.BigInt(1000)
+const BPS = JSBI.BigInt(10_000)
 
 export default function LimitOrder() {
   const { t } = useTranslation()
