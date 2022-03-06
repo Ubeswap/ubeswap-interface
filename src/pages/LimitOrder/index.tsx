@@ -188,12 +188,12 @@ export default function LimitOrder() {
     ? new TokenAmount(trade.inputAmount.currency, JSBI.divide(JSBI.multiply(trade.inputAmount.raw, FEE_BPS), BPS))
     : undefined
   const [orderBookApproval, orderBookApprovalCallback] = useApproveCallback(orderFee, ORDER_BOOK_ADDRESS[chainId])
-  const approvalCallback = useCallback(() => {
+  const approvalCallback = useCallback(async () => {
     if (limitOrderApproval === ApprovalState.NOT_APPROVED) {
-      limitOrderApprovalCallback()
+      await limitOrderApprovalCallback()
     }
     if (orderBookApproval === ApprovalState.NOT_APPROVED) {
-      orderBookApprovalCallback()
+      await orderBookApprovalCallback()
     }
   }, [limitOrderApproval, orderBookApproval, limitOrderApprovalCallback, orderBookApprovalCallback])
 
