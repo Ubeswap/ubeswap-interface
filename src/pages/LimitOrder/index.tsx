@@ -34,8 +34,8 @@ import AppBody from '../AppBody'
 import { LimitOrderHistory } from './LimitOrderHistory'
 
 // TODO: HARDCODE
-const FEE_BPS = JSBI.BigInt(5)
-const BPS = JSBI.BigInt(10_000)
+export const LIMIT_ORDER_FEE_BPS = JSBI.BigInt(5)
+export const BPS_DENOMINATOR = JSBI.BigInt(10_000)
 
 export default function LimitOrder() {
   const { address: account, network } = useContractKit()
@@ -113,7 +113,10 @@ export default function LimitOrder() {
     LIMIT_ORDER_ADDRESS[chainId]
   )
   const orderFee = parsedInputTotal
-    ? new TokenAmount(parsedInputTotal.currency, JSBI.divide(JSBI.multiply(parsedInputTotal.raw, FEE_BPS), BPS))
+    ? new TokenAmount(
+        parsedInputTotal.currency,
+        JSBI.divide(JSBI.multiply(parsedInputTotal.raw, LIMIT_ORDER_FEE_BPS), BPS_DENOMINATOR)
+      )
     : undefined
   const [orderBookApproval, orderBookApprovalCallback] = useApproveCallback(orderFee, ORDER_BOOK_ADDRESS[chainId])
   const approvalCallback = useCallback(async () => {

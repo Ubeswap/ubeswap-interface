@@ -1,6 +1,7 @@
 import { TokenAmount } from '@ubeswap/sdk'
 import { BigNumber } from 'ethers'
 import { useToken } from 'hooks/Tokens'
+import { BPS_DENOMINATOR, LIMIT_ORDER_FEE_BPS } from 'pages/LimitOrder'
 import React from 'react'
 import styled from 'styled-components'
 
@@ -107,7 +108,9 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
         Remaining Order to Fill: {remaining.toSignificant(4)} {makerToken.symbol}
       </OrderToFill>
       <OrderToFill>
-        Order Placement Fee: {Number(makingAmount.toSignificant(4)) * 0.05} {makerToken.symbol}
+        Order Placement Fee:{' '}
+        {makingAmount.multiply(LIMIT_ORDER_FEE_BPS.toString()).divide(BPS_DENOMINATOR.toString()).toSignificant(4)}{' '}
+        {makerToken.symbol}
       </OrderToFill>
     </Container>
   )
