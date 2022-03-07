@@ -15,10 +15,10 @@ export const LimitOrderHistory: React.FC = () => {
     <LimitOrderHistoryBody>
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
         <TabButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
-          Open
+          Open ({limitOrderHistory.filter((limitOrderHist) => limitOrderHist.isOrderOpen).length})
         </TabButton>
         <TabButton active={!openOrdersTabActive} onClick={() => setOpenOrdersTabActive(false)}>
-          Completed
+          Completed ({limitOrderHistory.filter((limitOrderHist) => !limitOrderHist.isOrderOpen).length})
         </TabButton>
       </div>
 

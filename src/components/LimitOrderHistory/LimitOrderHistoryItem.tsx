@@ -106,6 +106,9 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
       <OrderToFill>
         Remaining Order to Fill: {remaining.toSignificant(4)} {makerToken.symbol}
       </OrderToFill>
+      <OrderToFill>
+        Order Placement Fee: {Number(makingAmount.toSignificant(4)) * 0.05} {makerToken.symbol}
+      </OrderToFill>
     </Container>
   )
 }

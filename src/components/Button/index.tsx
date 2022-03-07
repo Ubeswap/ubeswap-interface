@@ -342,7 +342,7 @@ export const TabButton = styled(ButtonLight)<{
   active?: boolean
 }>`
   background-color: initial;
-  width: 25%;
+  width: 35%;
   ${({ active }) =>
     active &&
     `
