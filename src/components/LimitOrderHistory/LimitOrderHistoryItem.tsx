@@ -101,7 +101,7 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
         )}
       </AssetRow>
       <SellText>
-        Sell {makingAmount.toSignificant(4)} {makerToken.symbol} for {takingAmount.toSignificant(4)} {takerToken.symbol}
+        {makingAmount.toSignificant(4)} {makerToken.symbol} for {takingAmount.toSignificant(4)} {takerToken.symbol}
       </SellText>
       <OrderToFill>
         Remaining Order to Fill: {remaining.toSignificant(4)} {makerToken.symbol}
