@@ -2,9 +2,11 @@ import { ErrorBoundary } from '@sentry/react'
 import { Token } from '@ubeswap/sdk'
 import TokenSelect from 'components/CurrencyInputPanel/TokenSelect'
 import ClaimAllRewardPanel from 'components/earn/ClaimAllRewardPanel'
+import ImportFarmModal from 'components/earn/ImportFarmModal'
 import Loader from 'components/Loader'
 import React, { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Text } from 'rebass'
 import { useOwnerStakedPools } from 'state/stake/useOwnerStakedPools'
 import styled from 'styled-components'
 
@@ -39,6 +41,26 @@ const Header: React.FC = ({ children }) => {
   )
 }
 
+export const StyledButton = styled.div`
+  text-decoration: none;
+  cursor: pointer;
+  color: ${({ theme }) => theme.primary1};
+  font-weight: 500;
+
+  :hover {
+    text-decoration: underline;
+  }
+
+  :focus {
+    outline: none;
+    text-decoration: underline;
+  }
+
+  :active {
+    text-decoration: none;
+  }
+`
+
 function useTokenFilter(): [Token | null, (t: Token | null) => void] {
   const [token, setToken] = useState<Token | null>(null)
   return [token, setToken]
@@ -47,8 +69,8 @@ function useTokenFilter(): [Token | null, (t: Token | null) => void] {
 export default function Earn() {
   const { t } = useTranslation()
   const [filteringToken, setFilteringToken] = useTokenFilter()
+  const [showImportFarmModal, setShowImportFarmModal] = useState<boolean>(false)
   const farmSummaries = useFarmRegistry()
-
   const filteredFarms = useMemo(() => {
     if (filteringToken === null) {
       return farmSummaries
@@ -62,6 +84,20 @@ export default function Earn() {
   const { stakedFarms, featuredFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms)
   return (
     <PageWrapper>
+      {farmSummaries.length !== 0 && (
+        <AutoColumn justify={'end'} gap="md">
+          <Text
+            textAlign="center"
+            fontSize={14}
+            style={{ padding: '.5rem 0 .5rem 0' }}
+            onClick={() => {
+              setShowImportFarmModal(true)
+            }}
+          >
+            <StyledButton id="import-pool-link">{'Import Farm'}</StyledButton>
+          </Text>
+        </AutoColumn>
+      )}
       <ClaimAllRewardPanel stakedFarms={stakedFarms} />
       <LiquidityWarning />
       {stakedFarms.length === 0 && (
@@ -134,6 +170,11 @@ export default function Earn() {
           ))}
         </>
       )}
+      <ImportFarmModal
+        farmSummaries={farmSummaries}
+        isOpen={showImportFarmModal}
+        onDismiss={() => setShowImportFarmModal(false)}
+      />
     </PageWrapper>
   )
 }
