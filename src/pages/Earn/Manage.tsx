@@ -348,6 +348,7 @@ export default function Manage({
       }
       return leverage
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [account, bank, dummyPair?.token0, lpToken, provider, scale, showAddLiquidityButton, stakingInfo, proxyOracle]
   )
 
