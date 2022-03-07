@@ -2,6 +2,7 @@ import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId, TokenAmount } from '@ubeswap/sdk'
 import { BigNumber } from 'ethers'
 import { useToken } from 'hooks/Tokens'
+import { BPS_DENOMINATOR, LIMIT_ORDER_FEE_BPS } from 'pages/LimitOrder'
 import React, { useEffect, useState } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
 import styled from 'styled-components'
@@ -145,7 +146,7 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
         )}
       </BaselineRow>
       <SellText>
-        Sell {makingAmount.toSignificant(4)} {makerToken.symbol} for {takingAmount.toSignificant(4)} {takerToken.symbol}
+        {makingAmount.toSignificant(4)} {makerToken.symbol} for {takingAmount.toSignificant(4)} {takerToken.symbol}
       </SellText>
       {item.isOrderOpen && (
         <OrderToFill>
@@ -153,7 +154,9 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
         </OrderToFill>
       )}
       <OrderToFill>
-        Order Placement Fee: {Number(makingAmount.toSignificant(4)) * 0.05} {makerToken.symbol}
+        Order Placement Fee:{' '}
+        {makingAmount.multiply(LIMIT_ORDER_FEE_BPS.toString()).divide(BPS_DENOMINATOR.toString()).toSignificant(4)}{' '}
+        {makerToken.symbol}
       </OrderToFill>
       {item.isOrderOpen && (
         <AddressLink href={transactionLink}>

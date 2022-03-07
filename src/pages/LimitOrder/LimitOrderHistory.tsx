@@ -1,5 +1,5 @@
+import { TabButton } from 'components/Button'
 import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistoryBody'
-import { LimitOrderHistoryButton } from 'components/LimitOrderHistory/LimitOrderHistoryButton'
 import LimitOrderHistoryItem from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { Wrapper } from 'components/swap/styleds'
 import React, { useState } from 'react'
@@ -13,13 +13,13 @@ export const LimitOrderHistory: React.FC = () => {
 
   return (
     <LimitOrderHistoryBody>
-      <div style={{ display: 'inline-block', textAlign: 'center', width: '-webkit-fill-available', padding: '1rem' }}>
-        <LimitOrderHistoryButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
+        <TabButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
           Open ({limitOrderHistory.filter((limitOrderHist) => limitOrderHist.isOrderOpen).length})
-        </LimitOrderHistoryButton>
-        <LimitOrderHistoryButton active={!openOrdersTabActive} onClick={() => setOpenOrdersTabActive(false)}>
+        </TabButton>
+        <TabButton active={!openOrdersTabActive} onClick={() => setOpenOrdersTabActive(false)}>
           Completed ({limitOrderHistory.filter((limitOrderHist) => !limitOrderHist.isOrderOpen).length})
-        </LimitOrderHistoryButton>
+        </TabButton>
       </div>
 
       <Wrapper id="limit-order-history">
