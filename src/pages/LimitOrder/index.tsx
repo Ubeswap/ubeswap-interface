@@ -272,36 +272,38 @@ export default function LimitOrder() {
 
             <Card padding={'0px'} borderRadius={'20px'}>
               <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
-                {Boolean(trade) && (
-                  <>
-                    <RowBetween align="center">
-                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                        Market Price
-                      </Text>
+                <>
+                  <RowBetween align="center">
+                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                      Market Price
+                    </Text>
+                    {trade ? (
                       <TradePrice
                         price={trade?.executionPrice}
-                        showInverted={showInverted}
+                        showInverted={buying ? showInverted : !showInverted}
                         setShowInverted={setShowInverted}
                       />
-                    </RowBetween>
-                    <RowBetween align="center">
-                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                        Order Fee
-                      </Text>
-                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                        {orderFee?.toSignificant(2)} {orderFee?.currency.symbol}
-                      </Text>
-                    </RowBetween>
-                    <RowBetween align="center">
-                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                        Total
-                      </Text>
-                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                        {parsedInputTotal?.toSignificant(2)} {parsedInputTotal?.currency.symbol}
-                      </Text>
-                    </RowBetween>
-                  </>
-                )}
+                    ) : (
+                      <Text>-</Text>
+                    )}
+                  </RowBetween>
+                  <RowBetween align="center">
+                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                      Order Fee
+                    </Text>
+                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                      {orderFee?.toSignificant(2) ?? '-'} {orderFee?.currency.symbol}
+                    </Text>
+                  </RowBetween>
+                  <RowBetween align="center">
+                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                      Total
+                    </Text>
+                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                      {parsedInputTotal?.toSignificant(2) ?? '-'} {parsedInputTotal?.currency.symbol}
+                    </Text>
+                  </RowBetween>
+                </>
               </AutoColumn>
             </Card>
           </AutoColumn>

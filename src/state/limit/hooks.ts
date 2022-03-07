@@ -1,6 +1,6 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { CELO, cEUR, ChainId as UbeswapChainId, cUSD, Token, TokenAmount } from '@ubeswap/sdk'
-import { useUbeswapTradeExactIn } from 'components/swap/routing/hooks/useTrade'
+import { useUbeswapTradeExactIn, useUbeswapTradeExactOut } from 'components/swap/routing/hooks/useTrade'
 import { UbeswapTrade } from 'components/swap/routing/trade'
 import { useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -78,7 +78,9 @@ export function useDerivedLimitOrderInfo(): {
   const parsedInputTotal = buying ? parsedTokenOutput : parsedTokenAmount
   const parsedOutputTotal = buying ? parsedTokenAmount : parsedTokenOutput
 
-  const v2Trade = useUbeswapTradeExactIn(parsedInputTotal, (buying ? tokenCurrency : priceCurrency) ?? undefined)
+  const buyTrade = useUbeswapTradeExactOut(priceCurrency ?? undefined, parsedTokenAmount)
+  const sellTrade = useUbeswapTradeExactIn(parsedTokenAmount, priceCurrency ?? undefined)
+  const v2Trade = buying ? buyTrade : sellTrade
 
   const currencyBalances = {
     [Field.PRICE]: relevantTokenBalances[0],
