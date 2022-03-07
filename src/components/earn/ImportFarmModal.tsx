@@ -4,7 +4,7 @@ import { formatEther } from '@ethersproject/units'
 import { ChainId as UbeswapChainId, cUSD, Token, TokenAmount } from '@ubeswap/sdk'
 import { ButtonError } from 'components/Button'
 import { LightCard } from 'components/Card'
-import { PaddedColumn, SearchInput, Separator } from 'components/SearchModal/styleds'
+import { SearchInput } from 'components/SearchModal/styleds'
 import MOOLA_STAKING_ABI from 'constants/abis/moola/MoolaStakingRewards.json'
 import { Bank } from 'constants/homoraBank'
 import { BigNumber, ContractInterface, ethers } from 'ethers'
@@ -27,15 +27,15 @@ import { CoreOracle } from '../../generated/CoreOracle'
 import { HomoraBank } from '../../generated/HomoraBank'
 import { ProxyOracle } from '../../generated/ProxyOracle'
 import { CloseIcon, TYPE } from '../../theme'
-import Column, { AutoColumn } from '../Column'
+import { AutoColumn } from '../Column'
 import Modal from '../Modal'
 import Row, { RowBetween } from '../Row'
 
-const ContentWrapper = styled(Column)`
+const ContentWrapper = styled(AutoColumn)`
   width: 100%;
   flex: 1 1;
   position: relative;
-  padding: 0 0.6rem 0.6rem 0.6rem;
+  padding: 1rem;
 `
 
 interface ImportFarmModalProps {
@@ -140,13 +140,14 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
   let rewardRates = useSingleCallResult(stakingContract, 'rewardRate', [])?.result
   rewardRates = rewardRates ? [...rewardRates, ...externalRewardsRates] : externalRewardsRates
   const stakingToken = useCurrency(stakingTokenAddress)
-  const rewardsTokens = arrayOfRewardsTokenAddress
-    ? arrayOfRewardsTokenAddress?.map((rewardsTokenAddress) =>
-        tokens && tokens[rewardsTokenAddress]
-          ? tokens[rewardsTokenAddress]
-          : new Token(chainId as number, rewardsTokenAddress, 18)
-      )
-    : undefined
+  const rewardsTokens =
+    arrayOfRewardsTokenAddress && isAddress(farmAddress)
+      ? arrayOfRewardsTokenAddress?.map((rewardsTokenAddress) =>
+          tokens && tokens[rewardsTokenAddress]
+            ? tokens[rewardsTokenAddress]
+            : new Token(chainId as number, rewardsTokenAddress, 18)
+        )
+      : undefined
 
   useEffect(() => {
     const getStakingCusdPrice = async () => {
@@ -178,11 +179,12 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
     getStakingCusdPrice()
   }, [bank, provider, cusd, stakingToken])
 
-  const totalRewardRates = rewardsTokens
-    ? rewardsTokens.map((rewardsToken, i) =>
-        rewardsToken && rewardRates && rewardRates[i] ? new TokenAmount(rewardsToken, rewardRates[i]) : undefined
-      )
-    : undefined
+  const totalRewardRates =
+    rewardsTokens && isAddress(farmAddress)
+      ? rewardsTokens.map((rewardsToken, i) =>
+          rewardsToken && rewardRates && rewardRates[i] ? new TokenAmount(rewardsToken, rewardRates[i]) : undefined
+        )
+      : undefined
 
   const valueOfTotalStakedAmountInCUSD =
     totalSupply && scale ? (Number(formatEther(totalSupply)) * scale).toFixed() : undefined
@@ -198,8 +200,8 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
 
   return (
     <Modal isOpen={isOpen} onDismiss={wrappedOndismiss} maxHeight={90}>
-      <ContentWrapper gap="lg">
-        <PaddedColumn gap="16px">
+      <ContentWrapper gap={'12px'}>
+        <AutoColumn gap="12px">
           <RowBetween>
             <Text fontWeight={500} fontSize={16}>
               Import Farm
@@ -217,15 +219,14 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
               onChange={handleInput}
             />
           </Row>
-        </PaddedColumn>
-        <Separator />
-        <LightCard padding="1rem" borderRadius={'1px'}>
+        </AutoColumn>
+        <LightCard padding="1rem" borderRadius={'16px'}>
           <AutoColumn gap={'14px'}>
             <AutoColumn justify="space-between">
               <RowBetween>
                 <TYPE.black>Staking Token</TYPE.black>
                 <Text fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
-                  {stakingToken?.symbol}
+                  {stakingToken ? stakingToken?.symbol : '-'}
                 </Text>
               </RowBetween>
             </AutoColumn>
