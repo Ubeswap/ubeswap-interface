@@ -103,9 +103,11 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
       <SellText>
         Sell {makingAmount.toSignificant(4)} {makerToken.symbol} for {takingAmount.toSignificant(4)} {takerToken.symbol}
       </SellText>
-      <OrderToFill>
-        Remaining Order to Fill: {remaining.toSignificant(4)} {makerToken.symbol}
-      </OrderToFill>
+      {item.isOrderOpen && (
+        <OrderToFill>
+          Remaining Order to Fill: {remaining.toSignificant(4)} {makerToken.symbol}
+        </OrderToFill>
+      )}
       <OrderToFill>
         Order Placement Fee: {Number(makingAmount.toSignificant(4)) * 0.05} {makerToken.symbol}
       </OrderToFill>
