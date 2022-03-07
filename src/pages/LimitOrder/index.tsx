@@ -352,7 +352,7 @@ export default function LimitOrder() {
                   ) : approvalSubmitted && orderBookApproval === ApprovalState.APPROVED ? (
                     'Approved'
                   ) : (
-                    'Approve ' + currencies[buying ? Field.PRICE : Field.TOKEN]?.symbol ?? ''
+                    'Approve ' + (currencies[buying ? Field.PRICE : Field.TOKEN]?.symbol ?? '')
                   )}
                 </ButtonConfirmed>
                 <ButtonPrimary
