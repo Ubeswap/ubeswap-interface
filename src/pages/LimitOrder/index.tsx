@@ -2,7 +2,6 @@ import { useContractKit } from '@celo-tools/use-contractkit'
 import { parseUnits } from '@ethersproject/units'
 import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { CELO, ChainId as UbeswapChainId, Fraction, JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
-import OpticsV1Warning from 'components/Header/OpticsV1Warning'
 import { describeTrade } from 'components/swap/routing/describeTrade'
 import { LimitOrderTrade } from 'components/swap/routing/limit/LimitOrderTrade'
 import { useTradeCallback } from 'components/swap/routing/useTradeCallback'
@@ -321,7 +320,6 @@ export default function LimitOrder() {
         tokens={importTokensNotInDefault}
         onConfirm={handleConfirmTokenWarning}
       />
-      <OpticsV1Warning />
       <AppBody>
         <SwapHeader title={t('limitOrder')} hideSettings={true} />
         <Wrapper id="swap-page">
