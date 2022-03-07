@@ -19,6 +19,7 @@ export interface LimitOrdersHistory {
   makerAsset: string
   takerAsset: string
   remaining: BigNumber
+  transactionHash: string
 }
 
 type OrderBookEvent = {
@@ -42,6 +43,7 @@ type OrderBookEvent = {
     interaction: string
   }
   signature: string
+  transactionHash: string
 }
 
 export const useOrderBroadcasted = () => {
@@ -62,7 +64,10 @@ export const useOrderBroadcasted = () => {
       'latest'
     )
     const orderBroadcasts = orderBookEvents.map((orderBookEvent) => {
-      return orderBookEvent.args
+      return {
+        ...orderBookEvent.args,
+        transactionHash: orderBookEvent.transactionHash,
+      }
     })
     setOrderBroadcasts(orderBroadcasts)
   }, [account, orderBookAddr, provider])
@@ -96,7 +101,7 @@ export const useLimitOrdersHistory = (): LimitOrdersHistory[] => {
   return React.useMemo(() => {
     if (!remainings) return []
 
-    return orderEvents.map(({ orderHash, order }, idx) => {
+    return orderEvents.map(({ orderHash, order, transactionHash }, idx) => {
       const { makerAsset, takerAsset, makingAmount, takingAmount } = order
       const remaining = remainings[idx].eq(0) ? makingAmount : remainings[idx].sub(1)
 
@@ -108,6 +113,7 @@ export const useLimitOrdersHistory = (): LimitOrdersHistory[] => {
         remaining,
         makingAmount,
         takingAmount,
+        transactionHash,
       }
     })
   }, [orderEvents, remainings])

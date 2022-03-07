@@ -1,12 +1,14 @@
-import { TokenAmount } from '@ubeswap/sdk'
+import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, TokenAmount } from '@ubeswap/sdk'
 import { BigNumber } from 'ethers'
 import { useToken } from 'hooks/Tokens'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { ExternalLink as LinkIcon } from 'react-feather'
 import styled from 'styled-components'
 
 import useTheme from '../../hooks/useTheme'
 import { useCancelOrderCallback } from '../../pages/LimitOrder/useCancelOrderCallback'
-import { TYPE } from '../../theme'
+import { ExternalLink, TYPE } from '../../theme'
 import { RowFlat } from '../Row'
 
 const Container = styled.div`
@@ -14,6 +16,11 @@ const Container = styled.div`
   margin-bottom: 2rem;
   padding-left: 0.5rem;
 `
+
+const SymbolContainer = styled.div`
+  width: 75%;
+`
+
 const AssetSymbol = styled.div`
   border-radius: 12px;
   border: 1px solid ${({ theme }) => theme.primary5};
@@ -42,7 +49,7 @@ const StyledControlButton = styled.button`
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  margin-left: auto;
+  margin-left: 7rem;
   margin-right: 2rem;
   color: ${({ theme }) => theme.primaryText1};
   :hover {
@@ -59,6 +66,25 @@ const StyledControlButton = styled.button`
   `};
 `
 
+const AddressLink = styled(ExternalLink)`
+  font-size: 0.825rem;
+  color: ${({ theme }) => theme.text3};
+  border-radius: 12px;
+  width: 45%;
+  padding: 0.25rem;
+  margin-top: 0.5rem;
+  border: 1px solid ${({ theme }) => theme.primary5};
+  font-size: 0.825rem;
+  display: flex;
+  :hover {
+    color: ${({ theme }) => theme.text2};
+  }
+`
+
+const BaselineRow = styled(AssetRow)`
+  align-items: baseline;
+`
+
 interface LimitOrderHistoryItemProps {
   item: {
     orderHash: string
@@ -68,14 +94,28 @@ interface LimitOrderHistoryItemProps {
     takerAsset: string
     remaining: BigNumber
     isOrderOpen: boolean
+    transactionHash: string
   }
 }
 
 export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemProps) {
   const { callback: cancelOrder } = useCancelOrderCallback(item.orderHash)
+  const { network } = useContractKit()
+  const chainId = network.chainId as unknown as ChainId
   const theme = useTheme()
   const makerToken = useToken(item.makerAsset)
   const takerToken = useToken(item.takerAsset)
+
+  const [transactionLink, setTransactionLink] = useState('')
+
+  useEffect(() => {
+    if (chainId === ChainId.ALFAJORES) {
+      setTransactionLink(`https://alfajores-blockscout.celo-testnet.org/tx/${item.transactionHash}`)
+    }
+    if (chainId === ChainId.MAINNET) {
+      setTransactionLink(`https://explorer.celo.org/tx/${item.transactionHash}`)
+    }
+  }, [item, chainId])
 
   if (!makerToken || !takerToken) {
     return null
@@ -87,19 +127,23 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
 
   return (
     <Container>
-      <AssetRow>
-        <AssetSymbol>{makerToken.symbol}</AssetSymbol>
-        <TYPE.body
-          color={theme.text2}
-          style={{ display: 'inline', marginLeft: '10px', marginRight: '10px', paddingBottom: '0.5rem' }}
-        >
-          &#10140;
-        </TYPE.body>
-        <AssetSymbol>{takerToken.symbol}</AssetSymbol>
+      <BaselineRow>
+        <SymbolContainer>
+          <AssetRow>
+            <AssetSymbol>{makerToken.symbol}</AssetSymbol>
+            <TYPE.body
+              color={theme.text2}
+              style={{ display: 'inline', marginLeft: '10px', marginRight: '10px', paddingBottom: '0.5rem' }}
+            >
+              &#10140;
+            </TYPE.body>
+            <AssetSymbol>{takerToken.symbol}</AssetSymbol>
+          </AssetRow>
+        </SymbolContainer>
         {item.isOrderOpen && (
           <StyledControlButton onClick={() => cancelOrder && cancelOrder()}>Cancel</StyledControlButton>
         )}
-      </AssetRow>
+      </BaselineRow>
       <SellText>
         Sell {makingAmount.toSignificant(4)} {makerToken.symbol} for {takingAmount.toSignificant(4)} {takerToken.symbol}
       </SellText>
@@ -111,6 +155,12 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
       <OrderToFill>
         Order Placement Fee: {Number(makingAmount.toSignificant(4)) * 0.05} {makerToken.symbol}
       </OrderToFill>
+      {item.isOrderOpen && (
+        <AddressLink href={transactionLink}>
+          <LinkIcon size={16} />
+          <span style={{ marginLeft: '4px' }}>View Transaction</span>
+        </AddressLink>
+      )}
     </Container>
   )
 }
