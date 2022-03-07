@@ -13,7 +13,7 @@ export const LimitOrderHistory: React.FC = () => {
 
   return (
     <LimitOrderHistoryBody>
-      <div style={{ display: 'inline-block', textAlign: 'center', width: '-webkit-fill-available', padding: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
         <TabButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
           Open
         </TabButton>
