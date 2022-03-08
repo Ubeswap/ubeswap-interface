@@ -10,7 +10,7 @@ type Head<T extends any[]> = Required<T> extends [...infer H, any] ? H : never
 type Last<T extends Array<unknown>> = Required<T> extends [...unknown[], infer L] ? L : never
 type MethodArgs<C extends Contract, M extends keyof C['estimateGas']> = Head<Parameters<C['estimateGas'][M]>>
 
-type DoTransactionFn = <
+export type DoTransactionFn = <
   C extends Contract,
   M extends string & keyof C['estimateGas'],
   O extends Last<Parameters<C['estimateGas'][M]>> & (PayableOverrides | CallOverrides)
