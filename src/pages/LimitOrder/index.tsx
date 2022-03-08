@@ -1,7 +1,7 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount, Trade } from '@ubeswap/sdk'
-import { LimitOrderTrade } from 'components/swap/routing/limit/LimitOrderTrade'
+import { useQueueLimitOrderTrade } from 'components/swap/routing/limit/queueLimitOrderTrade'
 import { useTradeCallback } from 'components/swap/routing/useTradeCallback'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
 import useENS from 'hooks/useENS'
@@ -40,6 +40,7 @@ export const BPS_DENOMINATOR = JSBI.BigInt(10_000)
 export default function LimitOrder() {
   const { address: account, network } = useContractKit()
   const chainId = network.chainId as unknown as UbeswapChainId
+  const { queueLimitOrderCallback } = useQueueLimitOrderTrade()
 
   const { t } = useTranslation()
 
@@ -279,7 +280,7 @@ export default function LimitOrder() {
                     </Text>
                     {trade ? (
                       <TradePrice
-                        price={trade?.executionPrice}
+                        price={trade.executionPrice}
                         showInverted={buying ? showInverted : !showInverted}
                         setShowInverted={setShowInverted}
                       />
@@ -352,24 +353,17 @@ export default function LimitOrder() {
                   ) : approvalSubmitted && orderBookApproval === ApprovalState.APPROVED ? (
                     'Approved'
                   ) : (
-                    'Approve ' + currencies[buying ? Field.PRICE : Field.TOKEN]?.symbol ?? ''
+                    'Approve ' + (currencies[buying ? Field.PRICE : Field.TOKEN]?.symbol ?? '')
                   )}
                 </ButtonConfirmed>
                 <ButtonPrimary
-                  onClick={() => {
+                  onClick={async () => {
                     if (trade) {
                       if (parsedInputTotal && parsedOutputTotal) {
-                        setSwapState({
-                          tradeToConfirm: new LimitOrderTrade(
-                            trade.route,
-                            parsedInputTotal,
-                            parsedOutputTotal,
-                            trade.tradeType
-                          ),
-                          attemptingTxn: false,
-                          swapErrorMessage: undefined,
-                          showConfirm: true,
-                          txHash: undefined,
+                        queueLimitOrderCallback({
+                          inputAmount: parsedInputTotal,
+                          outputAmount: parsedOutputTotal,
+                          chainId: chainId,
                         })
                       }
                     }
