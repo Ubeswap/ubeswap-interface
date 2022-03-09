@@ -30,6 +30,7 @@ export const LimitOrderHistory: React.FC = () => {
             }
             return !limitOrderHist.isOrderOpen
           })
+          .reverse()
           .map((limitOrderHist) => {
             return <LimitOrderHistoryItem key={limitOrderHist.orderHash} item={limitOrderHist} />
           })}
