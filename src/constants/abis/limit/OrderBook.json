@@ -15,10 +15,34 @@
         "internalType": "address",
         "name": "_feeRecipient",
         "type": "address"
+      },
+      {
+        "internalType": "contract IERC20",
+        "name": "_subsidyCurrency",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC20Rescued",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -186,8 +210,52 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "oldSubsidyCurrency",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newSubsidyCurrency",
+        "type": "address"
+      }
+    ],
+    "name": "SubsidyCurrencyChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "oldSubsidyRate",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newSubsidyRate",
+        "type": "uint256"
+      }
+    ],
+    "name": "SubsidyRateChanged",
+    "type": "event"
+  },
+  {
     "inputs": [],
-    "name": "FEE_DENOMINATOR",
+    "name": "MAX_FEE",
     "outputs": [
       {
         "internalType": "uint256",
@@ -200,7 +268,7 @@
   },
   {
     "inputs": [],
-    "name": "MAX_FEE",
+    "name": "PCT_DENOMINATOR",
     "outputs": [
       {
         "internalType": "uint256",
@@ -333,6 +401,37 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "_subsidyCurrency",
+        "type": "address"
+      }
+    ],
+    "name": "changeSubsidyCurrency",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_subsidyRate",
+        "type": "uint256"
+      }
+    ],
+    "name": "changeSubsidyRate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "fee",
     "outputs": [
@@ -389,6 +488,56 @@
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "_token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "rescueERC20",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "subsidyCurrency",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "subsidyRate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
