@@ -114,7 +114,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.4.16",
-    "@celo-tools/use-contractkit": "npm:@poofcash/use-contractkit@^1.0.10",
+    "@celo-tools/use-contractkit": "^3.0.1",
     "@celo/contractkit": "^1.2.0",
     "@celo/utils": "^1.2.1",
     "@craco/craco": "^6.1.2",
@@ -135,7 +135,7 @@
     "@ubeswap/default-token-list": "^4.1.39",
     "@ubeswap/moola": "^0.2.0",
     "@ubeswap/sdk": "^2.1.2",
-    "@uniswap/default-token-list": "^2.0.0",
+    "@uniswap/default-token-list": "^3.0.0",
     "ajv-formats": "^2.1.1",
     "eventemitter3": "^4.0.7",
     "graphql": "^15.6.1",
