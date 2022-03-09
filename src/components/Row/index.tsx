@@ -49,5 +49,8 @@ export const RowStart = styled(AutoRow)`
 export const RowCenter = styled(AutoRow)`
   align-items: center;
 `
-
+export const RowEnd = styled(AutoRow)`
+  justify-content: end;
+  align-items: end;
+`
 export default Row

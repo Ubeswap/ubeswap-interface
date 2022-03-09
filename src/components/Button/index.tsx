@@ -289,11 +289,15 @@ export function ButtonConfirmed({
   }
 }
 
-export function ButtonError({ error, ...rest }: { error?: boolean } & ButtonProps) {
+export function ButtonError({
+  error,
+  borderRadius,
+  ...rest
+}: { error?: boolean; borderRadius?: string } & ButtonProps) {
   if (error) {
-    return <ButtonErrorStyle {...rest} />
+    return <ButtonErrorStyle {...rest} borderRadius={borderRadius ?? '20px'} />
   } else {
-    return <ButtonPrimary {...rest} />
+    return <ButtonPrimary {...rest} borderRadius={borderRadius ?? '20px'} />
   }
 }
 

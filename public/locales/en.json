@@ -229,5 +229,9 @@
   "farmUBE": "Farm UBE",
   "youHaveUnclaimedRewards": "You have {{count}} farms with unclaimed rewards",
   "claimAllRewards": "Claim all rewards",
-  "featuredPools": "Featured Pools"
+  "featuredPools": "Featured Pools",
+  "cancel": "Cancel",
+  "continue": "Continue",
+  "confirm": "Confirm",
+  "LeverageYieldFarm": "Leverage Yield Farm"
 }
