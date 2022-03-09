@@ -16,7 +16,7 @@ import { CardNoise, CardSection, DataCard } from '../../components/earn/styled'
 import { RowBetween } from '../../components/Row'
 import { ExternalLink, TYPE } from '../../theme'
 import LiquidityWarning from '../Pool/LiquidityWarning'
-import { useFarmRegistry } from './useFarmRegistry'
+import { useFarmRegistry, useImportedFarms } from './useFarmRegistry'
 
 const PageWrapper = styled.div`
   width: 100%;
@@ -71,17 +71,18 @@ export default function Earn() {
   const [filteringToken, setFilteringToken] = useTokenFilter()
   const [showImportFarmModal, setShowImportFarmModal] = useState<boolean>(false)
   const farmSummaries = useFarmRegistry()
+  const importedFarmSummaries = useImportedFarms()
   const filteredFarms = useMemo(() => {
     if (filteringToken === null) {
-      return farmSummaries
+      return [...farmSummaries, ...importedFarmSummaries]
     } else {
-      return farmSummaries.filter(
+      return [...farmSummaries, ...importedFarmSummaries].filter(
         (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
       )
     }
-  }, [filteringToken, farmSummaries])
+  }, [filteringToken, farmSummaries, importedFarmSummaries])
 
-  const { stakedFarms, featuredFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms)
+  const { stakedFarms, featuredFarms, unstakedFarms, importedFarms } = useOwnerStakedPools(filteredFarms)
   return (
     <PageWrapper>
       {farmSummaries.length !== 0 && (
@@ -137,7 +138,19 @@ export default function Earn() {
       {stakedFarms.length > 0 && (
         <>
           <Header>{t('yourPools')}</Header>
-          {stakedFarms.map((farmSummary) => (
+          {stakedFarms.map((farmSummary, index) => (
+            <PoolWrapper key={index}>
+              <ErrorBoundary>
+                <PoolCard farmSummary={farmSummary} />
+              </ErrorBoundary>
+            </PoolWrapper>
+          ))}
+        </>
+      )}
+      {importedFarms.length > 0 && (
+        <>
+          <Header>{t('importedPools')}</Header>
+          {importedFarms.map((farmSummary) => (
             <PoolWrapper key={farmSummary.stakingAddress}>
               <ErrorBoundary>
                 <PoolCard farmSummary={farmSummary} />

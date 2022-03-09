@@ -230,11 +230,10 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
 // formula is 1 + ((nom/compoundsPerYear)^compoundsPerYear) - 1
 function annualizedPercentageYield(nominal: Percent, compounds: number) {
   const ONE = 1
-
-  const divideNominalByNAddOne = Number(nominal.divide(BigInt(compounds)).add(BigInt(ONE)).toFixed(10))
-
+  const divideNominalByNAddOne = nominal.divide(BigInt(compounds)).add(BigInt(ONE))
+  if (Number(divideNominalByNAddOne.denominator) === 0 && Number(divideNominalByNAddOne.numerator) === 0) return '0'
   // multiply 100 to turn decimal into percent, to fixed since we only display integer
-  return ((divideNominalByNAddOne ** compounds - ONE) * 100).toFixed(0)
+  return ((Number(divideNominalByNAddOne.toFixed(10)) ** compounds - ONE) * 100).toFixed(0)
 }
 
 const PoolInfo = styled.div`

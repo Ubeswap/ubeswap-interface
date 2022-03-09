@@ -1,13 +1,40 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
-import { ethers } from 'ethers'
-import React, { useEffect } from 'react'
-import { AbiItem, fromWei, toBN } from 'web3-utils'
+import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { formatEther } from '@ethersproject/units'
+import IUniswapV2PairABI from '@ubeswap/core/build/abi/IUniswapV2Pair.json'
+import { ChainId as UbeswapChainId, cUSD } from '@ubeswap/sdk'
+import MOOLA_STAKING_ABI from 'constants/abis/moola/MoolaStakingRewards.json'
+import { Bank } from 'constants/homoraBank'
+import { BigNumber, ContractInterface, ethers } from 'ethers'
+import { MoolaStakingRewards, StakingRewards } from 'generated'
+import React, { useEffect, useMemo } from 'react'
+import { getProviderOrSigner } from 'utils'
+import { AbiItem, fromWei, toBN, toWei } from 'web3-utils'
 
+import COREORACLE_ABI from '../../constants/abis/CoreOracle.json'
 import farmRegistryAbi from '../../constants/abis/FarmRegistry.json'
+import BANK_ABI from '../../constants/abis/HomoraBank.json'
+import PROXYORACLE_ABI from '../../constants/abis/ProxyOracle.json'
+import STAKING_REWARDS_ABI from '../../constants/abis/StakingRewards.json'
+import { CoreOracle } from '../../generated/CoreOracle'
+import { HomoraBank } from '../../generated/HomoraBank'
+import { IUniswapV2Pair } from '../../generated/IUniswapV2Pair'
+import { ProxyOracle } from '../../generated/ProxyOracle'
+
+const EXTERNAL_FARMS_LIMIT = 5
 
 type FarmData = {
   tvlUSD: string
   rewardsUSDPerYear: string
+}
+
+type FxternalInfo = {
+  rates: BigNumber[]
+  tokens: string[]
+}
+
+type PairToken = {
+  token0Address: string
+  token1Address: string
 }
 
 export type FarmSummary = {
@@ -19,6 +46,7 @@ export type FarmSummary = {
   token0Address: string
   token1Address: string
   isFeatured: boolean
+  isImported: boolean
 }
 
 const blacklist: Record<string, boolean> = {
@@ -88,6 +116,7 @@ export const useFarmRegistry = () => {
           tvlUSD: farmData[e.returnValues.stakingAddress].tvlUSD,
           rewardsUSDPerYear: farmData[e.returnValues.stakingAddress].rewardsUSDPerYear,
           isFeatured: !!featuredPoolWhitelist[e.returnValues.stakingAddress],
+          isImported: false,
         })
       })
 
@@ -105,19 +134,173 @@ export const useFarmRegistry = () => {
   return farmSummaries
 }
 
+export const useImportedFarms = () => {
+  const importedFarmsAddress = localStorage.getItem('imported_farms')
+  const [prevImportedFarms, setPrevImportedFarms] = React.useState<string[]>([])
+  const [farmSummaries, setFarmSummaries] = React.useState<FarmSummary[]>([])
+  const importedFarms = useMemo(() => {
+    return importedFarmsAddress ? JSON.parse(importedFarmsAddress) : []
+  }, [importedFarmsAddress])
+  const { address: account, network } = useContractKit()
+  const { chainId } = network
+
+  const library = useProvider()
+  const provider = getProviderOrSigner(library, account ? account : undefined)
+  const cusd = cUSD[chainId as unknown as UbeswapChainId]
+  const bank = useMemo(
+    () => new ethers.Contract(Bank[chainId], BANK_ABI.abi as ContractInterface, provider) as unknown as HomoraBank,
+    [chainId, provider]
+  )
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fetchMultiStaking = async (multiStakingContract: ethers.Contract): Promise<FxternalInfo> => {
+    if (!multiStakingContract) return { tokens: [], rates: [] }
+    const tokens: string[] = []
+    const rates: BigNumber[] = []
+    try {
+      let stakingRewardsAddress = await multiStakingContract.externalStakingRewards()
+      for (let i = 0; i < EXTERNAL_FARMS_LIMIT; i += 1) {
+        const moolaStaking = new ethers.Contract(
+          stakingRewardsAddress,
+          MOOLA_STAKING_ABI as ContractInterface,
+          provider
+        ) as unknown as MoolaStakingRewards
+        const externalRewardsToken = await multiStakingContract.externalRewardsTokens(BigNumber.from(i))
+        const rewardRate = await moolaStaking.rewardRate()
+        tokens.push(externalRewardsToken)
+        rates.push(rewardRate)
+        stakingRewardsAddress = await moolaStaking.externalStakingRewards()
+      }
+    } catch (err) {
+      // console.log(err)
+    }
+    return { tokens, rates }
+  }
+
+  const getPairToken = async (pair: ethers.Contract): Promise<PairToken | undefined> => {
+    let token0Address: string | undefined = undefined
+    let token1Address: string | undefined = undefined
+    try {
+      token0Address = await pair.token0()
+      token1Address = await pair.token1()
+    } catch (err) {
+      // console.log(err)
+    }
+    return token0Address && token1Address ? { token0Address, token1Address } : undefined
+  }
+  const call = React.useCallback(async () => {
+    if (JSON.stringify(prevImportedFarms) == JSON.stringify(importedFarms)) {
+      return
+    }
+    setPrevImportedFarms(importedFarms)
+    const farmSummaries: FarmSummary[] = []
+    try {
+      const oracle = await bank.oracle()
+      const proxyOracle = new ethers.Contract(
+        oracle,
+        PROXYORACLE_ABI.abi as ContractInterface,
+        provider
+      ) as unknown as ProxyOracle
+      const source = await proxyOracle.source()
+      const coreOracle = new ethers.Contract(
+        source,
+        COREORACLE_ABI.abi as ContractInterface,
+        provider
+      ) as unknown as CoreOracle
+      const cusdCeloPrice = await coreOracle.getCELOPx(cusd.address)
+      for (let i = 0; i < importedFarms.length; i += 1) {
+        const importedFarmAddress = importedFarms[i]
+        const stakingContract = new ethers.Contract(
+          importedFarmAddress,
+          STAKING_REWARDS_ABI as ContractInterface,
+          provider
+        ) as unknown as StakingRewards
+        const multiStakingContract = new ethers.Contract(
+          importedFarmAddress,
+          MOOLA_STAKING_ABI as ContractInterface,
+          provider
+        ) as unknown as MoolaStakingRewards
+        const stakingTokenAddress = await stakingContract.stakingToken()
+        const totalSupply = await stakingContract.totalSupply()
+
+        const pair = new ethers.Contract(
+          stakingTokenAddress,
+          IUniswapV2PairABI as ContractInterface,
+          provider
+        ) as unknown as IUniswapV2Pair
+
+        const pairToken = await getPairToken(pair)
+
+        const { tokens: externalRewardsTokens, rates: externalRewardsRates } = await fetchMultiStaking(
+          multiStakingContract
+        )
+        const rewardsTokenAddress = await stakingContract?.rewardsToken()
+        const arrayOfRewardsTokenAddress = rewardsTokenAddress
+          ? [rewardsTokenAddress, ...externalRewardsTokens]
+          : externalRewardsTokens
+        const rewardRate = await stakingContract?.rewardRate()
+        const arrayOfRewardsRates = rewardRate ? [rewardRate, ...externalRewardsRates] : externalRewardsRates
+
+        const stakingCeloPrice = await coreOracle.getCELOPx(stakingTokenAddress)
+        const scale = Number(formatEther(stakingCeloPrice)) / Number(formatEther(cusdCeloPrice))
+
+        let rewardsUSDPerYear = 0
+        for (let i = 0; i < arrayOfRewardsTokenAddress.length; i += 1) {
+          const rewardsTokenAddress = arrayOfRewardsTokenAddress[i]
+          const rewardsTokenPrice = await coreOracle.getCELOPx(rewardsTokenAddress)
+          rewardsUSDPerYear +=
+            (Number(formatEther(rewardsTokenPrice)) / Number(formatEther(cusdCeloPrice))) *
+            Number(formatEther(arrayOfRewardsRates[i]))
+        }
+
+        const tvlUSD = totalSupply && scale ? toWei((Number(formatEther(totalSupply)) * scale).toFixed()) : '0'
+
+        const farmSummary: FarmSummary = {
+          farmName: '',
+          stakingAddress: importedFarmAddress,
+          lpAddress: stakingTokenAddress,
+          token0Address: pairToken ? pairToken.token0Address : stakingTokenAddress,
+          token1Address: pairToken ? pairToken.token1Address : stakingTokenAddress,
+          isFeatured: false,
+          tvlUSD,
+          rewardsUSDPerYear: rewardsUSDPerYear
+            ? toWei((rewardsUSDPerYear * 60 * 60 * 24 * 365).toFixed().toString())
+            : '0',
+          isImported: true,
+        }
+        farmSummaries.push(farmSummary)
+      }
+      setFarmSummaries(farmSummaries)
+    } catch (err) {
+      console.error(err)
+      setFarmSummaries(farmSummaries)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [importedFarms])
+
+  useEffect(() => {
+    call()
+  }, [call])
+
+  return farmSummaries
+}
+
 export const useUniqueBestFarms = () => {
   const farmSummaries = useFarmRegistry()
-
-  const farmsUniqueByBestFarm = farmSummaries.reduce((prev: Record<string, FarmSummary>, current) => {
-    if (!prev[current.lpAddress]) {
-      prev[current.lpAddress] = current
-    } else if (
-      Number(fromWei(current.rewardsUSDPerYear)) > Number(fromWei(prev[current.lpAddress].rewardsUSDPerYear))
-    ) {
-      prev[current.lpAddress] = current
-    }
-    return prev
-  }, {})
+  const importedFarmSummaries = useImportedFarms()
+  const farmsUniqueByBestFarm = [...farmSummaries, ...importedFarmSummaries].reduce(
+    (prev: Record<string, FarmSummary>, current) => {
+      if (!prev[current.lpAddress]) {
+        prev[current.lpAddress] = current
+      } else if (
+        Number(fromWei(current.rewardsUSDPerYear)) > Number(fromWei(prev[current.lpAddress].rewardsUSDPerYear))
+      ) {
+        prev[current.lpAddress] = current
+      }
+      return prev
+    },
+    {}
+  )
 
   return farmsUniqueByBestFarm
 }
