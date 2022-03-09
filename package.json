@@ -114,7 +114,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.4.16",
-    "@celo-tools/use-contractkit": "npm:@poofcash/use-contractkit@^1.0.10",
+    "@celo-tools/use-contractkit": "^3.0.1",
     "@celo/contractkit": "^1.2.0",
     "@celo/utils": "^1.2.1",
     "@craco/craco": "^6.1.2",
@@ -141,7 +141,7 @@
     "graphql": "^15.6.1",
     "hamburger-react": "^2.4.1",
     "hash.js": "^1.1.7",
-    "jsbi": "^3.1.5",
+    "jsbi": "^4.1.0",
     "prop-types": "^15.7.2",
     "randombytes": "^2.1.0",
     "rc-drawer": "^4.4.3",
