@@ -329,7 +329,8 @@ export default function LimitOrder() {
                       Total
                     </Text>
                     <Text fontWeight={800} fontSize={14} color={theme.text1}>
-                      {parsedInputTotal?.toSignificant(2) ?? '-'} {parsedInputTotal?.currency.symbol}
+                      {parsedInputTotal && orderFee ? parsedInputTotal.add(orderFee).toSignificant(6) : '-'}{' '}
+                      {parsedInputTotal?.currency.symbol}
                     </Text>
                   </RowBetween>
                 </>
