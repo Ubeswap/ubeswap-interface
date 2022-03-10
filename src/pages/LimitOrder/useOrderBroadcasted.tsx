@@ -146,7 +146,7 @@ const useRewardDistAddress = () => {
 }
 
 export const useRewardCurrency = () => {
-  const [rewardDistAddress, setRewardDistAddress] = React.useState<string | null>(null)
+  const [rewardDistAddress, setRewardDistAddress] = React.useState<string | undefined>(undefined)
 
   const provider = useProvider()
   const orderBookRewardDistAddr = useRewardDistAddress()
@@ -182,10 +182,12 @@ export const useLimitOrderRewards = (makerAssets: string[]) => {
     return undefined
   }, [orderBookRewardDistAddr])
 
+  const uniqueMakerAssets = [...new Set(makerAssets)]
+
   const subsidyRatesForMakerAssets = useSingleContractMultipleData(
     orderBookRewardDistContract,
     'rewardRate',
-    makerAssets.map((asset) => [asset])
+    uniqueMakerAssets.map((asset) => [asset])
   )
 
   const limitOrderRwd: LimitOrderRewards[] = []
@@ -198,6 +200,5 @@ export const useLimitOrderRewards = (makerAssets: string[]) => {
     }
   }
 
-  console.log(limitOrderRwd)
   return limitOrderRwd
 }

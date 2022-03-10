@@ -3,6 +3,7 @@ import { ChainId, TokenAmount } from '@ubeswap/sdk'
 import { BigNumber } from 'ethers'
 import { useToken } from 'hooks/Tokens'
 import { BPS_DENOMINATOR, LIMIT_ORDER_FEE_BPS } from 'pages/LimitOrder'
+import { LimitOrderRewards } from 'pages/LimitOrder/useOrderBroadcasted'
 import React, { useEffect, useState } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
 import styled from 'styled-components'
@@ -97,15 +98,18 @@ interface LimitOrderHistoryItemProps {
     isOrderOpen: boolean
     transactionHash: string
   }
+  rewardCurrency: string | undefined
+  rewardRates: LimitOrderRewards[]
 }
 
-export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemProps) {
+export default function LimitOrderHistoryItem({ item, rewardCurrency, rewardRates }: LimitOrderHistoryItemProps) {
   const { callback: cancelOrder } = useCancelOrderCallback(item.orderHash)
   const { network } = useContractKit()
   const chainId = network.chainId as unknown as ChainId
   const theme = useTheme()
   const makerToken = useToken(item.makerAsset)
   const takerToken = useToken(item.takerAsset)
+  const rewardToken = useToken(rewardCurrency)
 
   const [transactionLink, setTransactionLink] = useState('')
 
@@ -118,7 +122,7 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
     }
   }, [item, chainId])
 
-  if (!makerToken || !takerToken) {
+  if (!makerToken || !takerToken || !rewardToken) {
     return null
   }
 

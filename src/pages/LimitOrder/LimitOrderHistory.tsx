@@ -11,8 +11,8 @@ export const LimitOrderHistory: React.FC = () => {
 
   const [openOrdersTabActive, setOpenOrdersTabActive] = useState<boolean>(true)
 
-  useLimitOrderRewards(limitOrderHistory.map((orderHistory) => orderHistory.makerAsset))
-  useRewardCurrency()
+  const limitOrderRewardRates = useLimitOrderRewards(limitOrderHistory.map((orderHistory) => orderHistory.makerAsset))
+  const limitOrderRewardCurrency = useRewardCurrency()
 
   return (
     <LimitOrderHistoryBody>
@@ -35,7 +35,14 @@ export const LimitOrderHistory: React.FC = () => {
           })
           .reverse()
           .map((limitOrderHist) => {
-            return <LimitOrderHistoryItem key={limitOrderHist.orderHash} item={limitOrderHist} />
+            return (
+              <LimitOrderHistoryItem
+                key={limitOrderHist.orderHash}
+                item={limitOrderHist}
+                rewardCurrency={limitOrderRewardCurrency}
+                rewardRates={limitOrderRewardRates}
+              />
+            )
           })}
       </Wrapper>
     </LimitOrderHistoryBody>
