@@ -45,19 +45,19 @@ const OrderToFill = styled.div`
 const StyledControlButton = styled.button`
   height: 24px;
   background-color: ${({ theme }) => theme.red1};
-  border: 1px solid ${({ theme }) => theme.red3};
+  border: 1px solid ${({ theme }) => theme.red2};
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   margin-left: 7rem;
   margin-right: 2rem;
-  color: ${({ theme }) => theme.primaryText1};
+  color: white;
   :hover {
-    border: 1px solid ${({ theme }) => theme.primary1};
+    border: 1px solid ${({ theme }) => theme.red3};
   }
   :focus {
-    border: 1px solid ${({ theme }) => theme.primary1};
+    border: 1px solid ${({ theme }) => theme.red3};
     outline: none;
   }
 
