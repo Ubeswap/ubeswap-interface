@@ -1,9 +1,8 @@
 import { useGetConnectedSigner } from '@celo-tools/use-contractkit'
 import { ChainId, TokenAmount } from '@ubeswap/sdk'
-import { ContractTransaction } from 'ethers'
 import { LimitOrderProtocol__factory } from 'generated/factories/LimitOrderProtocol__factory'
 import { OrderBook__factory } from 'generated/factories/OrderBook__factory'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { buildOrderData } from 'utils/limitOrder'
 
 import {
@@ -25,6 +24,7 @@ function cutLastArg(data: string, padding = 0) {
 export const useQueueLimitOrderTrade = () => {
   const getConnectedSigner = useGetConnectedSigner()
   const doTransaction = useDoTransaction()
+  const [loading, setLoading] = useState(false)
   const queueLimitOrderCallback = useCallback(
     async ({
       inputAmount,
@@ -67,23 +67,25 @@ export const useQueueLimitOrderTrade = () => {
         permit: '0x',
         interaction: '0x',
       }
-      const limitOrderTypedData = buildOrderData(chainId.toString(), limitOrderAddr, limitOrder)
-      const limitOrderSignature = await signer._signTypedData(
-        limitOrderTypedData.domain,
-        limitOrderTypedData.types,
-        limitOrder
-      )
-
-      const queue = async (): Promise<ContractTransaction> => {
-        return await doTransaction(orderBook, 'broadcastOrder', {
+      try {
+        setLoading(true)
+        const limitOrderTypedData = buildOrderData(chainId.toString(), limitOrderAddr, limitOrder)
+        const limitOrderSignature = await signer._signTypedData(
+          limitOrderTypedData.domain,
+          limitOrderTypedData.types,
+          limitOrder
+        )
+        await doTransaction(orderBook, 'broadcastOrder', {
           args: [limitOrder, limitOrderSignature, rewardDistributorAddr],
           summary: `Place limit order for ${outputAmount.toSignificant(2)} ${outputAmount.currency.symbol}`,
         })
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoading(false)
       }
-
-      return { hash: (await queue()).hash }
     },
     [doTransaction, getConnectedSigner]
   )
-  return { queueLimitOrderCallback }
+  return { queueLimitOrderCallback, loading }
 }

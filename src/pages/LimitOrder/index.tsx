@@ -40,7 +40,7 @@ export const BPS_DENOMINATOR = JSBI.BigInt(10_000)
 export default function LimitOrder() {
   const { address: account, network } = useContractKit()
   const chainId = network.chainId as unknown as UbeswapChainId
-  const { queueLimitOrderCallback } = useQueueLimitOrderTrade()
+  const { queueLimitOrderCallback, loading: queueOrderLoading } = useQueueLimitOrderTrade()
 
   const { t } = useTranslation()
 
@@ -375,10 +375,15 @@ export default function LimitOrder() {
                     limitOrderApproval !== ApprovalState.APPROVED ||
                     orderBookApproval !== ApprovalState.APPROVED
                   }
+                  altDisabledStyle={queueOrderLoading} // show solid button while waiting
+                  paddingY="14px"
                 >
-                  <Text fontSize={16} fontWeight={500}>
-                    {t('placeOrder')}
-                  </Text>
+                  <AutoRow gap="4px" justify="center" wrap="nowrap">
+                    <Text fontSize={16} fontWeight={500}>
+                      {t('placeOrder')}
+                    </Text>
+                    {queueOrderLoading && <Loader stroke="white" />}
+                  </AutoRow>
                 </ButtonPrimary>
               </RowBetween>
             )}
