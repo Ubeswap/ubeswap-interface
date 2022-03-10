@@ -310,7 +310,7 @@ export default function LimitOrder() {
                   </RowBetween>
                   <RowBetween align="center">
                     <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Order Placement Reward
+                      Order Reward
                     </Text>
                     <Text fontWeight={500} fontSize={14} color={theme.text2}>
                       {reward?.toSignificant(2) ?? '-'} {reward?.currency.symbol}
@@ -318,7 +318,7 @@ export default function LimitOrder() {
                   </RowBetween>
                   <RowBetween align="center">
                     <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Order Placement Fee
+                      Order Fee
                     </Text>
                     <Text fontWeight={500} fontSize={14} color={theme.text2}>
                       {orderFee?.toSignificant(2) ?? '-'} {orderFee?.currency.symbol}
