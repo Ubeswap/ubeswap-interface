@@ -145,6 +145,33 @@ const useRewardDistAddress = () => {
   return rewardDistAddress
 }
 
+export const useRewardCurrency = () => {
+  const [rewardDistAddress, setRewardDistAddress] = React.useState<string | null>(null)
+
+  const provider = useProvider()
+  const orderBookRewardDistAddr = useRewardDistAddress()
+  const orderBookRewardDistContract = useMemo(() => {
+    if (orderBookRewardDistAddr) {
+      return OrderBookRewardDistributor__factory.connect(orderBookRewardDistAddr, provider)
+    }
+    return undefined
+  }, [orderBookRewardDistAddr])
+
+  const call = React.useCallback(async () => {
+    if (orderBookRewardDistContract) {
+      const orderBookRewardDistAddr = await orderBookRewardDistContract?.rewardCurrency()
+      setRewardDistAddress(orderBookRewardDistAddr)
+    }
+  }, [orderBookRewardDistContract])
+
+  useEffect(() => {
+    call()
+  }, [call])
+
+  console.log(rewardDistAddress)
+  return rewardDistAddress
+}
+
 export const useLimitOrderRewards = (makerAssets: string[]) => {
   const provider = useProvider()
   const orderBookRewardDistAddr = useRewardDistAddress()
@@ -171,5 +198,6 @@ export const useLimitOrderRewards = (makerAssets: string[]) => {
     }
   }
 
+  console.log(limitOrderRwd)
   return limitOrderRwd
 }

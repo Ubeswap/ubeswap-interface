@@ -4,7 +4,7 @@ import LimitOrderHistoryItem from 'components/LimitOrderHistory/LimitOrderHistor
 import { Wrapper } from 'components/swap/styleds'
 import React, { useState } from 'react'
 
-import { useLimitOrderRewards, useLimitOrdersHistory } from './useOrderBroadcasted'
+import { useLimitOrderRewards, useLimitOrdersHistory, useRewardCurrency } from './useOrderBroadcasted'
 
 export const LimitOrderHistory: React.FC = () => {
   const limitOrderHistory = useLimitOrdersHistory()
@@ -12,6 +12,7 @@ export const LimitOrderHistory: React.FC = () => {
   const [openOrdersTabActive, setOpenOrdersTabActive] = useState<boolean>(true)
 
   useLimitOrderRewards(limitOrderHistory.map((orderHistory) => orderHistory.makerAsset))
+  useRewardCurrency()
 
   return (
     <LimitOrderHistoryBody>
