@@ -50,7 +50,7 @@ export const LimitOrderHistory: React.FC = () => {
               <LimitOrderHistoryItem
                 key={limitOrderHist.orderHash}
                 item={limitOrderHist}
-                rewardCurrency={rewardCurrency}
+                rewardCurrency={rewardCurrency || undefined}
               />
             )
           })}
