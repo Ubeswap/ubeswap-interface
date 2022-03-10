@@ -6,7 +6,12 @@ import { OrderBook__factory } from 'generated/factories/OrderBook__factory'
 import { useCallback } from 'react'
 import { buildOrderData } from 'utils/limitOrder'
 
-import { LIMIT_ORDER_ADDRESS, ORDER_BOOK_ADDRESS, ZERO_ADDRESS } from '../../../../constants'
+import {
+  LIMIT_ORDER_ADDRESS,
+  ORDER_BOOK_ADDRESS,
+  ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS,
+  ZERO_ADDRESS,
+} from '../../../../constants'
 import { useDoTransaction } from '..'
 
 function cutLastArg(data: string, padding = 0) {
@@ -33,6 +38,7 @@ export const useQueueLimitOrderTrade = () => {
       const signer = await getConnectedSigner()
       const limitOrderAddr = LIMIT_ORDER_ADDRESS[chainId]
       const orderBookAddr = ORDER_BOOK_ADDRESS[chainId]
+      const rewardDistributorAddr = ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS[chainId]
 
       const limitOrderProtocolIface = LimitOrderProtocol__factory.createInterface()
       const orderBook = OrderBook__factory.connect(orderBookAddr, signer)
@@ -70,7 +76,7 @@ export const useQueueLimitOrderTrade = () => {
 
       const queue = async (): Promise<ContractTransaction> => {
         return await doTransaction(orderBook, 'broadcastOrder', {
-          args: [limitOrder, limitOrderSignature],
+          args: [limitOrder, limitOrderSignature, rewardDistributorAddr],
           summary: `Place limit order for ${outputAmount.toSignificant(2)} ${outputAmount.currency.symbol}`,
         })
       }

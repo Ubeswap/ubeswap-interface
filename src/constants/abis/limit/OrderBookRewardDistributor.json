@@ -258,7 +258,7 @@
         "type": "address"
       }
     ],
-    "name": "distributeReward",
+    "name": "notifyOrderBroadcasted",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

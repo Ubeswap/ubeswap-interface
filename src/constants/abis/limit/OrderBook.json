@@ -15,11 +15,6 @@
         "internalType": "address",
         "name": "_feeRecipient",
         "type": "address"
-      },
-      {
-        "internalType": "contract IOrderRewardDistributor",
-        "name": "_rewardDistributor",
-        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -191,25 +186,6 @@
     "type": "event"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "oldRewardDistributor",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "newRewardDistributor",
-        "type": "address"
-      }
-    ],
-    "name": "RewardDistributorChanged",
-    "type": "event"
-  },
-  {
     "inputs": [],
     "name": "MAX_FEE",
     "outputs": [
@@ -323,6 +299,11 @@
         "internalType": "bytes",
         "name": "_signature",
         "type": "bytes"
+      },
+      {
+        "internalType": "address",
+        "name": "_notificationTarget",
+        "type": "address"
       }
     ],
     "name": "broadcastOrder",
@@ -352,19 +333,6 @@
       }
     ],
     "name": "changeFeeRecipient",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract IOrderRewardDistributor",
-        "name": "_rewardDistributor",
-        "type": "address"
-      }
-    ],
-    "name": "changeRewardDistributor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -426,19 +394,6 @@
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "rewardDistributor",
-    "outputs": [
-      {
-        "internalType": "contract IOrderRewardDistributor",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
