@@ -1,10 +1,14 @@
-import { TokenAmount } from '@ubeswap/sdk'
+import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId as UbeswapChainId, TokenAmount } from '@ubeswap/sdk'
 import { BigNumber } from 'ethers'
 import { useToken } from 'hooks/Tokens'
-import { BPS_DENOMINATOR, LIMIT_ORDER_FEE_BPS } from 'pages/LimitOrder'
+import { useOrderBookContract } from 'hooks/useContract'
+import { BPS_DENOMINATOR } from 'pages/LimitOrder'
 import React from 'react'
+import { useSingleCallResult } from 'state/multicall/hooks'
 import styled from 'styled-components'
 
+import { ORDER_BOOK_ADDRESS } from '../../constants'
 import useTheme from '../../hooks/useTheme'
 import { useCancelOrderCallback } from '../../pages/LimitOrder/useCancelOrderCallback'
 import { TYPE } from '../../theme'
@@ -73,10 +77,16 @@ interface LimitOrderHistoryItemProps {
 }
 
 export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemProps) {
+  const {
+    network: { chainId },
+  } = useContractKit()
   const { callback: cancelOrder } = useCancelOrderCallback(item.orderHash)
   const theme = useTheme()
   const makerToken = useToken(item.makerAsset)
   const takerToken = useToken(item.takerAsset)
+
+  const orderBookContract = useOrderBookContract(ORDER_BOOK_ADDRESS[chainId as unknown as UbeswapChainId])
+  const orderBookFee = useSingleCallResult(orderBookContract, 'fee', []).result
 
   if (!makerToken || !takerToken) {
     return null
@@ -109,7 +119,9 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
       </OrderToFill>
       <OrderToFill>
         Order Placement Fee:{' '}
-        {makingAmount.multiply(LIMIT_ORDER_FEE_BPS.toString()).divide(BPS_DENOMINATOR.toString()).toSignificant(4)}{' '}
+        {orderBookFee
+          ? makingAmount.multiply(orderBookFee.toString()).divide(BPS_DENOMINATOR.toString()).toSignificant(4)
+          : '-'}{' '}
         {makerToken.symbol}
       </OrderToFill>
     </Container>

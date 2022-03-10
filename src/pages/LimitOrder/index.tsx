@@ -4,12 +4,14 @@ import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount, Trade } from '@ubes
 import { useQueueLimitOrderTrade } from 'components/swap/routing/limit/queueLimitOrderTrade'
 import { useTradeCallback } from 'components/swap/routing/useTradeCallback'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
+import { useOrderBookContract } from 'hooks/useContract'
 import useENS from 'hooks/useENS'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
 import { useDerivedLimitOrderInfo, useLimitOrderActionHandlers, useLimitOrderState } from 'state/limit/hooks'
+import { useSingleCallResult } from 'state/multicall/hooks'
 import { ThemeContext } from 'styled-components'
 
 import { ButtonConfirmed, ButtonLight, ButtonPrimary, TabButton } from '../../components/Button'
@@ -33,9 +35,7 @@ import { TYPE } from '../../theme'
 import AppBody from '../AppBody'
 import { LimitOrderHistory } from './LimitOrderHistory'
 
-// TODO: HARDCODE
-export const LIMIT_ORDER_FEE_BPS = JSBI.BigInt(5)
-export const BPS_DENOMINATOR = JSBI.BigInt(10_000)
+export const BPS_DENOMINATOR = JSBI.BigInt(1_000_000)
 
 export default function LimitOrder() {
   const { address: account, network } = useContractKit()
@@ -51,6 +51,9 @@ export default function LimitOrder() {
 
   // get custom setting values for user
   const [allowedSlippage] = useUserSlippageTolerance()
+
+  const orderBookContract = useOrderBookContract(ORDER_BOOK_ADDRESS[chainId])
+  const orderBookFee = useSingleCallResult(orderBookContract, 'fee', []).result
 
   // swap state
   const { tokenTypedValue, priceTypedValue, recipient } = useLimitOrderState()
@@ -113,12 +116,13 @@ export default function LimitOrder() {
     parsedInputTotal,
     LIMIT_ORDER_ADDRESS[chainId]
   )
-  const orderFee = parsedInputTotal
-    ? new TokenAmount(
-        parsedInputTotal.currency,
-        JSBI.divide(JSBI.multiply(parsedInputTotal.raw, LIMIT_ORDER_FEE_BPS), BPS_DENOMINATOR)
-      )
-    : undefined
+  const orderFee =
+    parsedInputTotal && orderBookFee
+      ? new TokenAmount(
+          parsedInputTotal.currency,
+          JSBI.divide(JSBI.multiply(parsedInputTotal.raw, JSBI.BigInt(orderBookFee.toString())), BPS_DENOMINATOR)
+        )
+      : undefined
   const [orderBookApproval, orderBookApprovalCallback] = useApproveCallback(orderFee, ORDER_BOOK_ADDRESS[chainId])
   const approvalCallback = useCallback(async () => {
     if (limitOrderApproval === ApprovalState.NOT_APPROVED) {
