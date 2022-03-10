@@ -1,7 +1,7 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { ChainId } from '@ubeswap/sdk'
 import { BigNumber } from 'ethers'
-import { OrderBook__factory } from 'generated'
+import { OrderBook__factory, OrderBookRewardDistributor__factory } from 'generated'
 import { useLimitOrderProtocolContract } from 'hooks/useContract'
 import React, { useEffect } from 'react'
 import { useSingleContractMultipleData } from 'state/multicall/hooks'
@@ -20,6 +20,12 @@ export interface LimitOrdersHistory {
   takerAsset: string
   remaining: BigNumber
   transactionHash: string
+}
+
+export interface LimitOrderRewards {
+  rewardCurrencyAddress: string
+  rewardRate: BigNumber
+  makerCurrencyAddress: string
 }
 
 type OrderBookEvent = {
@@ -117,4 +123,67 @@ export const useLimitOrdersHistory = (): LimitOrdersHistory[] => {
       }
     })
   }, [orderEvents, remainings])
+}
+
+const useRewardDistAddress = () => {
+  const { network } = useContractKit()
+  const provider = useProvider()
+  const chainId = network.chainId as unknown as ChainId
+  const orderBookAddr = ORDER_BOOK_ADDRESS[chainId]
+
+  const [rewardDistAddress, setRewardDistAddress] = React.useState<string>('')
+  const orderBookContract = OrderBook__factory.connect(orderBookAddr, provider)
+
+  const call = React.useCallback(async () => {
+    const orderBookRewardDistAddrPromise = await orderBookContract.rewardDistributor()
+    setRewardDistAddress(orderBookRewardDistAddrPromise)
+  }, [orderBookContract])
+
+  useEffect(() => {
+    call()
+  }, [call])
+
+  return rewardDistAddress
+}
+
+export const useLimitOrderSubsidy = (makerAssets: string[]) => {
+  const provider = useProvider()
+
+  const [limitOrderRewards, setLimitOrderRewards] = React.useState<LimitOrderRewards[]>([])
+
+  //const orderBookRewardDistAddrPromise = useRewardDistAddress()
+
+  const orderBookRewardDistContract = OrderBookRewardDistributor__factory.connect(
+    '0xa4C9e63C4699dCA1Ba133669ebEaDCdeEf8B312F',
+    provider
+  )
+  const subsidyRatesForMakerAssets = useSingleContractMultipleData(
+    orderBookRewardDistContract,
+    'rewardRate',
+    makerAssets.map((asset) => [asset])
+  )
+
+  const call = React.useCallback(async () => {
+    if (!orderBookRewardDistContract || !subsidyRatesForMakerAssets) {
+      return
+    }
+
+    const subsidyCurrencyAddr = await orderBookRewardDistContract.rewardCurrency()
+    const limitOrderRwd: LimitOrderRewards[] = []
+    for (let i = 0; i < subsidyRatesForMakerAssets.length; i++) {
+      limitOrderRwd.push({
+        rewardCurrencyAddress: subsidyCurrencyAddr,
+        rewardRate: subsidyRatesForMakerAssets[i].result?.[0] ?? BigNumber.from(0),
+        makerCurrencyAddress: makerAssets[i],
+      })
+    }
+    console.log(limitOrderRwd)
+    setLimitOrderRewards(limitOrderRwd)
+  }, [orderBookRewardDistContract, subsidyRatesForMakerAssets])
+
+  useEffect(() => {
+    call()
+  }, [call])
+
+  return limitOrderRewards
 }

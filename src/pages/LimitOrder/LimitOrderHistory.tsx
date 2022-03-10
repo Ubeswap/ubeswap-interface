@@ -4,12 +4,14 @@ import LimitOrderHistoryItem from 'components/LimitOrderHistory/LimitOrderHistor
 import { Wrapper } from 'components/swap/styleds'
 import React, { useState } from 'react'
 
-import { useLimitOrdersHistory } from './useOrderBroadcasted'
+import { useLimitOrdersHistory, useLimitOrderSubsidy } from './useOrderBroadcasted'
 
 export const LimitOrderHistory: React.FC = () => {
   const limitOrderHistory = useLimitOrdersHistory()
 
   const [openOrdersTabActive, setOpenOrdersTabActive] = useState<boolean>(true)
+
+  useLimitOrderSubsidy(limitOrderHistory.map((orderHistory) => orderHistory.makerAsset))
 
   return (
     <LimitOrderHistoryBody>
