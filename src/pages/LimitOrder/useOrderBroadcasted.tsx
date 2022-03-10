@@ -134,8 +134,8 @@ const useRewardDistAddress = () => {
   const orderBookContract = OrderBook__factory.connect(orderBookAddr, provider)
 
   const call = React.useCallback(async () => {
-    const orderBookRewardDistAddrPromise = await orderBookContract.rewardDistributor()
-    setRewardDistAddress(orderBookRewardDistAddrPromise)
+    const orderBookRewardDistAddr = await orderBookContract.rewardDistributor()
+    setRewardDistAddress(orderBookRewardDistAddr)
   }, [orderBookContract])
 
   useEffect(() => {
@@ -147,13 +147,13 @@ const useRewardDistAddress = () => {
 
 export const useLimitOrderRewards = (makerAssets: string[]) => {
   const provider = useProvider()
-  const orderBookRewardDistAddrPromise = useRewardDistAddress()
+  const orderBookRewardDistAddr = useRewardDistAddress()
   const orderBookRewardDistContract = useMemo(() => {
-    if (orderBookRewardDistAddrPromise) {
-      return OrderBookRewardDistributor__factory.connect(orderBookRewardDistAddrPromise, provider)
+    if (orderBookRewardDistAddr) {
+      return OrderBookRewardDistributor__factory.connect(orderBookRewardDistAddr, provider)
     }
     return undefined
-  }, [orderBookRewardDistAddrPromise])
+  }, [orderBookRewardDistAddr])
 
   const subsidyRatesForMakerAssets = useSingleContractMultipleData(
     orderBookRewardDistContract,
