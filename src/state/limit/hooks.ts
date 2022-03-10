@@ -1,4 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { parseUnits } from '@ethersproject/units'
 import { CELO, cEUR, ChainId as UbeswapChainId, cUSD, Token, TokenAmount } from '@ubeswap/sdk'
 import { useUbeswapTradeExactIn, useUbeswapTradeExactOut } from 'components/swap/routing/hooks/useTrade'
 import { UbeswapTrade } from 'components/swap/routing/trade'
@@ -78,8 +79,19 @@ export function useDerivedLimitOrderInfo(): {
   const parsedInputTotal = buying ? parsedTokenOutput : parsedTokenAmount
   const parsedOutputTotal = buying ? parsedTokenAmount : parsedTokenOutput
 
-  const buyTrade = useUbeswapTradeExactOut(priceCurrency ?? undefined, parsedTokenAmount)
-  const sellTrade = useUbeswapTradeExactIn(parsedTokenAmount, priceCurrency ?? undefined)
+  // Determine price as if we were trading 1 of the asset
+  const buyTrade = useUbeswapTradeExactOut(
+    priceCurrency ?? undefined,
+    parsedTokenAmount
+      ? new TokenAmount(parsedTokenAmount.currency, parseUnits('1', parsedTokenAmount.currency.decimals).toString())
+      : undefined
+  )
+  const sellTrade = useUbeswapTradeExactIn(
+    parsedTokenAmount
+      ? new TokenAmount(parsedTokenAmount.currency, parseUnits('1', parsedTokenAmount.currency.decimals).toString())
+      : undefined,
+    priceCurrency ?? undefined
+  )
   const v2Trade = buying ? buyTrade : sellTrade
 
   const currencyBalances = {

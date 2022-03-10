@@ -387,14 +387,12 @@ export default function LimitOrder() {
                 </ButtonConfirmed>
                 <ButtonPrimary
                   onClick={async () => {
-                    if (trade) {
-                      if (parsedInputTotal && parsedOutputTotal) {
-                        queueLimitOrderCallback({
-                          inputAmount: parsedInputTotal,
-                          outputAmount: parsedOutputTotal,
-                          chainId: chainId,
-                        })
-                      }
+                    if (parsedInputTotal && parsedOutputTotal) {
+                      queueLimitOrderCallback({
+                        inputAmount: parsedInputTotal,
+                        outputAmount: parsedOutputTotal,
+                        chainId: chainId,
+                      })
                     }
                   }}
                   width="48%"
