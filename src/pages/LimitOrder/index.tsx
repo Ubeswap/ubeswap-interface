@@ -247,7 +247,7 @@ export default function LimitOrder() {
 
           <AutoColumn gap={'md'}>
             <TYPE.body color={theme.text2} style={{ display: 'inline', marginLeft: 8 }}>
-              Token
+              {buying ? 'Buy' : 'Sell'} Amount
             </TYPE.body>
             <CurrencyInputPanel
               value={formattedAmounts[Field.TOKEN]}
@@ -297,10 +297,10 @@ export default function LimitOrder() {
                     </Text>
                   </RowBetween>
                   <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                    <Text fontWeight={800} fontSize={14} color={theme.text1}>
                       Total
                     </Text>
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                    <Text fontWeight={800} fontSize={14} color={theme.text1}>
                       {parsedInputTotal?.toSignificant(2) ?? '-'} {parsedInputTotal?.currency.symbol}
                     </Text>
                   </RowBetween>
