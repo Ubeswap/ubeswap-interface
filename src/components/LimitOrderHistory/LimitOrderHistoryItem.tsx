@@ -2,7 +2,7 @@ import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId, TokenAmount } from '@ubeswap/sdk'
 import { BigNumber } from 'ethers'
 import { useToken } from 'hooks/Tokens'
-import { BPS_DENOMINATOR, LIMIT_ORDER_FEE_BPS } from 'pages/LimitOrder'
+import { BPS_DENOMINATOR, LIMIT_ORDER_FEE_BPS, PCT_DENOMINATOR } from 'pages/LimitOrder'
 import { LimitOrderRewards } from 'pages/LimitOrder/useOrderBroadcasted'
 import React, { useEffect, useState } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
@@ -112,6 +112,7 @@ export default function LimitOrderHistoryItem({ item, rewardCurrency, rewardRate
   const rewardToken = useToken(rewardCurrency)
 
   const [transactionLink, setTransactionLink] = useState('')
+  const [rewardAmount, setRewardAmount] = useState(BigNumber.from(0))
 
   useEffect(() => {
     if (chainId === ChainId.ALFAJORES) {
@@ -121,6 +122,14 @@ export default function LimitOrderHistoryItem({ item, rewardCurrency, rewardRate
       setTransactionLink(`https://explorer.celo.org/tx/${item.transactionHash}`)
     }
   }, [item, chainId])
+
+  const makerTokenRewardRate = rewardRates.find((rewardRate) => rewardRate.makerCurrencyAddress === item.makerAsset)
+
+  useEffect(() => {
+    if (makerTokenRewardRate) {
+      setRewardAmount(item.makingAmount.mul(makerTokenRewardRate?.rewardRate).div(PCT_DENOMINATOR))
+    }
+  }, [makerTokenRewardRate, item.makingAmount])
 
   if (!makerToken || !takerToken || !rewardToken) {
     return null
@@ -162,6 +171,13 @@ export default function LimitOrderHistoryItem({ item, rewardCurrency, rewardRate
         {makingAmount.multiply(LIMIT_ORDER_FEE_BPS.toString()).divide(BPS_DENOMINATOR.toString()).toSignificant(4)}{' '}
         {makerToken.symbol}
       </OrderToFill>
+      {rewardAmount.gt(BigNumber.from(0)) ? (
+        <OrderToFill>
+          Order Reward: {rewardAmount.toString()} {rewardToken.symbol}
+        </OrderToFill>
+      ) : (
+        <OrderToFill>Order Reward: -</OrderToFill>
+      )}
       {item.isOrderOpen && (
         <AddressLink href={transactionLink}>
           <LinkIcon size={16} />

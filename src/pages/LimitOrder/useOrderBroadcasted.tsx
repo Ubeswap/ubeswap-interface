@@ -155,7 +155,7 @@ export const useRewardCurrency = () => {
       return OrderBookRewardDistributor__factory.connect(orderBookRewardDistAddr, provider)
     }
     return undefined
-  }, [orderBookRewardDistAddr])
+  }, [orderBookRewardDistAddr, provider])
 
   const call = React.useCallback(async () => {
     if (orderBookRewardDistContract) {
@@ -168,7 +168,6 @@ export const useRewardCurrency = () => {
     call()
   }, [call])
 
-  console.log(rewardDistAddress)
   return rewardDistAddress
 }
 
@@ -180,7 +179,7 @@ export const useLimitOrderRewards = (makerAssets: string[]) => {
       return OrderBookRewardDistributor__factory.connect(orderBookRewardDistAddr, provider)
     }
     return undefined
-  }, [orderBookRewardDistAddr])
+  }, [orderBookRewardDistAddr, provider])
 
   const uniqueMakerAssets = [...new Set(makerAssets)]
 

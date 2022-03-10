@@ -3,6 +3,7 @@ import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount, Trade } from '@ubeswap/sdk'
 import { useQueueLimitOrderTrade } from 'components/swap/routing/limit/queueLimitOrderTrade'
 import { useTradeCallback } from 'components/swap/routing/useTradeCallback'
+import { BigNumber } from 'ethers'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
 import useENS from 'hooks/useENS'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
@@ -36,6 +37,7 @@ import { LimitOrderHistory } from './LimitOrderHistory'
 // TODO: HARDCODE
 export const LIMIT_ORDER_FEE_BPS = JSBI.BigInt(5)
 export const BPS_DENOMINATOR = JSBI.BigInt(10_000)
+export const PCT_DENOMINATOR = BigNumber.from(1_000_000)
 
 export default function LimitOrder() {
   const { address: account, network } = useContractKit()
