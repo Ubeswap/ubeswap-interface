@@ -86,7 +86,7 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
   const takerToken = useToken(item.takerAsset)
 
   const orderBookContract = useOrderBookContract(ORDER_BOOK_ADDRESS[chainId as unknown as UbeswapChainId])
-  const orderBookFee = useSingleCallResult(orderBookContract, 'fee', []).result
+  const orderBookFee = useSingleCallResult(orderBookContract, 'fee', []).result?.[0]
 
   if (!makerToken || !takerToken) {
     return null

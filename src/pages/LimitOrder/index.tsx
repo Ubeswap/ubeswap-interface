@@ -4,7 +4,7 @@ import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount, Trade } from '@ubes
 import { useQueueLimitOrderTrade } from 'components/swap/routing/limit/queueLimitOrderTrade'
 import { useTradeCallback } from 'components/swap/routing/useTradeCallback'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
-import { useOrderBookContract } from 'hooks/useContract'
+import { useOrderBookContract, useOrderBookRewardDistributorContract } from 'hooks/useContract'
 import useENS from 'hooks/useENS'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import ReactGA from 'react-ga'
@@ -25,8 +25,8 @@ import ConfirmSwapModal from '../../components/swap/ConfirmSwapModal'
 import { BottomGrouping, Wrapper } from '../../components/swap/styleds'
 import SwapHeader from '../../components/swap/SwapHeader'
 import TradePrice from '../../components/swap/TradePrice'
-import { LIMIT_ORDER_ADDRESS, ORDER_BOOK_ADDRESS } from '../../constants'
-import { useCurrency } from '../../hooks/Tokens'
+import { LIMIT_ORDER_ADDRESS, ORDER_BOOK_ADDRESS, ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS } from '../../constants'
+import { useCurrency, useToken } from '../../hooks/Tokens'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { Field } from '../../state/limit/actions'
@@ -53,7 +53,7 @@ export default function LimitOrder() {
   const [allowedSlippage] = useUserSlippageTolerance()
 
   const orderBookContract = useOrderBookContract(ORDER_BOOK_ADDRESS[chainId])
-  const orderBookFee = useSingleCallResult(orderBookContract, 'fee', []).result
+  const orderBookFee = useSingleCallResult(orderBookContract, 'fee', []).result?.[0]
 
   // swap state
   const { tokenTypedValue, priceTypedValue, recipient } = useLimitOrderState()
@@ -67,6 +67,15 @@ export default function LimitOrder() {
     buying,
   } = useDerivedLimitOrderInfo()
   const { address: recipientAddress } = useENS(recipient)
+
+  const rewardDistributorContract = useOrderBookRewardDistributorContract(
+    ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS[chainId]
+  )
+  const rewardCurrencyAddress = useSingleCallResult(rewardDistributorContract, 'rewardCurrency', []).result?.[0]
+  const rewardCurrency = useToken(rewardCurrencyAddress)
+  const rewardRate = useSingleCallResult(rewardDistributorContract, 'rewardRate', [
+    buying ? currencies?.PRICE?.address : currencies?.TOKEN?.address,
+  ]).result?.[0]
 
   const { onCurrencySelection, onUserInput, setBuying } = useLimitOrderActionHandlers()
   const defaultPriceCurrency = useCurrency(cUSD[chainId].address)
@@ -121,6 +130,13 @@ export default function LimitOrder() {
       ? new TokenAmount(
           parsedInputTotal.currency,
           JSBI.divide(JSBI.multiply(parsedInputTotal.raw, JSBI.BigInt(orderBookFee.toString())), BPS_DENOMINATOR)
+        )
+      : undefined
+  const reward =
+    parsedInputTotal && rewardCurrency && rewardRate
+      ? new TokenAmount(
+          rewardCurrency,
+          JSBI.divide(JSBI.multiply(parsedInputTotal.raw, JSBI.BigInt(rewardRate.toString())), BPS_DENOMINATOR)
         )
       : undefined
   const [orderBookApproval, orderBookApprovalCallback] = useApproveCallback(orderFee, ORDER_BOOK_ADDRESS[chainId])
@@ -294,7 +310,15 @@ export default function LimitOrder() {
                   </RowBetween>
                   <RowBetween align="center">
                     <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Order Fee
+                      Order Placement Reward
+                    </Text>
+                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                      {reward?.toSignificant(2) ?? '-'} {reward?.currency.symbol}
+                    </Text>
+                  </RowBetween>
+                  <RowBetween align="center">
+                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                      Order Placement Fee
                     </Text>
                     <Text fontWeight={500} fontSize={14} color={theme.text2}>
                       {orderFee?.toSignificant(2) ?? '-'} {orderFee?.currency.symbol}
