@@ -1,5 +1,6 @@
 import { ErrorBoundary } from '@sentry/react'
 import { Token } from '@ubeswap/sdk'
+import { ButtonPrimary } from 'components/Button'
 import TokenSelect from 'components/CurrencyInputPanel/TokenSelect'
 import ClaimAllRewardPanel from 'components/earn/ClaimAllRewardPanel'
 import ImportFarmModal from 'components/earn/ImportFarmModal'
@@ -89,13 +90,16 @@ export default function Earn() {
         <AutoColumn justify={'end'} gap="md">
           <Text
             textAlign="center"
-            fontSize={14}
+            fontSize={16}
             style={{ padding: '.5rem 0 .5rem 0' }}
             onClick={() => {
               setShowImportFarmModal(true)
             }}
           >
-            <StyledButton id="import-pool-link">{'Import Farm'}</StyledButton>
+            {/* <StyledButton id="import-pool-link">{'Import Farm'}</StyledButton> */}
+            <ButtonPrimary padding="8px 16px" borderRadius="8px">
+              {'Import Farm'}
+            </ButtonPrimary>
           </Text>
         </AutoColumn>
       )}
@@ -153,7 +157,7 @@ export default function Earn() {
           {importedFarms.map((farmSummary) => (
             <PoolWrapper key={farmSummary.stakingAddress}>
               <ErrorBoundary>
-                <PoolCard farmSummary={farmSummary} />
+                <PoolCard farmSummary={farmSummary} isImported={true} />
               </ErrorBoundary>
             </PoolWrapper>
           ))}

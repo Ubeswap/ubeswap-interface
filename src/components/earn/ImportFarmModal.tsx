@@ -269,6 +269,7 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
                       <Text key={index} fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
                         {data
                           ? data.multiply(BIG_INT_SECONDS_IN_WEEK)?.toSignificant(4, { groupSeparator: ',' }) +
+                            ' ' +
                             rewardsTokens[index].symbol +
                             ' / Week'
                           : '-'}

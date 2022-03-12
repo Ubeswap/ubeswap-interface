@@ -1,6 +1,7 @@
 import { gql, useQuery } from '@apollo/client'
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { Percent } from '@ubeswap/sdk'
+import CurrencyLogo from 'components/CurrencyLogo'
 import { useToken } from 'hooks/Tokens'
 import { useStakingContract } from 'hooks/useContract'
 import { FarmSummary } from 'pages/Earn/useFarmRegistry'
@@ -49,9 +50,9 @@ const Wrapper = styled(AutoColumn)<{ showBackground: boolean; bgColor: any }>`
     0px 24px 32px rgba(0, 0, 0, 0.01);`}
 `
 
-const TopSection = styled.div`
+const TopSection = styled.div<{ singleToken: boolean }>`
   display: grid;
-  grid-template-columns: 48px 1fr 120px;
+  grid-template-columns: ${({ singleToken }) => (singleToken ? '28px 1fr 120px' : '48px 1fr 120px')};
   grid-gap: 0px;
   align-items: center;
   padding: 1rem;
@@ -74,6 +75,7 @@ const BottomSection = styled.div<{ showBackground: boolean }>`
 
 interface Props {
   farmSummary: FarmSummary
+  isImported?: boolean
 }
 
 const pairDataGql = gql`
@@ -88,7 +90,7 @@ const pairDataGql = gql`
 `
 const COMPOUNDS_PER_YEAR = 2
 
-export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
+export const PoolCard: React.FC<Props> = ({ farmSummary, isImported = false }: Props) => {
   const { t } = useTranslation()
   const { address } = useContractKit()
   const userAprMode = useIsAprMode()
@@ -106,7 +108,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
 
   const { userValueCUSD, userAmountTokenA, userAmountTokenB } = useLPValue(stakedAmount ?? 0, farmSummary)
   let swapRewardsUSDPerYear = 0
-  if (!loading && !error && data) {
+  if (!loading && !error && data && data.pair) {
     const lastDayVolumeUsd = data.pair.pairHourData.reduce(
       (acc: number, curr: { hourlyVolumeUSD: string }) => acc + Number(curr.hourlyVolumeUSD),
       0
@@ -133,7 +135,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
       ? `${userAprMode ? apr.toFixed(0, { groupSeparator: ',' }) : compoundedAPY}%`
       : '-'
 
-  if (Number(fromWei(farmSummary.rewardsUSDPerYear)) < 100 && !userValueCUSD?.greaterThan('0')) {
+  if (!isImported && Number(fromWei(farmSummary.rewardsUSDPerYear)) < 100 && !userValueCUSD?.greaterThan('0')) {
     return null
   }
 
@@ -141,12 +143,22 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
     <Wrapper showBackground={isStaking} bgColor={theme.primary1}>
       <CardNoise />
 
-      <TopSection>
-        <DoubleCurrencyLogo currency0={token0} currency1={token1} size={24} />
+      <TopSection singleToken={!!token0 && !!token1 && token0.address === token1.address ? true : false}>
+        {token0 && token1 && token0.address === token1.address ? (
+          <CurrencyLogo currency={token0}></CurrencyLogo>
+        ) : (
+          <DoubleCurrencyLogo currency0={token0} currency1={token1} size={24} />
+        )}
         <PoolInfo style={{ marginLeft: '8px' }}>
-          <TYPE.white fontWeight={600} fontSize={[18, 24]}>
-            {token0?.symbol}-{token1?.symbol}
-          </TYPE.white>
+          {token0 && token1 && token0.address === token1.address ? (
+            <TYPE.white fontWeight={600} fontSize={[18, 24]}>
+              {token0?.symbol}
+            </TYPE.white>
+          ) : (
+            <TYPE.white fontWeight={600} fontSize={[18, 24]}>
+              {token0?.symbol}-{token1?.symbol}
+            </TYPE.white>
+          )}
           {apr && apr.greaterThan('0') && (
             <span
               aria-label="Toggle APR/APY"
