@@ -174,6 +174,10 @@ export default function LimitOrder() {
     }
   }, [limitOrderApproval, orderBookApproval, approvalSubmitted])
 
+  const getColor = () => {
+    return buying ? (aboveMarketPrice ? theme.green1 : theme.red1) : aboveMarketPrice ? theme.red1 : theme.green1
+  }
+
   // the callback to execute the swap
   const { callback: swapCallback } = useTradeCallback(tradeToConfirm, allowedSlippage, recipient)
 
@@ -327,27 +331,31 @@ export default function LimitOrder() {
             <Card padding={'0px'} borderRadius={'20px'}>
               <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
                 <>
-                  <RowBetween align="center">
+                  <RowBetween align="center" style={{ marginBottom: '0.25rem' }}>
                     <Text fontWeight={500} fontSize={14} color={theme.text2}>
                       Market Price
                     </Text>
-                    {trade ? (
-                      <TradePrice
-                        price={trade.executionPrice}
-                        showInverted={buying ? showInverted : !showInverted}
-                        setShowInverted={setShowInverted}
-                      />
-                    ) : (
-                      <Text>-</Text>
-                    )}
-                  </RowBetween>
-                  <RowBetween align="center">
-                    <div></div>
-                    {marketPriceDiffIndicator && orderFee && (
-                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                        {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'} market price
-                      </Text>
-                    )}
+                    <div>
+                      {trade ? (
+                        <TradePrice
+                          price={trade.executionPrice}
+                          showInverted={buying ? showInverted : !showInverted}
+                          setShowInverted={setShowInverted}
+                        />
+                      ) : (
+                        <Text>-</Text>
+                      )}
+                      {marketPriceDiffIndicator && (
+                        <div style={{ display: 'flex' }}>
+                          <Text fontWeight={500} fontSize={14} color={getColor()}>
+                            {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'} &nbsp;
+                          </Text>
+                          <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                            market price
+                          </Text>
+                        </div>
+                      )}
+                    </div>
                   </RowBetween>
                   <RowBetween align="center">
                     <Text fontWeight={500} fontSize={14} color={theme.text2}>
