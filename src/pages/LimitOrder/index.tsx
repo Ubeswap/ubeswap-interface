@@ -11,7 +11,12 @@ import React, { useCallback, useContext, useEffect, useState } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
-import { useDerivedLimitOrderInfo, useLimitOrderActionHandlers, useLimitOrderState } from 'state/limit/hooks'
+import {
+  useDerivedLimitOrderInfo,
+  useLimitOrderActionHandlers,
+  useLimitOrderState,
+  useMarketPriceDiff,
+} from 'state/limit/hooks'
 import { useSingleCallResult } from 'state/multicall/hooks'
 import { ThemeContext } from 'styled-components'
 
@@ -57,7 +62,13 @@ export default function LimitOrder() {
   const orderBookFee = useSingleCallResult(orderBookContract, 'fee', []).result?.[0]
 
   // swap state
-  const { tokenTypedValue, priceTypedValue, recipient } = useLimitOrderState()
+  const {
+    tokenTypedValue,
+    priceTypedValue,
+    recipient,
+    [Field.PRICE]: { currencyId: priceCurrencyId },
+  } = useLimitOrderState()
+  const priceCurrency = useCurrency(priceCurrencyId)
   const {
     v2Trade: trade,
     parsedInputTotal,
@@ -133,6 +144,9 @@ export default function LimitOrder() {
           JSBI.divide(JSBI.multiply(parsedInputTotal.raw, JSBI.BigInt(orderBookFee.toString())), BPS_DENOMINATOR)
         )
       : undefined
+
+  const { aboveMarketPrice, marketPriceDiffIndicator } = useMarketPriceDiff()
+
   const reward =
     parsedInputTotal && rewardCurrency && rewardRate
       ? new TokenAmount(
@@ -325,6 +339,14 @@ export default function LimitOrder() {
                       />
                     ) : (
                       <Text>-</Text>
+                    )}
+                  </RowBetween>
+                  <RowBetween align="center">
+                    <div></div>
+                    {marketPriceDiffIndicator && orderFee && (
+                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                        {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'} market price
+                      </Text>
                     )}
                   </RowBetween>
                   <RowBetween align="center">
