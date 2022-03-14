@@ -1,9 +1,10 @@
-import { Alfajores, CeloMainnet, EthereumMainnet, Kovan, Network } from '@celo-tools/use-contractkit'
+import { Network } from '@celo-tools/use-contractkit'
 import CurrencyLogo from 'components/CurrencyLogo'
 import React, { useCallback } from 'react'
 import { WrappedTokenInfo } from 'state/lists/hooks'
 import styled from 'styled-components'
 
+import { Alfajores, Mainnet } from '../../networks'
 import Modal from '../Modal'
 
 const ChainSelect = styled.div({
