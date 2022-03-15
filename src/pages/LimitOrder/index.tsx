@@ -62,13 +62,7 @@ export default function LimitOrder() {
   const orderBookFee = useSingleCallResult(orderBookContract, 'fee', []).result?.[0]
 
   // swap state
-  const {
-    tokenTypedValue,
-    priceTypedValue,
-    recipient,
-    [Field.PRICE]: { currencyId: priceCurrencyId },
-  } = useLimitOrderState()
-  const priceCurrency = useCurrency(priceCurrencyId)
+  const { tokenTypedValue, priceTypedValue, recipient } = useLimitOrderState()
   const {
     v2Trade: trade,
     parsedInputTotal,
