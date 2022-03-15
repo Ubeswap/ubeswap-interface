@@ -332,30 +332,30 @@ export default function LimitOrder() {
               <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
                 <>
                   <RowBetween align="center" style={{ marginBottom: '0.25rem' }}>
+                    {marketPriceDiffIndicator && (
+                      <div style={{ display: 'flex' }}>
+                        <Text fontWeight={500} fontSize={14} color={getColor()}>
+                          {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'} &nbsp;
+                        </Text>
+                        <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                          market price
+                        </Text>
+                      </div>
+                    )}
+                  </RowBetween>
+                  <RowBetween align="center" style={{ marginBottom: '0.25rem' }}>
                     <Text fontWeight={500} fontSize={14} color={theme.text2}>
                       Market Price
                     </Text>
-                    <div>
-                      {trade ? (
-                        <TradePrice
-                          price={trade.executionPrice}
-                          showInverted={buying ? showInverted : !showInverted}
-                          setShowInverted={setShowInverted}
-                        />
-                      ) : (
-                        <Text>-</Text>
-                      )}
-                      {marketPriceDiffIndicator && (
-                        <div style={{ display: 'flex' }}>
-                          <Text fontWeight={500} fontSize={14} color={getColor()}>
-                            {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'} &nbsp;
-                          </Text>
-                          <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                            market price
-                          </Text>
-                        </div>
-                      )}
-                    </div>
+                    {trade ? (
+                      <TradePrice
+                        price={trade.executionPrice}
+                        showInverted={buying ? showInverted : !showInverted}
+                        setShowInverted={setShowInverted}
+                      />
+                    ) : (
+                      <Text>-</Text>
+                    )}
                   </RowBetween>
                   <RowBetween align="center">
                     <Text fontWeight={500} fontSize={14} color={theme.text2}>
