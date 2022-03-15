@@ -331,7 +331,7 @@ export default function LimitOrder() {
             <Card padding={'0px'} borderRadius={'20px'}>
               <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
                 <>
-                  <RowBetween align="center" style={{ marginBottom: '0.25rem' }}>
+                  <RowBetween align="center" style={{ marginBottom: '0.5rem' }}>
                     {marketPriceDiffIndicator && (
                       <div style={{ display: 'flex' }}>
                         <Text fontWeight={500} fontSize={14} color={getColor()}>
@@ -343,7 +343,7 @@ export default function LimitOrder() {
                       </div>
                     )}
                   </RowBetween>
-                  <RowBetween align="center" style={{ marginBottom: '0.25rem' }}>
+                  <RowBetween align="center">
                     <Text fontWeight={500} fontSize={14} color={theme.text2}>
                       Market Price
                     </Text>
