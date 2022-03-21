@@ -4111,10 +4111,10 @@
     tiny-warning "^1.0.3"
     toformat "^2.0.0"
 
-"@uniswap/default-token-list@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@uniswap/default-token-list/-/default-token-list-2.0.0.tgz#095b4c22635e532c817c3ba70e8838d8bd699716"
-  integrity sha512-P37PqBtUjEB9DIRFfmEsgougkV0555JQKiGPISeN9UFk1UgCQM5sg6+bBaShiyaqEpdtttAaBFI1QESCzPGvXw==
+"@uniswap/default-token-list@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@uniswap/default-token-list/-/default-token-list-3.1.0.tgz#a54bda17ecbbc1c57dc2274d8dd9ddc9c87492d1"
+  integrity sha512-ih5qHKCJwCubqGBzvsfXRzh0CSWqRPCEscFxYenRh2kKs/NE7Q+jMW69dBWg03O8N8cNuoZYk0yJ7n6v+yE0oA==
 
 "@uniswap/token-lists@^1.0.0-beta.24":
   version "1.0.0-beta.26"

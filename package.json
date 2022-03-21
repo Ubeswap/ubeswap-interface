@@ -135,7 +135,7 @@
     "@ubeswap/default-token-list": "^4.1.39",
     "@ubeswap/moola": "^0.2.0",
     "@ubeswap/sdk": "^2.1.2",
-    "@uniswap/default-token-list": "^2.0.0",
+    "@uniswap/default-token-list": "^3.1.0",
     "ajv-formats": "^2.1.1",
     "eventemitter3": "^4.0.7",
     "graphql": "^15.6.1",
