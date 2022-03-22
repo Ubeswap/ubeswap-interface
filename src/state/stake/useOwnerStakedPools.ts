@@ -28,7 +28,7 @@ export const useOwnerStakedPools = (farmSummaries: FarmSummary[]) => {
     const [staked, unstaked] = partition(farmSummaries, (farmSummary) => isStaked[farmSummary.stakingAddress])
     const [featuredFarms, remainingFarms] = partition(unstaked, (farmSummary) => farmSummary.isFeatured)
     const [importedFarms, availableFarms] = partition(remainingFarms, (farmSummary) => farmSummary.isImported)
-    return [staked, unique(featuredFarms), unique(availableFarms), unique(importedFarms)]
+    return [staked, unique(featuredFarms), unique(availableFarms), importedFarms]
   }, [farmSummaries, isStaked])
 
   return { stakedFarms, featuredFarms, unstakedFarms: uniqueUnstakedFarms, importedFarms }

@@ -25,38 +25,54 @@ export const useLPValue = (stakedAmount: BigNumber, farmSummary: FarmSummary): I
   const totalSupplyOfStakingToken = useTotalSupply(lpToken)
   const token0 = useToken(farmSummary.token0Address) || undefined
   const token1 = useToken(farmSummary.token1Address) || undefined
+  const isSingle = Boolean(farmSummary.token0Address === farmSummary.token1Address)
   const [, stakingTokenPair] = usePair(token0, token1)
 
   const cusd = cUSD[chainId as unknown as UbeswapChainId]
-  const cusdPrice0 = useCUSDPrice(stakingTokenPair?.token0)
-  const cusdPrice1 = useCUSDPrice(stakingTokenPair?.token1)
+  const cusdPrice0 = useCUSDPrice(isSingle ? token0 : stakingTokenPair?.token0)
+  const cusdPrice1 = useCUSDPrice(isSingle ? token1 : stakingTokenPair?.token1)
 
   let valueOfUserStakedAmountInCUSD: TokenAmount | undefined
   if (
     totalSupplyOfStakingToken &&
     !totalSupplyOfStakingToken.equalTo('0') &&
-    stakingTokenPair &&
-    (cusdPrice0 || cusdPrice1)
+    (isSingle || stakingTokenPair) &&
+    (cusdPrice0 || cusdPrice1) &&
+    token0 &&
+    token1
   ) {
     // take the total amount of LP tokens staked, multiply by ETH value of all LP tokens, divide by all LP tokens
 
-    const amount = cusdPrice0
-      ? cusdPrice0.quote(stakingTokenPair.reserve0)
-      : cusdPrice1?.quote(stakingTokenPair.reserve1)
+    const amount =
+      !stakingTokenPair && cusdPrice0
+        ? new TokenAmount(token0, BIG_INT_ZERO)
+        : stakingTokenPair
+        ? cusdPrice0
+          ? cusdPrice0.quote(stakingTokenPair.reserve0)
+          : cusdPrice1?.quote(stakingTokenPair.reserve1)
+        : undefined
+
     if (amount) {
-      valueOfUserStakedAmountInCUSD = new TokenAmount(
-        cusd,
-        stakedAmount
-          ? JSBI.divide(
-              JSBI.multiply(
-                JSBI.multiply(JSBI.BigInt(stakedAmount), amount.raw),
-                // this is b/c the value of LP shares are ~double the value of the cUSD they entitle owner to
-                JSBI.BigInt(2)
-              ),
-              totalSupplyOfStakingToken.raw
-            )
-          : BIG_INT_ZERO
-      )
+      valueOfUserStakedAmountInCUSD = isSingle
+        ? new TokenAmount(
+            cusd,
+            cusdPrice0
+              ? JSBI.divide(JSBI.multiply(JSBI.BigInt(stakedAmount), cusdPrice0?.numerator), cusdPrice0?.denominator)
+              : BIG_INT_ZERO
+          )
+        : new TokenAmount(
+            cusd,
+            stakedAmount
+              ? JSBI.divide(
+                  JSBI.multiply(
+                    JSBI.multiply(JSBI.BigInt(stakedAmount), amount.raw),
+                    // this is b/c the value of LP shares are ~double the value of the cUSD they entitle owner to
+                    JSBI.BigInt(2)
+                  ),
+                  totalSupplyOfStakingToken.raw
+                )
+              : BIG_INT_ZERO
+          )
     }
   }
 

@@ -1,12 +1,12 @@
 import { gql, useQuery } from '@apollo/client'
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { Percent } from '@ubeswap/sdk'
+import { JSBI, Percent, TokenAmount } from '@ubeswap/sdk'
 import CurrencyLogo from 'components/CurrencyLogo'
 import { useToken } from 'hooks/Tokens'
 import { useStakingContract } from 'hooks/useContract'
 import { FarmSummary } from 'pages/Earn/useFarmRegistry'
 import { useLPValue } from 'pages/Earn/useLPValue'
-import React from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'
 import { useSingleCallResult } from 'state/multicall/hooks'
@@ -15,13 +15,15 @@ import { useIsAprMode } from 'state/user/hooks'
 import styled, { useTheme } from 'styled-components'
 import { fromWei, toBN, toWei } from 'web3-utils'
 
-import { StyledInternalLink, TYPE } from '../../theme'
-import { ButtonPrimary } from '../Button'
+import { BIG_INT_SECONDS_IN_WEEK } from '../../constants'
+import { CloseIcon, StyledInternalLink, TYPE } from '../../theme'
+import { ButtonGray, ButtonPrimary } from '../Button'
 import { AutoColumn } from '../Column'
 import DoubleCurrencyLogo from '../DoubleLogo'
 import { RowBetween, RowFixed } from '../Row'
 import PoolStatRow from './PoolStats/PoolStatRow'
-import StakedAmountsHelper from './StakedAmountsHelper'
+import RemoveFarmModal from './RemoveFarmModal'
+import StakedAmountsHelper, { SingleStakedAmountsHelper } from './StakedAmountsHelper'
 import { Break, CardNoise } from './styled'
 
 const StatContainer = styled.div`
@@ -40,7 +42,7 @@ const StatContainer = styled.div`
 const Wrapper = styled(AutoColumn)<{ showBackground: boolean; bgColor: any }>`
   border-radius: 12px;
   width: 100%;
-  overflow: hidden;
+  overflow: unset;
   position: relative;
   background: ${({ bgColor }) => `radial-gradient(91.85% 100% at 1.84% 0%, ${bgColor} 0%, #212429 100%) `};
   color: ${({ theme, showBackground }) => (showBackground ? theme.white : theme.text1)} !important;
@@ -50,6 +52,25 @@ const Wrapper = styled(AutoColumn)<{ showBackground: boolean; bgColor: any }>`
     0px 24px 32px rgba(0, 0, 0, 0.01);`}
 `
 
+const RemoveCardSection = styled.div`
+  position: absolute;
+  right: -10px;
+  top: -10px;
+  z-index: 10000;
+  background: #252525;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  cursor: pointer;
+  color: white;
+  :hover {
+    background: #2f2f2f;
+  }
+`
+
 const TopSection = styled.div<{ singleToken: boolean }>`
   display: grid;
   grid-template-columns: ${({ singleToken }) => (singleToken ? '28px 1fr 120px' : '48px 1fr 120px')};
@@ -57,8 +78,8 @@ const TopSection = styled.div<{ singleToken: boolean }>`
   align-items: center;
   padding: 1rem;
   z-index: 1;
-  ${({ theme }) => theme.mediaWidth.upToSmall`
-    grid-template-columns: 48px 1fr 96px;
+  ${({ theme }) => theme.mediaWidth.upToSmall<{ singleToken: boolean }>`
+    grid-template-columns: ${({ singleToken }) => (singleToken ? '28px 1fr 96px' : '48px 1fr 96px')};
   `};
 `
 
@@ -75,7 +96,7 @@ const BottomSection = styled.div<{ showBackground: boolean }>`
 
 interface Props {
   farmSummary: FarmSummary
-  isImported?: boolean
+  onRemoveImportedFarm?: (farmAddress: string) => void
 }
 
 const pairDataGql = gql`
@@ -90,11 +111,12 @@ const pairDataGql = gql`
 `
 const COMPOUNDS_PER_YEAR = 2
 
-export const PoolCard: React.FC<Props> = ({ farmSummary, isImported = false }: Props) => {
+export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }: Props) => {
   const { t } = useTranslation()
   const { address } = useContractKit()
   const userAprMode = useIsAprMode()
   const dispatch = useDispatch()
+  const [showRemoveModal, setShowRemoveModal] = useState<boolean>(false)
   const token0 = useToken(farmSummary.token0Address) || undefined
   const token1 = useToken(farmSummary.token1Address) || undefined
   const { data, loading, error } = useQuery(pairDataGql, {
@@ -105,6 +127,10 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, isImported = false }: P
   const stakingContract = useStakingContract(farmSummary.stakingAddress)
   const stakedAmount = useSingleCallResult(stakingContract, 'balanceOf', [address || undefined]).result?.[0]
   const isStaking = Boolean(stakedAmount && stakedAmount.gt('0'))
+  const stakedTokenAmount =
+    isStaking && farmSummary.token0Address === farmSummary.token1Address && token0
+      ? new TokenAmount(token0, JSBI.BigInt(stakedAmount))
+      : undefined
 
   const { userValueCUSD, userAmountTokenA, userAmountTokenB } = useLPValue(stakedAmount ?? 0, farmSummary)
   let swapRewardsUSDPerYear = 0
@@ -123,11 +149,13 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, isImported = false }: P
   )
 
   let compoundedAPY: React.ReactNode | undefined = <>🤯</>
-  try {
-    compoundedAPY = annualizedPercentageYield(apr, COMPOUNDS_PER_YEAR)
-  } catch (e) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    console.error('apy calc overflow', farmSummary.farmName, e)
+  if (!farmSummary.isImported) {
+    try {
+      compoundedAPY = annualizedPercentageYield(apr, COMPOUNDS_PER_YEAR)
+    } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      console.error('apy calc overflow', farmSummary.farmName, e)
+    }
   }
 
   const displayedPercentageReturn =
@@ -135,12 +163,31 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, isImported = false }: P
       ? `${userAprMode ? apr.toFixed(0, { groupSeparator: ',' }) : compoundedAPY}%`
       : '-'
 
-  if (!isImported && Number(fromWei(farmSummary.rewardsUSDPerYear)) < 100 && !userValueCUSD?.greaterThan('0')) {
+  const onRemoveFarm = () => {
+    setShowRemoveModal(false)
+    if (onRemoveImportedFarm) onRemoveImportedFarm(farmSummary.stakingAddress)
+  }
+
+  if (
+    !farmSummary.isImported &&
+    Number(fromWei(farmSummary.rewardsUSDPerYear)) < 100 &&
+    !userValueCUSD?.greaterThan('0')
+  ) {
     return null
   }
 
   return (
-    <Wrapper showBackground={isStaking} bgColor={theme.primary1}>
+    <Wrapper showBackground={isStaking} bgColor={farmSummary.isImported ? theme.bg5 : theme.primary1}>
+      <RemoveFarmModal
+        isOpen={showRemoveModal}
+        onClose={() => setShowRemoveModal(false)}
+        onConfirm={() => onRemoveFarm()}
+      />
+      {farmSummary.isImported && !isStaking && (
+        <RemoveCardSection>
+          <CloseIcon onClick={() => setShowRemoveModal(true)} />
+        </RemoveCardSection>
+      )}
       <CardNoise />
 
       <TopSection singleToken={!!token0 && !!token1 && token0.address === token1.address ? true : false}>
@@ -159,7 +206,25 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, isImported = false }: P
               {token0?.symbol}-{token1?.symbol}
             </TYPE.white>
           )}
-          {apr && apr.greaterThan('0') && (
+          {farmSummary.isImported ? (
+            <>
+              {farmSummary.totalRewardRates
+                ?.filter((rewardRate) => rewardRate.greaterThan('0'))
+                .map((rewardRate, idx) => (
+                  <span key={idx}>
+                    <TYPE.white>
+                      <TYPE.small className="apr" fontWeight={400} fontSize={14}>
+                        {rewardRate.multiply(BIG_INT_SECONDS_IN_WEEK)?.toSignificant(4, { groupSeparator: ',' }) +
+                          ' ' +
+                          rewardRate.token.symbol +
+                          ' / Week'}{' '}
+                        {'Pool Rate'}
+                      </TYPE.small>
+                    </TYPE.white>
+                  </span>
+                ))}
+            </>
+          ) : apr && apr.greaterThan('0') ? (
             <span
               aria-label="Toggle APR/APY"
               onClick={() => dispatch(updateUserAprMode({ userAprMode: !userAprMode }))}
@@ -170,16 +235,23 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, isImported = false }: P
                 </TYPE.small>
               </TYPE.white>
             </span>
-          )}
+          ) : null}
         </PoolInfo>
-
         <StyledInternalLink
-          to={`/farm/${token0?.address}/${token1?.address}/${farmSummary.stakingAddress}`}
+          to={`/farm/${
+            token0?.address === token1?.address ? token0?.address : token0?.address + '/' + token1?.address
+          }/${farmSummary.stakingAddress}`}
           style={{ width: '100%' }}
         >
-          <ButtonPrimary padding="8px" borderRadius="8px">
-            {isStaking ? t('manage') : t('deposit')}
-          </ButtonPrimary>
+          {farmSummary.isImported ? (
+            <ButtonGray padding="8px" borderRadius="8px">
+              {isStaking ? t('manage') : t('deposit')}
+            </ButtonGray>
+          ) : (
+            <ButtonPrimary padding="8px" borderRadius="8px">
+              {isStaking ? t('manage') : t('deposit')}
+            </ButtonPrimary>
+          )}
         </StyledInternalLink>
       </TopSection>
 
@@ -192,7 +264,20 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, isImported = false }: P
             maximumFractionDigits: 0,
           })}
         />
-        {apr && apr.greaterThan('0') && (
+        {farmSummary.isImported ? (
+          <PoolStatRow
+            statName={`Pool Rate`}
+            statArrayValue={farmSummary.totalRewardRates
+              ?.filter((rewardRate) => rewardRate.greaterThan('0'))
+              .map(
+                (rewardRate) =>
+                  rewardRate.multiply(BIG_INT_SECONDS_IN_WEEK)?.toSignificant(4, { groupSeparator: ',' }) +
+                  ' ' +
+                  rewardRate.token.symbol +
+                  ' / Week'
+              )}
+          />
+        ) : apr && apr.greaterThan('0') ? (
           <div aria-label="Toggle APR/APY" onClick={() => dispatch(updateUserAprMode({ userAprMode: !userAprMode }))}>
             <PoolStatRow
               helperText={
@@ -211,7 +296,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, isImported = false }: P
               statValue={displayedPercentageReturn}
             />
           </div>
-        )}
+        ) : null}
       </StatContainer>
 
       {isStaking && (
@@ -228,7 +313,11 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, isImported = false }: P
                   <TYPE.black style={{ textAlign: 'right' }} color={'white'} fontWeight={500}>
                     {'$' + userValueCUSD.toFixed(0, { groupSeparator: ',' })}
                   </TYPE.black>
-                  <StakedAmountsHelper userAmountTokenA={userAmountTokenA} userAmountTokenB={userAmountTokenB} />
+                  {stakedTokenAmount ? (
+                    <SingleStakedAmountsHelper userAmountToken={stakedTokenAmount} />
+                  ) : (
+                    <StakedAmountsHelper userAmountTokenA={userAmountTokenA} userAmountTokenB={userAmountTokenB} />
+                  )}
                 </RowFixed>
               </RowBetween>
             )}

@@ -1,31 +1,15 @@
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { getAddress } from '@ethersproject/address'
-import { formatEther } from '@ethersproject/units'
-import { ChainId as UbeswapChainId, cUSD, Token, TokenAmount } from '@ubeswap/sdk'
 import { ButtonError } from 'components/Button'
 import { LightCard } from 'components/Card'
 import { SearchInput } from 'components/SearchModal/styleds'
-import MOOLA_STAKING_ABI from 'constants/abis/moola/MoolaStakingRewards.json'
-import { Bank } from 'constants/homoraBank'
-import { BigNumber, ContractInterface, ethers } from 'ethers'
-import { MoolaStakingRewards } from 'generated'
-import { useAllTokens, useCurrency } from 'hooks/Tokens'
-import { useMultiStakingContract, useStakingContract } from 'hooks/useContract'
+import { useCustomStakingInfo } from 'pages/Earn/useCustomStakingInfo'
 import { FarmSummary } from 'pages/Earn/useFarmRegistry'
-import React, { RefObject, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { RefObject, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { Text } from 'rebass'
-import { useSingleCallResult } from 'state/multicall/hooks'
 import styled, { ThemeContext } from 'styled-components'
-import { getProviderOrSigner } from 'utils'
 import { isAddress } from 'web3-utils'
 
 import { BIG_INT_SECONDS_IN_WEEK } from '../../constants'
-import COREORACLE_ABI from '../../constants/abis/CoreOracle.json'
-import BANK_ABI from '../../constants/abis/HomoraBank.json'
-import PROXYORACLE_ABI from '../../constants/abis/ProxyOracle.json'
-import { CoreOracle } from '../../generated/CoreOracle'
-import { HomoraBank } from '../../generated/HomoraBank'
-import { ProxyOracle } from '../../generated/ProxyOracle'
 import { CloseIcon, TYPE } from '../../theme'
 import { AutoColumn } from '../Column'
 import Modal from '../Modal'
@@ -44,19 +28,13 @@ interface ImportFarmModalProps {
   farmSummaries: FarmSummary[]
 }
 
-const EXTERNAL_FARMS_LIMIT = 5
-
 export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: ImportFarmModalProps) {
   const inputRef = useRef<HTMLInputElement>()
   const theme = useContext(ThemeContext)
   const [farmAddress, setFarmAddress] = useState<string>('')
-  const { address: account, network } = useContractKit()
-  const { chainId } = network
-  const library = useProvider()
-  const provider = getProviderOrSigner(library, account ? account : undefined)
-  const tokens = useAllTokens()
-  const cusd = cUSD[chainId as unknown as UbeswapChainId]
-  const [scale, setScale] = useState<number | undefined>(undefined)
+  const { stakingToken, rewardTokens, totalRewardRates, valueOfTotalStakedAmountInCUSD } =
+    useCustomStakingInfo(farmAddress)
+
   const [error, setError] = useState<string | undefined>(undefined)
 
   const farmExists = isAddress(farmAddress)
@@ -64,16 +42,6 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
         (farmSummary) => farmAddress && getAddress(farmSummary.stakingAddress) === getAddress(farmAddress)
       )
     : undefined
-
-  const stakingContract = useStakingContract(isAddress(farmAddress) ? farmAddress : '')
-  const multiStakingContract = useMultiStakingContract(isAddress(farmAddress) ? farmAddress : '')
-  const [externalRewardsTokens, setExternalRewardsTokens] = useState<Array<string>>([])
-  const [externalRewardsRates, setExternalRewardsRates] = useState<Array<BigNumber>>([])
-
-  const bank = useMemo(
-    () => new ethers.Contract(Bank[chainId], BANK_ABI.abi as ContractInterface, provider) as unknown as HomoraBank,
-    [chainId, provider]
-  )
 
   function wrappedOndismiss() {
     onDismiss()
@@ -86,8 +54,6 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
 
   useEffect(() => {
     if (isAddress(farmAddress)) {
-      setExternalRewardsTokens([])
-      setScale(undefined)
       const importedFarms = localStorage.getItem('imported_farms')
       const res = importedFarms
         ? [...JSON.parse(importedFarms)].find((item) => getAddress(item) === getAddress(farmAddress))
@@ -102,99 +68,13 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
     }
   }, [farmAddress])
 
-  useEffect(() => {
-    const fetchMultiStaking = async () => {
-      try {
-        if (!multiStakingContract) return
-        const tokens = []
-        const rates = []
-        let stakingRewardsAddress = await multiStakingContract.externalStakingRewards()
-        for (let i = 0; i < EXTERNAL_FARMS_LIMIT; i += 1) {
-          const moolaStaking = new ethers.Contract(
-            stakingRewardsAddress,
-            MOOLA_STAKING_ABI as ContractInterface,
-            provider
-          ) as unknown as MoolaStakingRewards
-          const externalRewardsToken = await multiStakingContract.externalRewardsTokens(BigNumber.from(i))
-          const rewardRate = await moolaStaking.rewardRate()
-          tokens.push(externalRewardsToken)
-          rates.push(rewardRate)
-          setExternalRewardsTokens(tokens)
-          setExternalRewardsRates(rates)
-          stakingRewardsAddress = await moolaStaking.externalStakingRewards()
-        }
-      } catch (err) {
-        console.log(err)
-      }
-    }
-    fetchMultiStaking()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [multiStakingContract])
-
-  const totalSupply = useSingleCallResult(stakingContract, 'totalSupply', [])?.result?.[0]
-  let arrayOfRewardsTokenAddress = useSingleCallResult(stakingContract, 'rewardsToken', [])?.result
-  arrayOfRewardsTokenAddress = arrayOfRewardsTokenAddress
-    ? [...arrayOfRewardsTokenAddress, ...externalRewardsTokens]
-    : externalRewardsTokens
-  const stakingTokenAddress = useSingleCallResult(stakingContract, 'stakingToken', [])?.result?.[0]
-  let rewardRates = useSingleCallResult(stakingContract, 'rewardRate', [])?.result
-  rewardRates = rewardRates ? [...rewardRates, ...externalRewardsRates] : externalRewardsRates
-  const stakingToken = useCurrency(stakingTokenAddress)
-  const rewardsTokens =
-    arrayOfRewardsTokenAddress && isAddress(farmAddress)
-      ? arrayOfRewardsTokenAddress?.map((rewardsTokenAddress) =>
-          tokens && tokens[rewardsTokenAddress]
-            ? tokens[rewardsTokenAddress]
-            : new Token(chainId as number, rewardsTokenAddress, 18)
-        )
-      : undefined
-
-  useEffect(() => {
-    const getStakingCusdPrice = async () => {
-      if (!stakingToken || !cusd || !bank) {
-        setScale(undefined)
-        return
-      }
-      try {
-        const oracle = await bank.oracle()
-        const proxyOracle = new ethers.Contract(
-          oracle,
-          PROXYORACLE_ABI.abi as ContractInterface,
-          provider
-        ) as unknown as ProxyOracle
-        const source = await proxyOracle.source()
-        const coreOracle = new ethers.Contract(
-          source,
-          COREORACLE_ABI.abi as ContractInterface,
-          provider
-        ) as unknown as CoreOracle
-        const stakingCeloPrice = await coreOracle.getCELOPx(stakingToken?.address)
-        const cusdCeloPrice = await coreOracle.getCELOPx(cusd.address)
-        setScale(Number(formatEther(stakingCeloPrice)) / Number(formatEther(cusdCeloPrice)))
-      } catch (err) {
-        console.error(err)
-        setScale(undefined)
-      }
-    }
-    getStakingCusdPrice()
-  }, [bank, provider, cusd, stakingToken])
-
-  const totalRewardRates =
-    rewardsTokens && isAddress(farmAddress)
-      ? rewardsTokens.map((rewardsToken, i) =>
-          rewardsToken && rewardRates && rewardRates[i] ? new TokenAmount(rewardsToken, rewardRates[i]) : undefined
-        )
-      : undefined
-
-  const valueOfTotalStakedAmountInCUSD =
-    totalSupply && scale ? (Number(formatEther(totalSupply)) * scale).toFixed() : undefined
-
   const onConfirm = () => {
     const importedFarms = localStorage.getItem('imported_farms')
     localStorage.setItem(
       'imported_farms',
       JSON.stringify(importedFarms ? [...JSON.parse(importedFarms), farmAddress] : [farmAddress])
     )
+    setFarmAddress('')
     wrappedOndismiss()
   }
 
@@ -246,10 +126,10 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
             </AutoColumn>
             <AutoColumn justify="center">
               <RowBetween align={'start'}>
-                <TYPE.black>Rewards Token{rewardsTokens && rewardsTokens.length > 0 ? 's' : ''}</TYPE.black>
+                <TYPE.black>Rewards Token{rewardTokens && rewardTokens.length > 0 ? 's' : ''}</TYPE.black>
                 <AutoColumn justify="end">
-                  {rewardsTokens ? (
-                    rewardsTokens.map((rewardsToken, index) => (
+                  {rewardTokens ? (
+                    rewardTokens.map((rewardsToken, index) => (
                       <Text key={index} fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
                         {rewardsToken.symbol}
                       </Text>
@@ -264,13 +144,13 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
               <RowBetween align={'start'}>
                 <TYPE.black>Pool Rate</TYPE.black>
                 <AutoColumn justify="end">
-                  {totalRewardRates && rewardsTokens && totalRewardRates.length ? (
+                  {totalRewardRates && rewardTokens && totalRewardRates.length ? (
                     totalRewardRates.map((data, index) => (
                       <Text key={index} fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
                         {data
                           ? data.multiply(BIG_INT_SECONDS_IN_WEEK)?.toSignificant(4, { groupSeparator: ',' }) +
                             ' ' +
-                            rewardsTokens[index].symbol +
+                            rewardTokens[index].symbol +
                             ' / Week'
                           : '-'}
                       </Text>
@@ -288,11 +168,10 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
             !!error ||
             !!farmExists ||
             !valueOfTotalStakedAmountInCUSD ||
-            !rewardsTokens ||
+            !rewardTokens ||
             !totalRewardRates ||
             !stakingToken
           }
-          error={!!farmExists || !!error}
           onClick={onConfirm}
         >
           {error ? error : farmExists ? 'The Farm Already Exists' : 'Import Farm'}

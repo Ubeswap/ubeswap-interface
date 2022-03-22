@@ -5,7 +5,7 @@ import TokenSelect from 'components/CurrencyInputPanel/TokenSelect'
 import ClaimAllRewardPanel from 'components/earn/ClaimAllRewardPanel'
 import ImportFarmModal from 'components/earn/ImportFarmModal'
 import Loader from 'components/Loader'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
 import { useOwnerStakedPools } from 'state/stake/useOwnerStakedPools'
@@ -17,7 +17,7 @@ import { CardNoise, CardSection, DataCard } from '../../components/earn/styled'
 import { RowBetween } from '../../components/Row'
 import { ExternalLink, TYPE } from '../../theme'
 import LiquidityWarning from '../Pool/LiquidityWarning'
-import { useFarmRegistry, useImportedFarms } from './useFarmRegistry'
+import { FarmSummary, useFarmRegistry, useImportedFarms } from './useFarmRegistry'
 
 const PageWrapper = styled.div`
   width: 100%;
@@ -41,6 +41,20 @@ const Header: React.FC = ({ children }) => {
     </DataRow>
   )
 }
+
+export const MobileContainer = styled.div`
+  display: none;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    display: block;
+  `}
+`
+
+export const DesktopContainer = styled.div`
+  display: block;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    display: none;
+  `}
+`
 
 export const StyledButton = styled.div`
   text-decoration: none;
@@ -69,6 +83,8 @@ function useTokenFilter(): [Token | null, (t: Token | null) => void] {
 
 export default function Earn() {
   const { t } = useTranslation()
+  const [visibleImportedFarms, setVisibleImportedFarms] = useState<FarmSummary[]>([])
+  const [prevImportedFarms, setPrevImportedFarms] = useState<FarmSummary[]>([])
   const [filteringToken, setFilteringToken] = useTokenFilter()
   const [showImportFarmModal, setShowImportFarmModal] = useState<boolean>(false)
   const farmSummaries = useFarmRegistry()
@@ -84,25 +100,32 @@ export default function Earn() {
   }, [filteringToken, farmSummaries, importedFarmSummaries])
 
   const { stakedFarms, featuredFarms, unstakedFarms, importedFarms } = useOwnerStakedPools(filteredFarms)
+
+  useEffect(() => {
+    if (
+      !(
+        importedFarms.length === prevImportedFarms.length &&
+        importedFarms.every((value, index) => value === prevImportedFarms[index])
+      )
+    ) {
+      setPrevImportedFarms(importedFarms)
+      setVisibleImportedFarms(importedFarms)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [importedFarms])
+
+  const handleRemoveFarm = (farmAddress: string) => {
+    const _importedFarms = visibleImportedFarms.filter((farm) => farm.stakingAddress !== farmAddress)
+    setVisibleImportedFarms(_importedFarms)
+    const farms_saved = localStorage.getItem('imported_farms')
+    if (farms_saved) {
+      const farms: string[] = JSON.parse(farms_saved)
+      localStorage.setItem('imported_farms', JSON.stringify(farms.filter((farm: string) => farm !== farmAddress)))
+    }
+  }
+
   return (
     <PageWrapper>
-      {farmSummaries.length !== 0 && (
-        <AutoColumn justify={'end'} gap="md">
-          <Text
-            textAlign="center"
-            fontSize={16}
-            style={{ padding: '.5rem 0 .5rem 0' }}
-            onClick={() => {
-              setShowImportFarmModal(true)
-            }}
-          >
-            {/* <StyledButton id="import-pool-link">{'Import Farm'}</StyledButton> */}
-            <ButtonPrimary padding="8px 16px" borderRadius="8px">
-              {'Import Farm'}
-            </ButtonPrimary>
-          </Text>
-        </AutoColumn>
-      )}
       <ClaimAllRewardPanel stakedFarms={stakedFarms} />
       <LiquidityWarning />
       {stakedFarms.length === 0 && (
@@ -131,9 +154,51 @@ export default function Earn() {
         </TopSection>
       )}
       <TopSection gap="md">
-        <AutoColumn>
-          <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
-        </AutoColumn>
+        <MobileContainer>
+          {' '}
+          {farmSummaries.length !== 0 && (
+            <AutoColumn justify={'start'} gap="md">
+              <Text
+                textAlign="center"
+                fontSize={16}
+                style={{ padding: '.5rem 0 .5rem 0' }}
+                onClick={() => {
+                  setShowImportFarmModal(true)
+                }}
+              >
+                {/* <StyledButton id="import-pool-link">{'Import Farm'}</StyledButton> */}
+                <ButtonPrimary padding="8px 16px" borderRadius="8px">
+                  {'Import Farm'}
+                </ButtonPrimary>
+              </Text>
+            </AutoColumn>
+          )}
+        </MobileContainer>
+        <RowBetween>
+          <AutoColumn>
+            <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
+          </AutoColumn>
+          <DesktopContainer>
+            {' '}
+            {farmSummaries.length !== 0 && (
+              <AutoColumn justify={'end'} gap="md">
+                <Text
+                  textAlign="center"
+                  fontSize={16}
+                  style={{ padding: '.5rem 0 .5rem 0' }}
+                  onClick={() => {
+                    setShowImportFarmModal(true)
+                  }}
+                >
+                  {/* <StyledButton id="import-pool-link">{'Import Farm'}</StyledButton> */}
+                  <ButtonPrimary padding="8px 16px" borderRadius="8px">
+                    {'Import Farm'}
+                  </ButtonPrimary>
+                </Text>
+              </AutoColumn>
+            )}
+          </DesktopContainer>
+        </RowBetween>
       </TopSection>
       <ColumnCenter>
         {farmSummaries.length > 0 && filteredFarms.length == 0 && `No Farms for ${filteringToken?.symbol}`}
@@ -151,13 +216,13 @@ export default function Earn() {
           ))}
         </>
       )}
-      {importedFarms.length > 0 && (
+      {visibleImportedFarms.length > 0 && (
         <>
           <Header>{t('importedPools')}</Header>
-          {importedFarms.map((farmSummary) => (
+          {visibleImportedFarms.map((farmSummary) => (
             <PoolWrapper key={farmSummary.stakingAddress}>
               <ErrorBoundary>
-                <PoolCard farmSummary={farmSummary} isImported={true} />
+                <PoolCard farmSummary={farmSummary} onRemoveImportedFarm={handleRemoveFarm} />
               </ErrorBoundary>
             </PoolWrapper>
           ))}
