@@ -4,7 +4,7 @@ import { LightCard } from 'components/Card'
 import { SearchInput } from 'components/SearchModal/styleds'
 import { useCustomStakingInfo } from 'pages/Earn/useCustomStakingInfo'
 import { FarmSummary } from 'pages/Earn/useFarmRegistry'
-import React, { RefObject, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import React, { RefObject, useContext, useEffect, useRef, useState } from 'react'
 import { Text } from 'rebass'
 import styled, { ThemeContext } from 'styled-components'
 import { isAddress } from 'web3-utils'
@@ -43,18 +43,15 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
       )
     : undefined
 
-  function wrappedOndismiss() {
-    onDismiss()
-  }
+  const importedFarms = localStorage.getItem('imported_farms')
 
-  const handleInput = useCallback((event) => {
+  const handleInput = (event: any) => {
     const input = event.target.value
     setFarmAddress(input)
-  }, [])
+  }
 
   useEffect(() => {
     if (isAddress(farmAddress)) {
-      const importedFarms = localStorage.getItem('imported_farms')
       const res = importedFarms
         ? [...JSON.parse(importedFarms)].find((item) => getAddress(item) === getAddress(farmAddress))
         : undefined
@@ -66,7 +63,7 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
         setError(undefined)
       }
     }
-  }, [farmAddress])
+  }, [farmAddress, importedFarms])
 
   const onConfirm = () => {
     const importedFarms = localStorage.getItem('imported_farms')
@@ -75,24 +72,24 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
       JSON.stringify(importedFarms ? [...JSON.parse(importedFarms), farmAddress] : [farmAddress])
     )
     setFarmAddress('')
-    wrappedOndismiss()
+    onDismiss()
   }
 
   return (
-    <Modal isOpen={isOpen} onDismiss={wrappedOndismiss} maxHeight={90}>
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90}>
       <ContentWrapper gap={'12px'}>
         <AutoColumn gap="12px">
           <RowBetween>
             <Text fontWeight={500} fontSize={16}>
               Import Farm
             </Text>
-            <CloseIcon onClick={wrappedOndismiss} />
+            <CloseIcon onClick={onDismiss} />
           </RowBetween>
           <Row>
             <SearchInput
               type="text"
               id="token-search-input"
-              placeholder={'Input or Paste Farm Address'}
+              placeholder={'Enter farm address'}
               autoComplete="off"
               value={farmAddress}
               ref={inputRef as RefObject<HTMLInputElement>}
