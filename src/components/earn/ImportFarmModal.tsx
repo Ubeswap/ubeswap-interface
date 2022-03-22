@@ -126,22 +126,6 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
             </AutoColumn>
             <AutoColumn justify="center">
               <RowBetween align={'start'}>
-                <TYPE.black>Rewards Token{rewardTokens && rewardTokens.length > 0 ? 's' : ''}</TYPE.black>
-                <AutoColumn justify="end">
-                  {rewardTokens ? (
-                    rewardTokens.map((rewardsToken, index) => (
-                      <Text key={index} fontWeight={500} fontSize={14} color={theme.text2} pt={1}>
-                        {rewardsToken.symbol}
-                      </Text>
-                    ))
-                  ) : (
-                    <Text> - </Text>
-                  )}
-                </AutoColumn>
-              </RowBetween>
-            </AutoColumn>
-            <AutoColumn justify="center">
-              <RowBetween align={'start'}>
                 <TYPE.black>Pool Rate</TYPE.black>
                 <AutoColumn justify="end">
                   {totalRewardRates && rewardTokens && totalRewardRates.length ? (

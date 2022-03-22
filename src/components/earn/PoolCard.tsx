@@ -17,7 +17,7 @@ import { fromWei, toBN, toWei } from 'web3-utils'
 
 import { BIG_INT_SECONDS_IN_WEEK } from '../../constants'
 import { CloseIcon, StyledInternalLink, TYPE } from '../../theme'
-import { ButtonGray, ButtonPrimary } from '../Button'
+import { ButtonPrimary } from '../Button'
 import { AutoColumn } from '../Column'
 import DoubleCurrencyLogo from '../DoubleLogo'
 import { RowBetween, RowFixed } from '../Row'
@@ -243,15 +243,9 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
           }/${farmSummary.stakingAddress}`}
           style={{ width: '100%' }}
         >
-          {farmSummary.isImported ? (
-            <ButtonGray padding="8px" borderRadius="8px">
-              {isStaking ? t('manage') : t('deposit')}
-            </ButtonGray>
-          ) : (
-            <ButtonPrimary padding="8px" borderRadius="8px">
-              {isStaking ? t('manage') : t('deposit')}
-            </ButtonPrimary>
-          )}
+          <ButtonPrimary padding="8px" borderRadius="8px">
+            {isStaking ? t('manage') : t('deposit')}
+          </ButtonPrimary>
         </StyledInternalLink>
       </TopSection>
 
