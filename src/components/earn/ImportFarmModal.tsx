@@ -66,7 +66,6 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
   }, [farmAddress, importedFarms])
 
   const onConfirm = () => {
-    const importedFarms = localStorage.getItem('imported_farms')
     localStorage.setItem(
       'imported_farms',
       JSON.stringify(importedFarms ? [...JSON.parse(importedFarms), farmAddress] : [farmAddress])
