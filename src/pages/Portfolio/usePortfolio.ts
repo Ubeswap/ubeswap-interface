@@ -242,7 +242,9 @@ const useCalculateLPPortfolio = (v2Pairs, v2PairsBalances): LPPortfolio => {
   const baseTokenPricesMap: Record<string, Price> = useMemo(() => {
     const baseTokenPricesMap: Record<string, Price> = {}
     baseTokenPrices.forEach((price) => {
-      baseTokenPricesMap[price.baseCurrency.address] = price
+      if (price) {
+        baseTokenPricesMap[price.baseCurrency.address] = price
+      }
     })
     return baseTokenPricesMap
   }, [baseTokenPrices])
@@ -277,6 +279,14 @@ const useCalculateLPPortfolio = (v2Pairs, v2PairsBalances): LPPortfolio => {
         v2PairsBalances[pairAddress],
         false
       )
+
+      // Skip this pair for now if we can't get the base token prices
+      if (
+        !baseTokenPricesMap[pair.tokenAmounts[0].token.address] ||
+        !baseTokenPricesMap[pair.tokenAmounts[1].token.address]
+      ) {
+        continue
+      }
 
       const token0CusdAmount = baseTokenPricesMap[pair.tokenAmounts[0].token.address].quote(token0Amount)
       const token1CusdAmount = baseTokenPricesMap[pair.tokenAmounts[1].token.address].quote(token1Amount)
