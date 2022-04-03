@@ -3,7 +3,7 @@ import '@celo-tools/use-contractkit/lib/styles.css'
 import './index.css'
 
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client'
-import { ContractKitProvider } from '@celo-tools/use-contractkit'
+import { Alfajores, CeloMainnet, ContractKitProvider } from '@celo-tools/use-contractkit'
 import * as Sentry from '@sentry/react'
 import { Integrations } from '@sentry/tracing'
 import { ChainId } from '@ubeswap/sdk'
@@ -15,7 +15,6 @@ import ReactGA from 'react-ga'
 import { Provider } from 'react-redux'
 import { HashRouter } from 'react-router-dom'
 
-import { Alfajores, Mainnet } from './networks'
 import App from './pages/App'
 import store from './state'
 import ApplicationUpdater from './state/application/updater'
@@ -123,8 +122,8 @@ ReactDOM.render(
         url: 'https://app.ubeswap.org',
         icon: 'https://info.ubeswap.org/favicon.png',
       }}
-      network={Mainnet}
-      networks={[Mainnet, Alfajores]}
+      network={CeloMainnet}
+      networks={[CeloMainnet, Alfajores]}
       connectModal={{
         reactModalProps: {
           style: {
