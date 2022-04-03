@@ -1,4 +1,4 @@
-import { Network } from '@celo-tools/use-contractkit'
+import { EthereumMainnet, Kovan, Network } from '@celo-tools/use-contractkit'
 import CurrencyLogo from 'components/CurrencyLogo'
 import React, { useCallback } from 'react'
 import { WrappedTokenInfo } from 'state/lists/hooks'
@@ -52,7 +52,7 @@ export const chains: Chain[] = [
     bridgeRouter: '0x6a39909e805A3eaDd2b61fFf61147796ca6aBB47',
   },
   {
-    network: CeloMainnet,
+    network: Mainnet,
     token: new WrappedTokenInfo(
       {
         address: '0x471EcE3750Da237f93B8E339c536989b8978a438',

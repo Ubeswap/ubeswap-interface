@@ -6,7 +6,7 @@ export const Mainnet: Network = {
   rpcUrl: 'https://celo.quickestnode.com',
   graphQl: 'https://explorer.celo.org/graphiql',
   explorer: 'https://explorer.celo.org',
-  chainId: ChainId.Mainnet,
+  chainId: ChainId.CeloMainnet,
 } as unknown as Network
 
 export const Alfajores: Network = {
