@@ -1,15 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import {
-  CELO,
-  ChainId as UbeswapChainId,
-  currencyEquals,
-  cUSD,
-  JSBI,
-  Pair,
-  Price,
-  Token,
-  TokenAmount,
-} from '@ubeswap/sdk'
+import { CELO, ChainId as UbeswapChainId, currencyEquals, cUSD, JSBI, Pair, Price, Token } from '@ubeswap/sdk'
 import { useTotalSupply } from 'data/TotalSupply'
 import { useToken } from 'hooks/Tokens'
 import { useMemo } from 'react'
@@ -73,9 +63,8 @@ export function useCUSDPrices(tokens?: Token[]): (Price | undefined)[] | undefin
 /**
  * Returns the price in cUSD of the input currency
  * @param token the token to get the cUSD price of
- * @param totalSupplyOfStakingToken token's total lp supply
  */
-export function useCUSDPrice(token?: Token, totalSupplyOfStakingToken?: TokenAmount): Price | undefined {
+export function useCUSDPrice(token?: Token): Price | undefined {
   const {
     network: { chainId },
   } = useContractKit()
@@ -94,6 +83,8 @@ export function useCUSDPrice(token?: Token, totalSupplyOfStakingToken?: TokenAmo
   const [[, cUSDPair], [, celoPair], [, mcUSDPair], [, celoCUSDPair]] = usePairs(tokenPairs)
   const cusdPairAddr = token ? Pair.getAddress(token, CUSD) : undefined
   const cusdPairTotalSupply = useTotalSupply(useToken(cusdPairAddr) || undefined)
+  const mcusdPairAddr = token && mcUSD && token.address !== mcUSD.address ? Pair.getAddress(token, mcUSD) : undefined
+  const mcusdPairTotalSupply = useTotalSupply(useToken(mcusdPairAddr) || undefined)
 
   return useMemo(() => {
     if (!token || !chainId) {
@@ -105,11 +96,11 @@ export function useCUSDPrice(token?: Token, totalSupplyOfStakingToken?: TokenAmo
       return new Price(CUSD, CUSD, '1', '1')
     }
 
-    if (mcUSDPair && cUSDPair && totalSupplyOfStakingToken && cusdPairTotalSupply) {
+    if (mcUSDPair && cUSDPair && cusdPairTotalSupply && mcusdPairTotalSupply) {
       try {
         if (
           JSBI.greaterThan(
-            mcUSDPair.getLiquidityMinted(totalSupplyOfStakingToken, mcUSDPair.reserve0, mcUSDPair.reserve1).raw,
+            mcUSDPair.getLiquidityMinted(mcusdPairTotalSupply, mcUSDPair.reserve0, mcUSDPair.reserve1).raw,
             cUSDPair.getLiquidityMinted(cusdPairTotalSupply, cUSDPair.reserve0, cUSDPair.reserve1).raw
           )
         ) {
@@ -141,6 +132,6 @@ export function useCUSDPrice(token?: Token, totalSupplyOfStakingToken?: TokenAmo
     celoPair,
     mcUSDPair,
     cusdPairTotalSupply,
-    totalSupplyOfStakingToken,
+    mcusdPairTotalSupply,
   ])
 }

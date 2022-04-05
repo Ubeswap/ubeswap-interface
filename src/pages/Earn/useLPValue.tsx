@@ -28,7 +28,7 @@ export const useLPValue = (stakedAmount: BigNumber, farmSummary: FarmSummary): I
   const [, stakingTokenPair] = usePair(token0, token1)
 
   const cusd = cUSD[chainId as unknown as UbeswapChainId]
-  const cusdPrice0 = useCUSDPrice(stakingTokenPair?.token0, totalSupplyOfStakingToken)
+  const cusdPrice0 = useCUSDPrice(stakingTokenPair?.token0)
   const cusdPrice1 = useCUSDPrice(stakingTokenPair?.token1)
 
   let valueOfUserStakedAmountInCUSD: TokenAmount | undefined
