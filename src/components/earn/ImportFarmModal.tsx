@@ -5,6 +5,7 @@ import { SearchInput } from 'components/SearchModal/styleds'
 import { useCustomStakingInfo } from 'pages/Earn/useCustomStakingInfo'
 import { FarmSummary } from 'pages/Earn/useFarmRegistry'
 import React, { RefObject, useContext, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
 import styled, { ThemeContext } from 'styled-components'
 import { isAddress } from 'web3-utils'
@@ -22,6 +23,7 @@ const ContentWrapper = styled(AutoColumn)`
   padding: 1rem;
 `
 
+const IMPORTED_FARMS = 'imported_farms'
 interface ImportFarmModalProps {
   isOpen: boolean
   onDismiss: () => void
@@ -29,6 +31,7 @@ interface ImportFarmModalProps {
 }
 
 export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: ImportFarmModalProps) {
+  const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>()
   const theme = useContext(ThemeContext)
   const [farmAddress, setFarmAddress] = useState<string>('')
@@ -43,7 +46,7 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
       )
     : undefined
 
-  const importedFarms = localStorage.getItem('imported_farms')
+  const importedFarms = localStorage.getItem(IMPORTED_FARMS)
 
   const handleInput = (event: any) => {
     const input = event.target.value
@@ -55,21 +58,27 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
       const res = importedFarms
         ? [...JSON.parse(importedFarms)].find((item) => getAddress(item) === getAddress(farmAddress))
         : undefined
-      setError(res ? 'The farm has already been imported' : undefined)
+      setError(res ? t('TheFarmHasAlreadyBeenImported') : undefined)
     } else {
       if (farmAddress.length > 0) {
-        setError('Enter valid farm address')
+        setError(t('EnterValidFarmAddress'))
       } else {
         setError(undefined)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [farmAddress, importedFarms])
 
   const onConfirm = () => {
-    localStorage.setItem(
-      'imported_farms',
-      JSON.stringify(importedFarms ? [...JSON.parse(importedFarms), farmAddress] : [farmAddress])
-    )
+    try {
+      localStorage.setItem(
+        IMPORTED_FARMS,
+        JSON.stringify(importedFarms ? [...JSON.parse(importedFarms), farmAddress] : [farmAddress])
+      )
+    } catch (e) {
+      console.error(e)
+      localStorage.setItem(IMPORTED_FARMS, '')
+    }
     setFarmAddress('')
     onDismiss()
   }
@@ -88,11 +97,12 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
             <SearchInput
               type="text"
               id="token-search-input"
-              placeholder={'Enter farm address'}
+              placeholder={t('EnterFarmAddress')}
               autoComplete="off"
               value={farmAddress}
               ref={inputRef as RefObject<HTMLInputElement>}
               onChange={handleInput}
+              disabled={true}
             />
           </Row>
         </AutoColumn>
@@ -154,7 +164,7 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
           }
           onClick={onConfirm}
         >
-          {error ? error : farmExists ? 'The Farm Already Exists' : 'Import Farm'}
+          {error ? error : farmExists ? t('TheFarmAlreadyExists') : t('ImportFarm')}
         </ButtonError>
       </ContentWrapper>
     </Modal>

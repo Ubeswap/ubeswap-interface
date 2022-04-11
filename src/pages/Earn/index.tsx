@@ -1,3 +1,4 @@
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { ErrorBoundary } from '@sentry/react'
 import { Token } from '@ubeswap/sdk'
 import { ButtonPrimary } from 'components/Button'
@@ -83,6 +84,7 @@ function useTokenFilter(): [Token | null, (t: Token | null) => void] {
 
 export default function Earn() {
   const { t } = useTranslation()
+  const { address: account } = useContractKit()
   const [visibleImportedFarms, setVisibleImportedFarms] = useState<FarmSummary[]>([])
   const [prevImportedFarms, setPrevImportedFarms] = useState<FarmSummary[]>([])
   const [filteringToken, setFilteringToken] = useTokenFilter()
@@ -166,9 +168,8 @@ export default function Earn() {
                   setShowImportFarmModal(true)
                 }}
               >
-                {/* <StyledButton id="import-pool-link">{'Import Farm'}</StyledButton> */}
                 <ButtonPrimary padding="8px 16px" borderRadius="8px">
-                  {'Import Farm'}
+                  {t('ImportFarm')}
                 </ButtonPrimary>
               </Text>
             </AutoColumn>
@@ -191,7 +192,7 @@ export default function Earn() {
                   }}
                 >
                   {/* <StyledButton id="import-pool-link">{'Import Farm'}</StyledButton> */}
-                  <ButtonPrimary padding="8px 16px" borderRadius="8px">
+                  <ButtonPrimary padding="8px 16px" borderRadius="8px" disabled={!account}>
                     {'Import Farm'}
                   </ButtonPrimary>
                 </Text>
