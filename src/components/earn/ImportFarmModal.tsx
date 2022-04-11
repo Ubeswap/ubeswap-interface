@@ -102,7 +102,6 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
               value={farmAddress}
               ref={inputRef as RefObject<HTMLInputElement>}
               onChange={handleInput}
-              disabled={true}
             />
           </Row>
         </AutoColumn>

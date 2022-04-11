@@ -191,7 +191,6 @@ export default function Earn() {
                     setShowImportFarmModal(true)
                   }}
                 >
-                  {/* <StyledButton id="import-pool-link">{'Import Farm'}</StyledButton> */}
                   <ButtonPrimary padding="8px 16px" borderRadius="8px" disabled={!account}>
                     {'Import Farm'}
                   </ButtonPrimary>
