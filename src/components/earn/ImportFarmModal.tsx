@@ -10,7 +10,7 @@ import { Text } from 'rebass'
 import styled, { ThemeContext } from 'styled-components'
 import { isAddress } from 'web3-utils'
 
-import { BIG_INT_SECONDS_IN_WEEK } from '../../constants'
+import { BIG_INT_SECONDS_IN_WEEK, IMPORTED_FARMS } from '../../constants'
 import { CloseIcon, TYPE } from '../../theme'
 import { AutoColumn } from '../Column'
 import Modal from '../Modal'
@@ -23,7 +23,6 @@ const ContentWrapper = styled(AutoColumn)`
   padding: 1rem;
 `
 
-const IMPORTED_FARMS = 'imported_farms'
 interface ImportFarmModalProps {
   isOpen: boolean
   onDismiss: () => void

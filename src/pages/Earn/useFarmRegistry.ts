@@ -11,6 +11,7 @@ import React, { useEffect, useMemo } from 'react'
 import { getProviderOrSigner } from 'utils'
 import { AbiItem, fromWei, isAddress, toBN, toWei } from 'web3-utils'
 
+import { IMPORTED_FARMS } from '../../constants'
 import COREORACLE_ABI from '../../constants/abis/CoreOracle.json'
 import farmRegistryAbi from '../../constants/abis/FarmRegistry.json'
 import BANK_ABI from '../../constants/abis/HomoraBank.json'
@@ -135,7 +136,7 @@ export const useFarmRegistry = () => {
 }
 
 export const useImportedFarms = () => {
-  const importedFarmsAddress = localStorage.getItem('imported_farms')
+  const importedFarmsAddress = localStorage.getItem(IMPORTED_FARMS)
   const [prevImportedFarms, setPrevImportedFarms] = React.useState<string[]>([])
   const [farmSummaries, setFarmSummaries] = React.useState<FarmSummary[]>([])
   const importedFarms: string[] = useMemo(() => {
@@ -153,7 +154,6 @@ export const useImportedFarms = () => {
     [chainId, provider]
   )
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchMultiStaking = async (multiStakingContract: ethers.Contract): Promise<FxternalInfo> => {
     if (!multiStakingContract) return { tokens: [], rates: [] }
     const tokens: string[] = []
@@ -180,7 +180,7 @@ export const useImportedFarms = () => {
         if (i < externalEarned.length - 1) stakingRewardsAddress = await moolaStaking.externalStakingRewards()
       }
     } catch (err) {
-      // console.log(err)
+      console.error(err)
     }
     return { tokens, rates }
   }
@@ -193,7 +193,7 @@ export const useImportedFarms = () => {
       token0Address = tokens[0]
       token1Address = tokens[1]
     } catch (err) {
-      // console.log(err)
+      console.error(err)
     }
     return token0Address && token1Address ? { token0Address, token1Address } : undefined
   }

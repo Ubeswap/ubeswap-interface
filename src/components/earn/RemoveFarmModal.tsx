@@ -50,7 +50,7 @@ export default function RemoveFarmModal({ isOpen, onClose, onConfirm }: RemoveFa
           <RowBetween style={{ padding: '0 2rem' }}>
             <div />
             <Text fontWeight={500} fontSize={20}>
-              Are you sure?
+              {t('AreYouSure')}
             </Text>
             <StyledCloseIcon onClick={() => onClose()} />
           </RowBetween>

@@ -176,6 +176,8 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
     return null
   }
 
+  const isSingleToken = !!token0 && !!token1 && token0.address === token1.address
+
   return (
     <Wrapper showBackground={isStaking} bgColor={farmSummary.isImported ? theme.bg5 : theme.primary1}>
       <RemoveFarmModal
@@ -190,7 +192,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
       )}
       <CardNoise />
 
-      <TopSection singleToken={!!token0 && !!token1 && token0.address === token1.address ? true : false}>
+      <TopSection singleToken={isSingleToken}>
         {token0 && token1 && token0.address === token1.address ? (
           <CurrencyLogo currency={token0}></CurrencyLogo>
         ) : (
@@ -238,9 +240,9 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
           ) : null}
         </PoolInfo>
         <StyledInternalLink
-          to={`/farm/${
-            token0?.address === token1?.address ? token0?.address : token0?.address + '/' + token1?.address
-          }/${farmSummary.stakingAddress}`}
+          to={`/farm/${isSingleToken ? token0?.address : token0?.address + '/' + token1?.address}/${
+            farmSummary.stakingAddress
+          }`}
           style={{ width: '100%' }}
         >
           <ButtonPrimary padding="8px" borderRadius="8px">

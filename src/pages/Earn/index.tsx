@@ -16,6 +16,7 @@ import { AutoColumn, ColumnCenter, TopSection } from '../../components/Column'
 import { PoolCard } from '../../components/earn/PoolCard'
 import { CardNoise, CardSection, DataCard } from '../../components/earn/styled'
 import { RowBetween } from '../../components/Row'
+import { IMPORTED_FARMS } from '../../constants'
 import { ExternalLink, TYPE } from '../../theme'
 import LiquidityWarning from '../Pool/LiquidityWarning'
 import { FarmSummary, useFarmRegistry, useImportedFarms } from './useFarmRegistry'
@@ -119,10 +120,10 @@ export default function Earn() {
   const handleRemoveFarm = (farmAddress: string) => {
     const _importedFarms = visibleImportedFarms.filter((farm) => farm.stakingAddress !== farmAddress)
     setVisibleImportedFarms(_importedFarms)
-    const farms_saved = localStorage.getItem('imported_farms')
-    if (farms_saved) {
-      const farms: string[] = JSON.parse(farms_saved)
-      localStorage.setItem('imported_farms', JSON.stringify(farms.filter((farm: string) => farm !== farmAddress)))
+    const farmsSaved = localStorage.getItem(IMPORTED_FARMS)
+    if (farmsSaved) {
+      const farms: string[] = JSON.parse(farmsSaved)
+      localStorage.setItem(IMPORTED_FARMS, JSON.stringify(farms.filter((farm: string) => farm !== farmAddress)))
     }
   }
 
@@ -180,7 +181,6 @@ export default function Earn() {
             <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
           </AutoColumn>
           <DesktopContainer>
-            {' '}
             {farmSummaries.length !== 0 && (
               <AutoColumn justify={'end'} gap="md">
                 <Text

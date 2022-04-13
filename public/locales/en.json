@@ -235,5 +235,6 @@
   "TheFarmAlreadyExists": "The Farm Already Exists",
   "EnterFarmAddress": "Enter farm address",
   "EnterValidFarmAddress": "Enter valid farm address",
-  "TheFarmHasAlreadyBeenImported": "The farm has already been imported"
+  "TheFarmHasAlreadyBeenImported": "The farm has already been imported",
+  "AreYouSure": "Are you sure?"
 }
