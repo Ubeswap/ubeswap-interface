@@ -406,6 +406,9 @@ export default function Header() {
           <StyledNavLinkExtraSmall id={`stake-nav-link`} to={'/stake'}>
             {t('stake')}
           </StyledNavLinkExtraSmall>
+          <StyledNavLink id="portfolio-nav-link" to="/portfolio">
+            {t('portfolio')}
+          </StyledNavLink>
           <ChartsMenuGroup />
         </HeaderLinks>
         <BurgerElement>
