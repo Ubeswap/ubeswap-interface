@@ -1,3 +1,5 @@
+import { faArrowDownWideShort } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { ErrorBoundary } from '@sentry/react'
 import { Token } from '@ubeswap/sdk'
 import TokenSelect from 'components/CurrencyInputPanel/TokenSelect'
@@ -7,11 +9,12 @@ import React, { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useOwnerStakedPools } from 'state/stake/useOwnerStakedPools'
 import styled from 'styled-components'
+import { fromWei, toBN } from 'web3-utils'
 
 import { AutoColumn, ColumnCenter, TopSection } from '../../components/Column'
 import { PoolCard } from '../../components/earn/PoolCard'
 import { CardNoise, CardSection, DataCard } from '../../components/earn/styled'
-import { RowBetween } from '../../components/Row'
+import { RowBetween, RowStart } from '../../components/Row'
 import { ExternalLink, TYPE } from '../../theme'
 import LiquidityWarning from '../Pool/LiquidityWarning'
 import { useFarmRegistry } from './useFarmRegistry'
@@ -31,6 +34,36 @@ const PoolWrapper = styled.div`
   margin-bottom: 12px;
 `
 
+const FancyButton = styled.button`
+  color: ${({ theme }) => theme.text1};
+  align-items: center;
+  height: 2.2rem;
+  padding: 0 0.7rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  width: auto;
+  min-width: 3.5rem;
+  border: 1px solid ${({ theme }) => theme.bg3};
+  outline: none;
+  background: ${({ theme }) => theme.bg1};
+  :hover {
+    border: 1px solid ${({ theme }) => theme.bg4};
+  }
+  :focus {
+    border: 1px solid ${({ theme }) => theme.primary1};
+  }
+`
+
+const Option = styled(FancyButton)<{ active: boolean }>`
+  margin-right: 8px;
+  :hover {
+    cursor: pointer;
+  }
+  background-color: ${({ active, theme }) => active && theme.primary1};
+  color: ${({ active, theme }) => (active ? theme.white : theme.text1)};
+  font-weight: 500;
+`
+
 const Header: React.FC = ({ children }) => {
   return (
     <DataRow style={{ alignItems: 'baseline', marginBottom: '12px' }}>
@@ -48,16 +81,27 @@ export default function Earn() {
   const { t } = useTranslation()
   const [filteringToken, setFilteringToken] = useTokenFilter()
   const farmSummaries = useFarmRegistry()
+  const [depositSort, setDepositSort] = useState<boolean>(false)
+  const [yieldSort, setYieldSort] = useState<boolean>(false)
 
   const filteredFarms = useMemo(() => {
+    const depositSortedSummaries = !depositSort
+      ? [...farmSummaries]
+      : farmSummaries.sort((a, b) => {
+          return Number(fromWei(toBN(b.tvlUSD).sub(toBN(a.tvlUSD))))
+        })
+    const yieldSortedSummaries = !yieldSort
+      ? [...depositSortedSummaries]
+      : depositSortedSummaries.sort((a, b) => Number(b.apy) - Number(a.apy))
+
     if (filteringToken === null) {
-      return farmSummaries
+      return yieldSortedSummaries
     } else {
-      return farmSummaries.filter(
+      return yieldSortedSummaries.filter(
         (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
       )
     }
-  }, [filteringToken, farmSummaries])
+  }, [filteringToken, farmSummaries, depositSort, yieldSort])
 
   const { stakedFarms, featuredFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms)
   return (
@@ -91,7 +135,30 @@ export default function Earn() {
       )}
       <TopSection gap="md">
         <AutoColumn>
-          <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
+          <RowStart>
+            <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
+            <Option
+              style={{ marginLeft: '8px', marginBottom: '10px' }}
+              onClick={() => {
+                setDepositSort(!depositSort)
+                setYieldSort(false)
+              }}
+              active={depositSort}
+            >
+              <FontAwesomeIcon icon={faArrowDownWideShort} />
+              &nbsp;Deposit
+            </Option>
+            <Option
+              onClick={() => {
+                setYieldSort(!yieldSort)
+                setDepositSort(false)
+              }}
+              active={yieldSort}
+            >
+              <FontAwesomeIcon icon={faArrowDownWideShort} />
+              &nbsp;Yield
+            </Option>
+          </RowStart>
         </AutoColumn>
       </TopSection>
       <ColumnCenter>

@@ -1,3 +1,5 @@
+import { faFilter } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Token } from '@ubeswap/sdk'
 import CurrencyLogo from 'components/CurrencyLogo'
 import CurrencySearchModal from 'components/SearchModal/CurrencySearchModal'
@@ -70,7 +72,10 @@ export default function TokenSelect(props: Props) {
                 <StyledTokenName> {props.token.symbol} </StyledTokenName>
               </>
             ) : (
-              <StyledTokenName>Filter By Token</StyledTokenName>
+              <>
+                <FontAwesomeIcon icon={faFilter} width={'16px'} />
+                <StyledTokenName>Token</StyledTokenName>
+              </>
             )}
           </Aligner>
         </CurrencySelect>

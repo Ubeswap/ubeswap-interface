@@ -1,7 +1,9 @@
+import { ApolloQueryResult, gql, useApolloClient } from '@apollo/client'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { Percent } from '@ubeswap/sdk'
 import { ethers } from 'ethers'
 import React, { useEffect } from 'react'
-import { AbiItem, fromWei, toBN } from 'web3-utils'
+import { AbiItem, fromWei, toBN, toWei } from 'web3-utils'
 
 import farmRegistryAbi from '../../constants/abis/FarmRegistry.json'
 
@@ -19,6 +21,10 @@ export type FarmSummary = {
   token0Address: string
   token1Address: string
   isFeatured: boolean
+  rewardApr: Percent | undefined
+  swapApr: Percent | undefined
+  apr: Percent | undefined
+  apy: string | undefined
 }
 
 const blacklist: Record<string, boolean> = {
@@ -32,6 +38,17 @@ const featuredPoolWhitelist: Record<string, boolean> = {
   '0x3c8e2eB988f0890B68b5667C2FB867249E68E3C7': true, // CELO-SYMM
 }
 
+const pairDataGql = gql`
+  query getPairHourData($id: String!) {
+    pair(id: $id) {
+      pairHourData(first: 24, orderBy: hourStartUnix, orderDirection: desc) {
+        hourStartUnix
+        hourlyVolumeUSD
+      }
+    }
+  }
+`
+const COMPOUNDS_PER_YEAR = 2
 const CREATION_BLOCK = 9840049
 const LAST_N_BLOCKS = 1440 // Last 2 hours
 
@@ -42,6 +59,7 @@ export interface WarningInfo {
 
 export const useFarmRegistry = () => {
   const { kit } = useContractKit()
+  const client = useApolloClient()
   const [farmSummaries, setFarmSummaries] = React.useState<FarmSummary[]>([])
   const call = React.useCallback(async () => {
     const farmRegistry = new kit.web3.eth.Contract(
@@ -89,6 +107,10 @@ export const useFarmRegistry = () => {
           tvlUSD: farmData[e.returnValues.stakingAddress].tvlUSD,
           rewardsUSDPerYear: farmData[e.returnValues.stakingAddress].rewardsUSDPerYear,
           isFeatured: !!featuredPoolWhitelist[e.returnValues.stakingAddress],
+          rewardApr: undefined,
+          swapApr: undefined,
+          apr: undefined,
+          apy: undefined,
         })
       })
 
@@ -96,8 +118,49 @@ export const useFarmRegistry = () => {
       .sort((a, b) => Number(fromWei(toBN(b.rewardsUSDPerYear).sub(toBN(a.rewardsUSDPerYear)))))
       .sort((a, b) => Number(fromWei(toBN(b.tvlUSD).sub(toBN(a.tvlUSD)))))
 
-    setFarmSummaries(farmSummaries)
-  }, [kit.web3.eth])
+    const results = await Promise.all(
+      farmSummaries.map((summary) => {
+        return client.query({ query: pairDataGql, variables: { id: summary.lpAddress.toLowerCase() } })
+      })
+    )
+    const farmInfos = results.map((result: ApolloQueryResult<any>, index) => {
+      let swapRewardsUSDPerYear = 0
+      const summary = farmSummaries[index]
+      const { loading, error, data } = result
+      if (!loading && !error && data) {
+        const lastDayVolumeUsd = data.pair.pairHourData.reduce(
+          (acc: number, curr: { hourlyVolumeUSD: string }) => acc + Number(curr.hourlyVolumeUSD),
+          0
+        )
+        swapRewardsUSDPerYear = Math.floor(lastDayVolumeUsd * 365 * 0.0025)
+      }
+      const rewardApr = new Percent(summary.rewardsUSDPerYear, summary.tvlUSD)
+      const swapApr = new Percent(toWei(swapRewardsUSDPerYear.toString()), summary.tvlUSD)
+      const apr = new Percent(
+        toBN(toWei(swapRewardsUSDPerYear.toString())).add(toBN(summary.rewardsUSDPerYear)).toString(),
+        summary.tvlUSD
+      )
+      let apy: string | undefined = undefined
+      try {
+        apy = annualizedPercentageYield(apr, COMPOUNDS_PER_YEAR)
+      } catch (e) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        console.error('apy calc overflow', summary.farmName, e)
+      }
+      return {
+        rewardApr,
+        swapApr,
+        apr,
+        apy,
+      }
+    })
+    setFarmSummaries(
+      farmSummaries.map((summary, index) => ({
+        ...summary,
+        ...farmInfos[index],
+      }))
+    )
+  }, [kit.web3.eth, client])
 
   useEffect(() => {
     call()
@@ -121,4 +184,14 @@ export const useUniqueBestFarms = () => {
   }, {})
 
   return farmsUniqueByBestFarm
+}
+
+// formula is 1 + ((nom/compoundsPerYear)^compoundsPerYear) - 1
+function annualizedPercentageYield(nominal: Percent, compounds: number) {
+  const ONE = 1
+
+  const divideNominalByNAddOne = Number(nominal.divide(BigInt(compounds)).add(BigInt(ONE)).toFixed(10))
+
+  // multiply 100 to turn decimal into percent, to fixed since we only display integer
+  return ((divideNominalByNAddOne ** compounds - ONE) * 100).toFixed(0)
 }
