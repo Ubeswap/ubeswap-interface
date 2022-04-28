@@ -1,11 +1,10 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
-import { formatEther } from '@ethersproject/units'
-import { ChainId as UbeswapChainId, cUSD, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
+import IUniswapV2PairABI from '@ubeswap/core/build/abi/IUniswapV2Pair.json'
+import { JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import MOOLA_STAKING_ABI from 'constants/abis/moola/MoolaStakingRewards.json'
-import { Bank } from 'constants/homoraBank'
 import { BigNumber, ContractInterface, ethers } from 'ethers'
 import { MoolaStakingRewards } from 'generated'
-import { useAllTokens } from 'hooks/Tokens'
+import { useAllTokens, useToken } from 'hooks/Tokens'
 import { useMultiStakingContract, useStakingContract } from 'hooks/useContract'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { useEffect, useMemo, useState } from 'react'
@@ -13,14 +12,13 @@ import { useSingleCallResult } from 'state/multicall/hooks'
 import { getProviderOrSigner } from 'utils'
 import { isAddress } from 'web3-utils'
 
-import COREORACLE_ABI from '../../constants/abis/CoreOracle.json'
-import BANK_ABI from '../../constants/abis/HomoraBank.json'
-import PROXYORACLE_ABI from '../../constants/abis/ProxyOracle.json'
-import { CoreOracle } from '../../generated/CoreOracle'
-import { HomoraBank } from '../../generated/HomoraBank'
-import { ProxyOracle } from '../../generated/ProxyOracle'
-import { useCurrency } from '../../hooks/Tokens'
+import { IUniswapV2Pair } from './../../generated/IUniswapV2Pair.d'
+import { useCUSDPrice, useCUSDPriceOfULP } from './../../utils/useCUSDPrice'
 
+type PairToken = {
+  token0Address: string
+  token1Address: string
+}
 export interface CustomStakingInfo {
   totalStakedAmount: TokenAmount | undefined
   stakingToken: Token | null | undefined
@@ -47,8 +45,6 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
   const library = useProvider()
   const provider = getProviderOrSigner(library, account ? account : undefined)
   const tokens = useAllTokens()
-  const cusd = cUSD[chainId as unknown as UbeswapChainId]
-  const [scale, setScale] = useState<number | undefined>(undefined)
 
   const stakingContract = useStakingContract(isAddress(farmAddress) ? farmAddress : '')
   const multiStakingContract = useMultiStakingContract(isAddress(farmAddress) ? farmAddress : '')
@@ -56,11 +52,8 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
   const [externalRewardsRates, setExternalRewardsRates] = useState<Array<BigNumber>>([])
   const [externalEarnedAmounts, setExternalEarnedAmounts] = useState<Array<BigNumber>>([])
   const [fetchingMultiStaking, setFetchingMultiStaking] = useState<boolean>(false)
+  const [pairToken, setPairToken] = useState<PairToken | undefined>(undefined)
   const currentBlockTimestamp = useCurrentBlockTimestamp()
-  const bank = useMemo(
-    () => new ethers.Contract(Bank[chainId], BANK_ABI.abi as ContractInterface, provider) as unknown as HomoraBank,
-    [chainId, provider]
-  )
 
   useEffect(() => {
     const fetchMultiStaking = async () => {
@@ -96,7 +89,7 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
           if (i < externalEarned.length - 1) stakingRewardsAddress = await moolaStaking.externalStakingRewards()
         }
       } catch (err) {
-        console.log(err)
+        console.error(err)
       }
       setFetchingMultiStaking(false)
       setExternalRewardsTokens(tokens)
@@ -105,7 +98,7 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
     }
     fetchMultiStaking()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account, multiStakingContract, provider])
+  }, [account, multiStakingContract])
 
   const balanceOf = useSingleCallResult(stakingContract, 'balanceOf', [account ?? ''])?.result?.[0]
 
@@ -113,9 +106,6 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
   const periodFinishSeconds = periodFinish?.toNumber()
   const active =
     periodFinishSeconds && currentBlockTimestamp ? periodFinishSeconds > currentBlockTimestamp.toNumber() : false
-
-  const totalSupply = useSingleCallResult(stakingContract, 'totalSupply', [])?.result?.[0]
-
   let arrayOfRewardsTokenAddress = useSingleCallResult(stakingContract, 'rewardsToken', [])?.result
   arrayOfRewardsTokenAddress = arrayOfRewardsTokenAddress
     ? [...arrayOfRewardsTokenAddress, ...externalRewardsTokens]
@@ -126,10 +116,47 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
 
   const earnedAmount = useSingleCallResult(stakingContract, 'earned', [account ?? ''])?.result?.[0]
   const earnedAmountsAll: BigNumber[] = earnedAmount ? [earnedAmount, ...externalEarnedAmounts] : externalEarnedAmounts
+  const totalSupply = useSingleCallResult(stakingContract, 'totalSupply', [])?.result?.[0]
 
   const stakingTokenAddress = useSingleCallResult(stakingContract, 'stakingToken', [])?.result?.[0]
-  const stakingToken = useCurrency(stakingTokenAddress)
+  const stakingToken = useToken(stakingTokenAddress)
   const stakedAmount = stakingToken ? new TokenAmount(stakingToken, JSBI.BigInt(balanceOf ?? 0)) : undefined
+
+  const pair = useMemo(() => {
+    return stakingTokenAddress
+      ? (new ethers.Contract(
+          stakingTokenAddress,
+          IUniswapV2PairABI as ContractInterface,
+          provider
+        ) as unknown as IUniswapV2Pair)
+      : undefined
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stakingTokenAddress])
+
+  useEffect(() => {
+    const getPairToken = async (pair: ethers.Contract) => {
+      let token0Address: string | undefined = undefined
+      let token1Address: string | undefined = undefined
+      try {
+        const tokens = await Promise.all([pair.token0(), pair.token1()])
+        token0Address = tokens[0]
+        token1Address = tokens[1]
+      } catch (err) {
+        console.error(err)
+      }
+      setPairToken(token0Address && token1Address ? { token0Address, token1Address } : undefined)
+    }
+    if (pair && !pairToken) {
+      getPairToken(pair)
+    }
+  }, [pair, pairToken])
+
+  const token0 = useToken(pairToken ? pairToken.token0Address : undefined)
+  const token1 = useToken(pairToken ? pairToken.token1Address : undefined)
+  const cusdPriceOfULP0 = useCUSDPrice(stakingToken ?? undefined)
+  const cusdPriceOfULP1 = useCUSDPriceOfULP(pairToken && stakingToken ? stakingToken : undefined)
+
+  const lpPrice = cusdPriceOfULP1 ? cusdPriceOfULP1 : cusdPriceOfULP0
 
   const rewardTokens: Token[] =
     arrayOfRewardsTokenAddress && isAddress(farmAddress)
@@ -147,38 +174,6 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
         )
       : []
 
-  useEffect(() => {
-    const getStakingCusdPrice = async () => {
-      if (!stakingToken || !cusd || !bank) {
-        setScale(undefined)
-        return
-      }
-      try {
-        const oracle = await bank.oracle()
-        const proxyOracle = new ethers.Contract(
-          oracle,
-          PROXYORACLE_ABI.abi as ContractInterface,
-          provider
-        ) as unknown as ProxyOracle
-        const source = await proxyOracle.source()
-        const coreOracle = new ethers.Contract(
-          source,
-          COREORACLE_ABI.abi as ContractInterface,
-          provider
-        ) as unknown as CoreOracle
-        const [stakingCeloPrice, cusdCeloPrice] = await Promise.all([
-          coreOracle.getCELOPx(stakingToken?.address),
-          coreOracle.getCELOPx(cusd.address),
-        ])
-        setScale(Number(formatEther(stakingCeloPrice)) / Number(formatEther(cusdCeloPrice)))
-      } catch (err) {
-        console.error(err)
-        setScale(undefined)
-      }
-    }
-    getStakingCusdPrice()
-  }, [bank, provider, cusd, stakingToken])
-
   const totalRewardRates =
     rewardTokens && isAddress(farmAddress)
       ? rewardTokens.map(
@@ -187,11 +182,11 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
         )
       : []
 
-  const totalStakedAmount = stakingToken ? new TokenAmount(stakingToken, JSBI.BigInt(totalSupply)) : undefined
-  const valueOfTotalStakedAmountInCUSD =
-    totalSupply && scale ? (Number(formatEther(totalSupply)) * scale).toFixed() : undefined
+  const totalStakedAmount =
+    stakingToken && totalSupply ? new TokenAmount(stakingToken, JSBI.BigInt(totalSupply)) : undefined
 
-  const userValueCUSD = stakedAmount && scale ? (Number(stakedAmount.toExact()) * scale).toFixed() : undefined
+  const tvlUSD = totalStakedAmount && lpPrice ? lpPrice.quote(totalStakedAmount).toSignificant(6) : undefined
+  const userValueCUSD = stakedAmount && lpPrice ? lpPrice.quote(stakedAmount).toExact() : undefined
 
   const getHypotheticalRewardRate = (
     _stakedAmount: TokenAmount,
@@ -231,11 +226,11 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
     totalRewardRates,
     stakedAmount,
     userValueCUSD,
-    valueOfTotalStakedAmountInCUSD,
+    valueOfTotalStakedAmountInCUSD: Number(tvlUSD) < 0.1 ? '0' : tvlUSD,
     active,
     stakingRewardAddress: farmAddress,
     getHypotheticalRewardRate,
-    tokens: undefined,
+    tokens: pairToken && token0 && token1 ? [token0, token1] : stakingToken ? [stakingToken, stakingToken] : undefined,
     earnedAmounts,
     rewardRates: userRewardRates,
   }

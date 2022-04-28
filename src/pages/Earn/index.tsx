@@ -4,8 +4,10 @@ import { Token } from '@ubeswap/sdk'
 import { ButtonPrimary } from 'components/Button'
 import TokenSelect from 'components/CurrencyInputPanel/TokenSelect'
 import ClaimAllRewardPanel from 'components/earn/ClaimAllRewardPanel'
+import { ImportedPoolCard } from 'components/earn/ImportedPoolCard'
 import ImportFarmModal from 'components/earn/ImportFarmModal'
 import Loader from 'components/Loader'
+import _ from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
@@ -19,7 +21,7 @@ import { RowBetween } from '../../components/Row'
 import { IMPORTED_FARMS } from '../../constants'
 import { ExternalLink, TYPE } from '../../theme'
 import LiquidityWarning from '../Pool/LiquidityWarning'
-import { FarmSummary, useFarmRegistry, useImportedFarms } from './useFarmRegistry'
+import { FarmSummary, useFarmRegistry } from './useFarmRegistry'
 
 const PageWrapper = styled.div`
   width: 100%;
@@ -86,17 +88,31 @@ function useTokenFilter(): [Token | null, (t: Token | null) => void] {
 export default function Earn() {
   const { t } = useTranslation()
   const { address: account } = useContractKit()
-  const [visibleImportedFarms, setVisibleImportedFarms] = useState<FarmSummary[]>([])
-  const [prevImportedFarms, setPrevImportedFarms] = useState<FarmSummary[]>([])
+
+  const importedFarmsAddress = localStorage.getItem(IMPORTED_FARMS)
+  const [prevImportedFarmAddress, setPrevImportedFarmAddress] = useState<string | null>(null)
+  const [customFarms, setCustomFarms] = useState<string[]>([])
   const [filteringToken, setFilteringToken] = useTokenFilter()
   const [showImportFarmModal, setShowImportFarmModal] = useState<boolean>(false)
   const farmSummaries = useFarmRegistry()
-  const importedFarmSummaries = useImportedFarms()
+  const [importedFarmSummaries, setImportedFarmSummaries] = useState<Array<FarmSummary | undefined>>([])
+
+  useEffect(() => {
+    if (!_.isEqual(importedFarmsAddress, prevImportedFarmAddress)) {
+      setPrevImportedFarmAddress(importedFarmsAddress)
+      setCustomFarms(importedFarmsAddress ? JSON.parse(importedFarmsAddress) : [])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [importedFarmsAddress])
+
   const filteredFarms = useMemo(() => {
+    const importedSummaries: FarmSummary[] = importedFarmSummaries.filter(
+      (summary) => summary !== undefined
+    ) as unknown as FarmSummary[]
     if (filteringToken === null) {
-      return [...farmSummaries, ...importedFarmSummaries]
+      return [...farmSummaries, ...importedSummaries]
     } else {
-      return [...farmSummaries, ...importedFarmSummaries].filter(
+      return [...farmSummaries, ...importedSummaries].filter(
         (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
       )
     }
@@ -104,27 +120,24 @@ export default function Earn() {
 
   const { stakedFarms, featuredFarms, unstakedFarms, importedFarms } = useOwnerStakedPools(filteredFarms)
 
-  useEffect(() => {
-    if (
-      !(
-        importedFarms.length === prevImportedFarms.length &&
-        importedFarms.every((value, index) => value === prevImportedFarms[index])
-      )
-    ) {
-      setPrevImportedFarms(importedFarms)
-      setVisibleImportedFarms(importedFarms)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [importedFarms])
-
   const handleRemoveFarm = (farmAddress: string) => {
-    const _importedFarms = visibleImportedFarms.filter((farm) => farm.stakingAddress !== farmAddress)
-    setVisibleImportedFarms(_importedFarms)
-    const farmsSaved = localStorage.getItem(IMPORTED_FARMS)
-    if (farmsSaved) {
-      const farms: string[] = JSON.parse(farmsSaved)
-      localStorage.setItem(IMPORTED_FARMS, JSON.stringify(farms.filter((farm: string) => farm !== farmAddress)))
+    if (customFarms) {
+      localStorage.setItem(IMPORTED_FARMS, JSON.stringify(customFarms.filter((farm: string) => farm !== farmAddress)))
+      const farmSummary = importedFarmSummaries.find((farm) => farm?.stakingAddress === farmAddress)
+      const farmIndex = farmSummary ? importedFarmSummaries.indexOf(farmSummary) : -1
+      const updatedSummaries = [...importedFarmSummaries]
+      if (farmIndex >= 0) {
+        updatedSummaries.splice(farmIndex, 1)
+      }
+      setImportedFarmSummaries(updatedSummaries)
     }
+  }
+
+  const handleUpdateFarm = (farmSummary: FarmSummary, index: number) => {
+    const importedSummaries =
+      importedFarmSummaries.length > 0 ? [...importedFarmSummaries] : _.fill(Array(customFarms.length), undefined)
+    importedSummaries[index] = farmSummary
+    setImportedFarmSummaries(importedSummaries)
   }
 
   return (
@@ -216,11 +229,11 @@ export default function Earn() {
           ))}
         </>
       )}
-      {visibleImportedFarms.length > 0 && (
+      {importedFarms.length > 0 && (
         <>
           <Header>{t('importedPools')}</Header>
-          {visibleImportedFarms.map((farmSummary) => (
-            <PoolWrapper key={farmSummary.stakingAddress}>
+          {importedFarms.map((farmSummary, index) => (
+            <PoolWrapper key={index}>
               <ErrorBoundary>
                 <PoolCard farmSummary={farmSummary} onRemoveImportedFarm={handleRemoveFarm} />
               </ErrorBoundary>
@@ -257,6 +270,13 @@ export default function Earn() {
         isOpen={showImportFarmModal}
         onDismiss={() => setShowImportFarmModal(false)}
       />
+      {customFarms.map((farmAddress, index) => (
+        <ImportedPoolCard
+          key={index}
+          farmAddress={farmAddress}
+          onUpdateFarm={(farm) => handleUpdateFarm(farm, index)}
+        />
+      ))}
     </PageWrapper>
   )
 }

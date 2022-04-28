@@ -18,14 +18,14 @@ interface IStakingPoolValue {
   userAmountTokenB?: TokenAmount
 }
 
-export const useLPValue = (stakedAmount: BigNumber, farmSummary: FarmSummary): IStakingPoolValue => {
+export const useLPValue = (stakedAmount: BigNumber, farmSummary: FarmSummary | undefined): IStakingPoolValue => {
   const { network } = useContractKit()
   const chainId = network.chainId
-  const lpToken = useToken(farmSummary.lpAddress) || undefined
+  const lpToken = useToken(farmSummary ? farmSummary.lpAddress : undefined) || undefined
   const totalSupplyOfStakingToken = useTotalSupply(lpToken)
-  const token0 = useToken(farmSummary.token0Address) || undefined
-  const token1 = useToken(farmSummary.token1Address) || undefined
-  const isSingle = Boolean(farmSummary.token0Address === farmSummary.token1Address)
+  const token0 = useToken(farmSummary ? farmSummary.token0Address : undefined) || undefined
+  const token1 = useToken(farmSummary ? farmSummary.token1Address : undefined) || undefined
+  const isSingle = Boolean(farmSummary ? farmSummary.token0Address === farmSummary.token1Address : undefined)
   const [, stakingTokenPair] = usePair(token0, token1)
 
   const cusd = cUSD[chainId as unknown as UbeswapChainId]

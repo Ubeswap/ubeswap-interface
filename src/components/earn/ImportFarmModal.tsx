@@ -36,7 +36,6 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
   const [farmAddress, setFarmAddress] = useState<string>('')
   const { stakingToken, rewardTokens, totalRewardRates, valueOfTotalStakedAmountInCUSD } =
     useCustomStakingInfo(farmAddress)
-
   const [error, setError] = useState<string | undefined>(undefined)
 
   const farmExists = isAddress(farmAddress)
