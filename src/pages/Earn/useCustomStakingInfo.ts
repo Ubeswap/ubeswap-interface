@@ -226,7 +226,7 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
     totalRewardRates,
     stakedAmount,
     userValueCUSD,
-    valueOfTotalStakedAmountInCUSD: Number(tvlUSD) < 0.1 ? '0' : tvlUSD,
+    valueOfTotalStakedAmountInCUSD: Number(tvlUSD) < 1 ? '0' : tvlUSD,
     active,
     stakingRewardAddress: farmAddress,
     getHypotheticalRewardRate,
