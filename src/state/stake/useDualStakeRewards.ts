@@ -34,23 +34,24 @@ export const useMultiStakeRewards = (
   const stakeBalance = useSingleCallResult(stakeRewards, 'balanceOf', accountArg)?.result?.[0]
   const earned = useSingleCallResult(stakeRewards, 'earned', accountArg)?.result?.[0]
   const earnedExternal = useSingleCallResult(stakeRewards, 'earnedExternal', accountArg)?.result?.[0]
-
+  const periodFinish = useSingleCallResult(stakeRewards, 'periodFinish', [])?.result?.[0]
   const data = useMemo(
     () => ({
       totalSupply,
       rewardRate,
       rewardsToken,
+      periodFinish,
       myBalance: stakeBalance,
       earned: [earned, ...(earnedExternal ? earnedExternal : [])],
     }),
-    [earned, earnedExternal, rewardRate, rewardsToken, stakeBalance, totalSupply]
+    [earned, earnedExternal, rewardRate, rewardsToken, stakeBalance, totalSupply, periodFinish]
   )
 
   return useMemo((): StakingInfo | null => {
     if (!data || !rewardsToken || !underlyingPool) {
       return null
     }
-    const { totalSupply: totalSupplyRaw, rewardRate: totalRewardRateRaw, myBalance, earned } = data
+    const { totalSupply: totalSupplyRaw, rewardRate: totalRewardRateRaw, myBalance, earned, periodFinish } = data
     const { stakingToken } = underlyingPool
 
     const getHypotheticalRewardRate = (
@@ -68,10 +69,11 @@ export const useMultiStakeRewards = (
       })
     }
 
+    const rewardsFinished = Math.floor(Date.now() / 1000) - periodFinish.toNumber() > 3600 * 24 * 7
     const stakedAmount = myBalance ? new TokenAmount(stakingToken, myBalance?.toString() ?? '0') : undefined
     const totalStakedAmount = new TokenAmount(stakingToken, totalSupplyRaw?.toString() ?? '0')
     const totalRewardRates = [
-      new TokenAmount(rewardsToken, totalRewardRateRaw?.toString() ?? '0'),
+      new TokenAmount(rewardsToken, rewardsFinished ? JSBI.BigInt(0) : totalRewardRateRaw?.toString() ?? '0'),
       ...underlyingPool.totalRewardRates,
     ].sort((a, b) => (a.token?.symbol && b?.token?.symbol ? a.token.symbol.localeCompare(b.token.symbol) : 0))
 
