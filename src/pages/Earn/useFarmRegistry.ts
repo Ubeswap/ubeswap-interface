@@ -21,10 +21,10 @@ export type FarmSummary = {
   token0Address: string
   token1Address: string
   isFeatured: boolean
-  rewardApr: Percent | undefined
-  swapApr: Percent | undefined
-  apr: Percent | undefined
-  apy: string | undefined
+  rewardApr?: Percent
+  swapApr?: Percent
+  apr?: Percent
+  apy?: string
 }
 
 const blacklist: Record<string, boolean> = {
@@ -107,10 +107,6 @@ export const useFarmRegistry = () => {
           tvlUSD: farmData[e.returnValues.stakingAddress].tvlUSD,
           rewardsUSDPerYear: farmData[e.returnValues.stakingAddress].rewardsUSDPerYear,
           isFeatured: !!featuredPoolWhitelist[e.returnValues.stakingAddress],
-          rewardApr: undefined,
-          swapApr: undefined,
-          apr: undefined,
-          apy: undefined,
         })
       })
 
@@ -140,13 +136,7 @@ export const useFarmRegistry = () => {
         toBN(toWei(swapRewardsUSDPerYear.toString())).add(toBN(summary.rewardsUSDPerYear)).toString(),
         summary.tvlUSD
       )
-      let apy: string | undefined = undefined
-      try {
-        apy = annualizedPercentageYield(apr, COMPOUNDS_PER_YEAR)
-      } catch (e) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        console.error('apy calc overflow', summary.farmName, e)
-      }
+      const apy = annualizedPercentageYield(apr, COMPOUNDS_PER_YEAR)
       return {
         rewardApr,
         swapApr,

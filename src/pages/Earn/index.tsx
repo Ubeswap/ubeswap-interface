@@ -19,6 +19,12 @@ import { ExternalLink, TYPE } from '../../theme'
 import LiquidityWarning from '../Pool/LiquidityWarning'
 import { useFarmRegistry } from './useFarmRegistry'
 
+enum FarmSort {
+  UNKNOWN,
+  DEPOSIT,
+  YIELD,
+}
+
 const PageWrapper = styled.div`
   width: 100%;
   max-width: 640px;
@@ -81,18 +87,18 @@ export default function Earn() {
   const { t } = useTranslation()
   const [filteringToken, setFilteringToken] = useTokenFilter()
   const farmSummaries = useFarmRegistry()
-  const [depositSort, setDepositSort] = useState<boolean>(false)
-  const [yieldSort, setYieldSort] = useState<boolean>(false)
-
+  const [sortType, setSortType] = useState<FarmSort>(FarmSort.UNKNOWN)
   const filteredFarms = useMemo(() => {
-    const depositSortedSummaries = !depositSort
-      ? [...farmSummaries]
-      : farmSummaries.sort((a, b) => {
-          return Number(fromWei(toBN(b.tvlUSD).sub(toBN(a.tvlUSD))))
-        })
-    const yieldSortedSummaries = !yieldSort
-      ? [...depositSortedSummaries]
-      : depositSortedSummaries.sort((a, b) => Number(b.apy) - Number(a.apy))
+    const depositSortedSummaries =
+      sortType !== FarmSort.DEPOSIT
+        ? [...farmSummaries]
+        : farmSummaries.sort((a, b) => {
+            return Number(fromWei(toBN(b.tvlUSD).sub(toBN(a.tvlUSD))))
+          })
+    const yieldSortedSummaries =
+      sortType !== FarmSort.YIELD
+        ? [...depositSortedSummaries]
+        : depositSortedSummaries.sort((a, b) => Number(b.apy) - Number(a.apy))
 
     if (filteringToken === null) {
       return yieldSortedSummaries
@@ -101,7 +107,7 @@ export default function Earn() {
         (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
       )
     }
-  }, [filteringToken, farmSummaries, depositSort, yieldSort])
+  }, [filteringToken, farmSummaries, sortType])
 
   const { stakedFarms, featuredFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms)
   return (
@@ -140,23 +146,21 @@ export default function Earn() {
             <Option
               style={{ marginLeft: '8px', marginBottom: '10px' }}
               onClick={() => {
-                setDepositSort(!depositSort)
-                setYieldSort(false)
+                setSortType(sortType === FarmSort.DEPOSIT ? FarmSort.UNKNOWN : FarmSort.DEPOSIT)
               }}
-              active={depositSort}
+              active={sortType === FarmSort.DEPOSIT}
             >
               <FontAwesomeIcon icon={faArrowDownWideShort} />
-              &nbsp;Deposit
+              &nbsp;{t('deposit')}
             </Option>
             <Option
               onClick={() => {
-                setYieldSort(!yieldSort)
-                setDepositSort(false)
+                setSortType(sortType === FarmSort.YIELD ? FarmSort.UNKNOWN : FarmSort.YIELD)
               }}
-              active={yieldSort}
+              active={sortType === FarmSort.YIELD}
             >
               <FontAwesomeIcon icon={faArrowDownWideShort} />
-              &nbsp;Yield
+              &nbsp;{t('yield')}
             </Option>
           </RowStart>
         </AutoColumn>
