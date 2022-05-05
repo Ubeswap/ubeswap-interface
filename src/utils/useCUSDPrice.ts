@@ -1,5 +1,4 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { BigNumber } from '@ethersproject/bignumber'
 import { CELO, ChainId as UbeswapChainId, currencyEquals, cUSD, Price, Token } from '@ubeswap/sdk'
 import { useTotalSupply } from 'data/TotalSupply'
 import { useToken } from 'hooks/Tokens'
@@ -10,8 +9,6 @@ import { useSingleCallResult } from 'state/multicall/hooks'
 import { usePair, usePairs } from '../data/Reserves'
 
 type TokenPair = [Token | undefined, Token | undefined]
-
-const DECIMALS = BigNumber.from(10).pow(18)
 
 /**
  * Returns the price in cUSD of the input currency

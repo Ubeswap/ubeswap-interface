@@ -54,7 +54,7 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
   useEffect(() => {
     if (isAddress(farmAddress)) {
       const res = importedFarms
-        ? [...JSON.parse(importedFarms)].find((item) => getAddress(item) === getAddress(farmAddress))
+        ? JSON.parse(importedFarms).find((item: string) => getAddress(item) === getAddress(farmAddress))
         : undefined
       setError(res ? t('TheFarmHasAlreadyBeenImported') : undefined)
     } else {
@@ -71,7 +71,7 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
     try {
       localStorage.setItem(
         IMPORTED_FARMS,
-        JSON.stringify(importedFarms ? [...JSON.parse(importedFarms), farmAddress] : [farmAddress])
+        JSON.stringify(importedFarms ? [JSON.parse(importedFarms), farmAddress] : [farmAddress])
       )
     } catch (e) {
       console.error(e)
