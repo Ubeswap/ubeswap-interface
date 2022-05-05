@@ -64,14 +64,13 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
         setError(undefined)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [farmAddress, importedFarms])
+  }, [farmAddress, importedFarms, t])
 
   const onConfirm = () => {
     try {
       localStorage.setItem(
         IMPORTED_FARMS,
-        JSON.stringify(importedFarms ? [JSON.parse(importedFarms), farmAddress] : [farmAddress])
+        JSON.stringify(importedFarms ? [...JSON.parse(importedFarms), farmAddress] : [farmAddress])
       )
     } catch (e) {
       console.error(e)
