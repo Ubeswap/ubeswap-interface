@@ -8,6 +8,7 @@ import zip from 'lodash/zip'
 import { useMemo } from 'react'
 import { useSingleCallResult, useSingleContractMultipleData } from 'state/multicall/hooks'
 
+import { INT_SECONDS_IN_WEEK } from './../../constants/index'
 import { StakingInfo } from './hooks'
 
 export const useMultiStakeRewards = (
@@ -69,7 +70,7 @@ export const useMultiStakeRewards = (
       })
     }
 
-    const rewardsFinished = Math.floor(Date.now() / 1000) - periodFinish.toNumber() > 3600 * 24 * 7
+    const rewardsFinished = Math.floor(Date.now() / 1000) - periodFinish.toNumber() > INT_SECONDS_IN_WEEK
     const stakedAmount = myBalance ? new TokenAmount(stakingToken, myBalance?.toString() ?? '0') : undefined
     const totalStakedAmount = new TokenAmount(stakingToken, totalSupplyRaw?.toString() ?? '0')
     const totalRewardRates = [

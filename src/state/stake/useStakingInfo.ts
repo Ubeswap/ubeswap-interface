@@ -6,6 +6,7 @@ import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { useMemo } from 'react'
 import { useMultipleContractSingleData } from 'state/multicall/hooks'
 
+import { INT_SECONDS_IN_WEEK } from './../../constants/index'
 import { StakingInfo, useStakingPools } from './hooks'
 
 // Gets the staking info from the network for the active chain id
@@ -104,7 +105,7 @@ export default function useStakingInfo(pairToFilterBy?: Pair | null, stakingAddr
               ? periodFinishSeconds > currentBlockTimestamp.toNumber()
               : false
 
-          const rewardsFinished = Math.floor(Date.now() / 1000) - periodFinishSeconds > 3600 * 24 * 7
+          const rewardsFinished = Math.floor(Date.now() / 1000) - periodFinishSeconds > INT_SECONDS_IN_WEEK
           const totalRewardRate = new TokenAmount(
             rewardToken,
             rewardsFinished ? JSBI.BigInt(0) : JSBI.BigInt(rewardRateState.result?.[0])
