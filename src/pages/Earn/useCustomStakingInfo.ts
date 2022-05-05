@@ -4,6 +4,7 @@ import { JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import MOOLA_STAKING_ABI from 'constants/abis/moola/MoolaStakingRewards.json'
 import { BigNumber, ContractInterface, ethers } from 'ethers'
 import { MoolaStakingRewards } from 'generated'
+import { IUniswapV2Pair } from 'generated/IUniswapV2Pair'
 import { useAllTokens, useToken } from 'hooks/Tokens'
 import { useMultiStakingContract, useStakingContract } from 'hooks/useContract'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
@@ -12,7 +13,6 @@ import { useSingleCallResult } from 'state/multicall/hooks'
 import { getProviderOrSigner } from 'utils'
 import { isAddress } from 'web3-utils'
 
-import { IUniswapV2Pair } from './../../generated/IUniswapV2Pair.d'
 import { useCUSDPrice, useCUSDPriceOfULP } from './../../utils/useCUSDPrice'
 
 type PairToken = {

@@ -153,7 +153,6 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
     try {
       compoundedAPY = annualizedPercentageYield(apr, COMPOUNDS_PER_YEAR)
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       console.error('apy calc overflow', farmSummary.farmName, e)
     }
   }
