@@ -7,10 +7,11 @@ import ClaimAllRewardPanel from 'components/earn/ClaimAllRewardPanel'
 import { ImportedPoolCard } from 'components/earn/ImportedPoolCard'
 import ImportFarmModal from 'components/earn/ImportFarmModal'
 import Loader from 'components/Loader'
-import _ from 'lodash'
+import { isEqual } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
+import { useImportedFarmActionHandlers, useImportedFarmState } from 'state/importfarm/hooks'
 import { useOwnerStakedPools } from 'state/stake/useOwnerStakedPools'
 import styled from 'styled-components'
 
@@ -95,15 +96,15 @@ export default function Earn() {
   const [filteringToken, setFilteringToken] = useTokenFilter()
   const [showImportFarmModal, setShowImportFarmModal] = useState<boolean>(false)
   const farmSummaries = useFarmRegistry()
-  const [importedFarmSummaries, setImportedFarmSummaries] = useState<Array<FarmSummary | undefined>>([])
-
+  const { importedFarmSummaries } = useImportedFarmState()
+  const { onAddImportedFarm, onRemoveImportedFarm, onInitializeImportedFarm } = useImportedFarmActionHandlers()
   useEffect(() => {
-    if (!_.isEqual(importedFarmsAddress, prevImportedFarmAddress)) {
+    if (!isEqual(importedFarmsAddress, prevImportedFarmAddress)) {
       setPrevImportedFarmAddress(importedFarmsAddress)
+      onInitializeImportedFarm()
       setCustomFarms(importedFarmsAddress ? JSON.parse(importedFarmsAddress) : [])
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [importedFarmsAddress])
+  }, [importedFarmsAddress, prevImportedFarmAddress, onInitializeImportedFarm])
 
   const filteredFarms = useMemo(() => {
     const importedSummaries: FarmSummary[] = importedFarmSummaries.filter(
@@ -123,21 +124,12 @@ export default function Earn() {
   const handleRemoveFarm = (farmAddress: string) => {
     if (customFarms) {
       localStorage.setItem(IMPORTED_FARMS, JSON.stringify(customFarms.filter((farm: string) => farm !== farmAddress)))
-      const farmSummary = importedFarmSummaries.find((farm) => farm?.stakingAddress === farmAddress)
-      const farmIndex = farmSummary ? importedFarmSummaries.indexOf(farmSummary) : -1
-      const updatedSummaries = [...importedFarmSummaries]
-      if (farmIndex >= 0) {
-        updatedSummaries.splice(farmIndex, 1)
-      }
-      setImportedFarmSummaries(updatedSummaries)
+      onRemoveImportedFarm(farmAddress)
     }
   }
 
-  const handleUpdateFarm = (farmSummary: FarmSummary, index: number) => {
-    const importedSummaries =
-      importedFarmSummaries.length > 0 ? [...importedFarmSummaries] : _.fill(Array(customFarms.length), undefined)
-    importedSummaries[index] = farmSummary
-    setImportedFarmSummaries(importedSummaries)
+  const handleUpdateFarm = (farmSummary: FarmSummary) => {
+    onAddImportedFarm(farmSummary)
   }
 
   return (
@@ -171,7 +163,6 @@ export default function Earn() {
       )}
       <TopSection gap="md">
         <MobileContainer>
-          {' '}
           {farmSummaries.length !== 0 && (
             <AutoColumn justify={'start'} gap="md">
               <Text
@@ -182,7 +173,7 @@ export default function Earn() {
                   setShowImportFarmModal(true)
                 }}
               >
-                <ButtonPrimary padding="8px 16px" borderRadius="8px">
+                <ButtonPrimary padding="8px 16px" borderRadius="8px" disabled={!account}>
                   {t('ImportFarm')}
                 </ButtonPrimary>
               </Text>
@@ -229,7 +220,7 @@ export default function Earn() {
           ))}
         </>
       )}
-      {importedFarms.length > 0 && (
+      {account && importedFarms.length > 0 && (
         <>
           <Header>{t('importedPools')}</Header>
           {importedFarms.map((farmSummary, index) => (
@@ -270,13 +261,10 @@ export default function Earn() {
         isOpen={showImportFarmModal}
         onDismiss={() => setShowImportFarmModal(false)}
       />
-      {customFarms.map((farmAddress, index) => (
-        <ImportedPoolCard
-          key={index}
-          farmAddress={farmAddress}
-          onUpdateFarm={(farm) => handleUpdateFarm(farm, index)}
-        />
-      ))}
+      {account &&
+        customFarms.map((farmAddress, index) => (
+          <ImportedPoolCard key={index} farmAddress={farmAddress} onUpdateFarm={(farm) => handleUpdateFarm(farm)} />
+        ))}
     </PageWrapper>
   )
 }

@@ -192,13 +192,13 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
       <CardNoise />
 
       <TopSection singleToken={isSingleToken}>
-        {token0 && token1 && token0.address === token1.address ? (
+        {isSingleToken ? (
           <CurrencyLogo currency={token0}></CurrencyLogo>
         ) : (
           <DoubleCurrencyLogo currency0={token0} currency1={token1} size={24} />
         )}
         <PoolInfo style={{ marginLeft: '8px' }}>
-          {token0 && token1 && token0.address === token1.address ? (
+          {isSingleToken ? (
             <TYPE.white fontWeight={600} fontSize={[18, 24]}>
               {token0?.symbol}
             </TYPE.white>

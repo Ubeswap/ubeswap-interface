@@ -70,7 +70,7 @@ export default function ImportFarmModal({ isOpen, onDismiss, farmSummaries }: Im
     try {
       localStorage.setItem(
         IMPORTED_FARMS,
-        JSON.stringify(importedFarms ? [...JSON.parse(importedFarms), farmAddress] : [farmAddress])
+        JSON.stringify(importedFarms ? JSON.parse(importedFarms).concat(farmAddress) : [farmAddress])
       )
     } catch (e) {
       console.error(e)

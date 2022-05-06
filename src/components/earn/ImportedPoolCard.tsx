@@ -15,6 +15,6 @@ export const ImportedPoolCard: React.FC<Props> = ({ farmAddress, onUpdateFarm }:
       setPrevFarmSummary(farmSummary)
       onUpdateFarm(farmSummary)
     }
-  }, [farmSummary])
+  }, [farmSummary, onUpdateFarm, prevFarmSummary])
   return null
 }
