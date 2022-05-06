@@ -21,6 +21,30 @@ export const AVERAGE_BLOCK_TIME_IN_SECS = 13
 export const PROPOSAL_LENGTH_IN_BLOCKS = 40_320
 export const PROPOSAL_LENGTH_IN_SECS = AVERAGE_BLOCK_TIME_IN_SECS * PROPOSAL_LENGTH_IN_BLOCKS
 
+export const LIMIT_ORDER_ADDRESS = {
+  [ChainId.MAINNET]: '0x83013dCE53676F523dB8175832f2f3AD5B1fBb1f',
+  [ChainId.ALFAJORES]: '0xb5911e904EEf100803D5d4bDb22ff1177324e7F3',
+  [ChainId.BAKLAVA]: '',
+}
+
+export const ORDER_BOOK_ADDRESS = {
+  [ChainId.MAINNET]: '0x55e0E091a5a6f178B1b225E7369E8C91d4F64992',
+  [ChainId.ALFAJORES]: '0x12553790998fa8d3CCCC2906192267576130DD3f',
+  [ChainId.BAKLAVA]: '',
+}
+
+export const ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS = {
+  [ChainId.MAINNET]: '0x3c57D786BdC33D30de25fE3f8b3fD3Fd3ff503e3',
+  [ChainId.ALFAJORES]: '0x39F2854fC1786Bb0d0883FAf0F2a1c2fb458bCA8',
+  [ChainId.BAKLAVA]: '',
+}
+
+export const MULTICALL_ADDRESS = {
+  [ChainId.MAINNET]: '0x75f59534dd892c1f8a7b172d639fa854d529ada3',
+  [ChainId.ALFAJORES]: '0x387ce7960b5DA5381De08Ea4967b13a7c8cAB3f6',
+  [ChainId.BAKLAVA]: '',
+}
+
 export const POOF = {
   [ChainId.MAINNET]: new Token(ChainId.MAINNET, '0x00400FcbF0816bebB94654259de7273f4A05c762', 18, 'POOF', 'POOF'),
   [ChainId.ALFAJORES]: new Token(ChainId.ALFAJORES, '0x00400FcbF0816bebB94654259de7273f4A05c762', 18, 'POOF', 'POOF'),
@@ -58,6 +82,7 @@ export const MCUSD = {
     'mCUSD',
     'Moola cUSD'
   ),
+  [ChainId.BAKLAVA]: null,
 }
 
 export const MCELO = {
@@ -146,6 +171,8 @@ export const DEFAULT_DEADLINE_FROM_NOW = 60 * 20
 
 // used for rewards deadlines
 export const BIG_INT_SECONDS_IN_WEEK = JSBI.BigInt(60 * 60 * 24 * 7)
+
+export const INT_SECONDS_IN_WEEK = 60 * 60 * 24 * 7
 
 export const BIG_INT_SECONDS_IN_YEAR = JSBI.BigInt(60 * 60 * 24 * 365)
 

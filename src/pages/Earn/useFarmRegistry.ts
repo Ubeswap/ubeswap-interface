@@ -27,12 +27,14 @@ export type FarmSummary = {
 
 const blacklist: Record<string, boolean> = {
   '0x4488682fd16562a68ea0d0f898413e075f42e6da': true,
+  '0xC245976Db329Bb0414253376246a367B7c96C762': true,
 }
 
 const featuredPoolWhitelist: Record<string, boolean> = {
   '0x6F11B6eA70DEe4f167b1A4ED1F01C903f6781960': false, // PACT
   '0xEfe2f9d62E45815837b4f20c1F44F0A83605B540': false, // ARI
   '0x155DA6F164D925E3a91F510B50DEC08aA03B4071': false, // IMMO
+  '0x3c8e2eB988f0890B68b5667C2FB867249E68E3C7': true, // CELO-SYMM
 }
 
 const CREATION_BLOCK = 9840049
