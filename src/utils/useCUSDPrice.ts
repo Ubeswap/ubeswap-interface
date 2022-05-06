@@ -1,13 +1,13 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { usePairContract } from 'hooks/useContract'
 import { CELO, ChainId as UbeswapChainId, currencyEquals, cUSD, JSBI, Pair, Price, Token } from '@ubeswap/sdk'
 import { useTotalSupply } from 'data/TotalSupply'
 import { useToken } from 'hooks/Tokens'
+import { usePairContract } from 'hooks/useContract'
 import { useMemo } from 'react'
 import { useSingleCallResult } from 'state/multicall/hooks'
 
-import { usePair, usePairs } from '../data/Reserves'
 import { MCUSD } from '../constants/index'
+import { usePair, usePairs } from '../data/Reserves'
 
 type TokenPair = [Token | undefined, Token | undefined]
 
