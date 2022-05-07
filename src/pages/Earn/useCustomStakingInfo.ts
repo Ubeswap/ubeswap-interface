@@ -4,7 +4,6 @@ import { JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import MOOLA_STAKING_ABI from 'constants/abis/moola/MoolaStakingRewards.json'
 import { BigNumber, ContractInterface, ethers } from 'ethers'
 import { MoolaStakingRewards } from 'generated'
-import { IUniswapV2Pair } from 'generated/IUniswapV2Pair'
 import { useAllTokens, useToken } from 'hooks/Tokens'
 import { useMultiStakingContract, useStakingContract } from 'hooks/useContract'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
@@ -124,14 +123,9 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
 
   const pair = useMemo(() => {
     return stakingTokenAddress
-      ? (new ethers.Contract(
-          stakingTokenAddress,
-          IUniswapV2PairABI as ContractInterface,
-          provider
-        ) as unknown as IUniswapV2Pair)
+      ? new ethers.Contract(stakingTokenAddress, IUniswapV2PairABI as ContractInterface, provider)
       : undefined
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stakingTokenAddress])
+  }, [provider, stakingTokenAddress])
 
   useEffect(() => {
     const getPairToken = async (pair: ethers.Contract) => {
