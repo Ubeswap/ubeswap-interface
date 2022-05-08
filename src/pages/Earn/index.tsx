@@ -89,21 +89,17 @@ export default function Earn() {
   const farmSummaries = useFarmRegistry()
   const [sortType, setSortType] = useState<FarmSort>(FarmSort.UNKNOWN)
   const filteredFarms = useMemo(() => {
-    const depositSortedSummaries =
-      sortType !== FarmSort.DEPOSIT
-        ? [...farmSummaries]
+    const sortedSummaries =
+      sortType === FarmSort.YIELD
+        ? farmSummaries.sort((a, b) => Number(b.apy) - Number(a.apy))
         : farmSummaries.sort((a, b) => {
             return Number(fromWei(toBN(b.tvlUSD).sub(toBN(a.tvlUSD))))
           })
-    const yieldSortedSummaries =
-      sortType !== FarmSort.YIELD
-        ? [...depositSortedSummaries]
-        : depositSortedSummaries.sort((a, b) => Number(b.apy) - Number(a.apy))
 
     if (filteringToken === null) {
-      return yieldSortedSummaries
+      return sortedSummaries
     } else {
-      return yieldSortedSummaries.filter(
+      return sortedSummaries.filter(
         (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
       )
     }
