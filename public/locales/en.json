@@ -236,7 +236,7 @@
   "EnterFarmAddress": "Enter farm address",
   "EnterValidFarmAddress": "Enter valid farm address",
   "TheFarmHasAlreadyBeenImported": "The farm has already been imported",
-  "AreYouSure": "Are you sure?"
+  "AreYouSure": "Are you sure?",
   "limitOrder": "Limit Order",
   "price": "Price",
   "placeOrder": "Place Order"
