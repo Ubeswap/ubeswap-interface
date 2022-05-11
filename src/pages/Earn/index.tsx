@@ -1,3 +1,4 @@
+import { formatEther } from '@ethersproject/units'
 import { faArrowDownWideShort } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { ErrorBoundary } from '@sentry/react'
@@ -9,7 +10,6 @@ import React, { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useOwnerStakedPools } from 'state/stake/useOwnerStakedPools'
 import styled from 'styled-components'
-import { fromWei, toBN } from 'web3-utils'
 
 import { AutoColumn, ColumnCenter, TopSection } from '../../components/Column'
 import { PoolCard } from '../../components/earn/PoolCard'
@@ -93,7 +93,7 @@ export default function Earn() {
       sortType === FarmSort.YIELD
         ? farmSummaries.sort((a, b) => Number(b.apy) - Number(a.apy))
         : farmSummaries.sort((a, b) => {
-            return Number(fromWei(toBN(b.tvlUSD).sub(toBN(a.tvlUSD))))
+            return Number(formatEther(b.tvlUSD.sub(a.tvlUSD)))
           })
 
     if (filteringToken === null) {
