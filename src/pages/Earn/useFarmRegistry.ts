@@ -1,9 +1,11 @@
 import { ApolloQueryResult, gql, useApolloClient } from '@apollo/client'
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { BigNumber } from '@ethersproject/bignumber'
+import { formatEther, parseEther } from '@ethersproject/units'
 import { Percent } from '@ubeswap/sdk'
 import { ethers } from 'ethers'
 import React, { useEffect } from 'react'
-import { AbiItem, fromWei, toBN, toWei } from 'web3-utils'
+import { AbiItem } from 'web3-utils'
 
 import farmRegistryAbi from '../../constants/abis/FarmRegistry.json'
 
@@ -16,8 +18,8 @@ export type FarmSummary = {
   farmName: string
   stakingAddress: string
   lpAddress: string
-  rewardsUSDPerYear: string
-  tvlUSD: string
+  rewardsUSDPerYear: BigNumber
+  tvlUSD: BigNumber
   token0Address: string
   token1Address: string
   isFeatured: boolean
@@ -104,15 +106,15 @@ export const useFarmRegistry = () => {
           lpAddress: e.returnValues.lpAddress,
           token0Address: lps[e.returnValues.lpAddress][0],
           token1Address: lps[e.returnValues.lpAddress][1],
-          tvlUSD: farmData[e.returnValues.stakingAddress].tvlUSD,
-          rewardsUSDPerYear: farmData[e.returnValues.stakingAddress].rewardsUSDPerYear,
+          tvlUSD: BigNumber.from(farmData[e.returnValues.stakingAddress].tvlUSD),
+          rewardsUSDPerYear: BigNumber.from(farmData[e.returnValues.stakingAddress].rewardsUSDPerYear),
           isFeatured: !!featuredPoolWhitelist[e.returnValues.stakingAddress],
         })
       })
 
     farmSummaries
-      .sort((a, b) => Number(fromWei(toBN(b.rewardsUSDPerYear).sub(toBN(a.rewardsUSDPerYear)))))
-      .sort((a, b) => Number(fromWei(toBN(b.tvlUSD).sub(toBN(a.tvlUSD)))))
+      .sort((a, b) => Number(formatEther(b.rewardsUSDPerYear.sub(a.rewardsUSDPerYear))))
+      .sort((a, b) => Number(formatEther(b.tvlUSD.sub(a.tvlUSD))))
 
     const results = await Promise.all(
       farmSummaries.map((summary) => {
@@ -120,21 +122,21 @@ export const useFarmRegistry = () => {
       })
     )
     const farmInfos = results.map((result: ApolloQueryResult<any>, index) => {
-      let swapRewardsUSDPerYear = 0
-      const summary = farmSummaries[index]
+      let swapRewardsUSDPerYear: BigNumber = BigNumber.from(0)
+      const summary: FarmSummary = farmSummaries[index]
       const { loading, error, data } = result
       if (!loading && !error && data) {
         const lastDayVolumeUsd = data.pair.pairHourData.reduce(
           (acc: number, curr: { hourlyVolumeUSD: string }) => acc + Number(curr.hourlyVolumeUSD),
           0
         )
-        swapRewardsUSDPerYear = Math.floor(lastDayVolumeUsd * 365 * 0.0025)
+        swapRewardsUSDPerYear = parseEther(Math.floor(lastDayVolumeUsd * 365 * 0.0025).toString())
       }
-      const rewardApr = new Percent(summary.rewardsUSDPerYear, summary.tvlUSD)
-      const swapApr = new Percent(toWei(swapRewardsUSDPerYear.toString()), summary.tvlUSD)
+      const rewardApr = new Percent(summary.rewardsUSDPerYear.toString(), summary.tvlUSD.toString())
+      const swapApr = new Percent(swapRewardsUSDPerYear.toString(), summary.tvlUSD.toString())
       const apr = new Percent(
-        toBN(toWei(swapRewardsUSDPerYear.toString())).add(toBN(summary.rewardsUSDPerYear)).toString(),
-        summary.tvlUSD
+        swapRewardsUSDPerYear.add(summary.rewardsUSDPerYear).toString(),
+        summary.tvlUSD.toString()
       )
       const apy = annualizedPercentageYield(apr, COMPOUNDS_PER_YEAR)
       return {
@@ -165,9 +167,7 @@ export const useUniqueBestFarms = () => {
   const farmsUniqueByBestFarm = farmSummaries.reduce((prev: Record<string, FarmSummary>, current) => {
     if (!prev[current.lpAddress]) {
       prev[current.lpAddress] = current
-    } else if (
-      Number(fromWei(current.rewardsUSDPerYear)) > Number(fromWei(prev[current.lpAddress].rewardsUSDPerYear))
-    ) {
+    } else if (current.rewardsUSDPerYear.gt(prev[current.lpAddress].rewardsUSDPerYear)) {
       prev[current.lpAddress] = current
     }
     return prev

@@ -1,4 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { formatEther } from '@ethersproject/units'
 import { useToken } from 'hooks/Tokens'
 import { useStakingContract } from 'hooks/useContract'
 import { FarmSummary } from 'pages/Earn/useFarmRegistry'
@@ -10,7 +11,6 @@ import { useSingleCallResult } from 'state/multicall/hooks'
 import { updateUserAprMode } from 'state/user/actions'
 import { useIsAprMode } from 'state/user/hooks'
 import styled, { useTheme } from 'styled-components'
-import { fromWei } from 'web3-utils'
 
 import { StyledInternalLink, TYPE } from '../../theme'
 import { ButtonPrimary } from '../Button'
@@ -98,7 +98,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
       : '-'
     : '-'
 
-  if (Number(fromWei(farmSummary.rewardsUSDPerYear)) < 100 && !userValueCUSD?.greaterThan('0')) {
+  if (Number(formatEther(farmSummary.rewardsUSDPerYear)) < 100 && !userValueCUSD?.greaterThan('0')) {
     return null
   }
 
@@ -139,7 +139,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
       <StatContainer>
         <PoolStatRow
           statName={t('totalDeposited')}
-          statValue={Number(fromWei(farmSummary.tvlUSD)).toLocaleString(undefined, {
+          statValue={Number(formatEther(farmSummary.tvlUSD)).toLocaleString(undefined, {
             style: 'currency',
             currency: 'USD',
             maximumFractionDigits: 0,
@@ -149,7 +149,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary }: Props) => {
           <div aria-label="Toggle APR/APY" onClick={() => dispatch(updateUserAprMode({ userAprMode: !userAprMode }))}>
             <PoolStatRow
               helperText={
-                farmSummary.tvlUSD === '0' ? (
+                farmSummary.tvlUSD.isZero() ? (
                   'Pool is empty'
                 ) : (
                   <>
