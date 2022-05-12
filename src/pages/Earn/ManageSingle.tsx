@@ -95,7 +95,7 @@ export default function ManageSingle({
 
   const customStakingInfo = useCustomStakingInfo(stakingAddress)
   const stakingInfo = { ...customStakingInfo, tokens: undefined }
-  const userLiquidityUnstaked = useCurrencyBalance(account ?? '', token)
+  const userLiquidityUnstaked = useCurrencyBalance(account || undefined, token)
   const showAddLiquidityButton = Boolean(stakingInfo.stakedAmount?.equalTo('0') && userLiquidityUnstaked?.equalTo('0'))
 
   const [showStakingModal, setShowStakingModal] = useState(false)

@@ -97,14 +97,13 @@ export default function Earn() {
   const [showImportFarmModal, setShowImportFarmModal] = useState<boolean>(false)
   const farmSummaries = useFarmRegistry()
   const { importedFarmSummaries } = useImportedFarmState()
-  const { onAddImportedFarm, onRemoveImportedFarm, onInitializeImportedFarm } = useImportedFarmActionHandlers()
+  const { onAddImportedFarm, onRemoveImportedFarm } = useImportedFarmActionHandlers()
   useEffect(() => {
     if (!isEqual(importedFarmsAddress, prevImportedFarmAddress)) {
       setPrevImportedFarmAddress(importedFarmsAddress)
-      onInitializeImportedFarm()
       setCustomFarms(importedFarmsAddress ? JSON.parse(importedFarmsAddress) : [])
     }
-  }, [importedFarmsAddress, prevImportedFarmAddress, onInitializeImportedFarm])
+  }, [importedFarmsAddress, prevImportedFarmAddress])
 
   const filteredFarms = useMemo(() => {
     const importedSummaries: FarmSummary[] = importedFarmSummaries.filter(
@@ -195,7 +194,7 @@ export default function Earn() {
                     setShowImportFarmModal(true)
                   }}
                 >
-                  <ButtonPrimary padding="8px 16px" borderRadius="8px" disabled={!account}>
+                  <ButtonPrimary padding="8px 16px" borderRadius="8px">
                     {'Import Farm'}
                   </ButtonPrimary>
                 </Text>
@@ -220,7 +219,7 @@ export default function Earn() {
           ))}
         </>
       )}
-      {account && importedFarms.length > 0 && (
+      {importedFarms.length > 0 && (
         <>
           <Header>{t('importedPools')}</Header>
           {importedFarms.map((farmSummary, index) => (
@@ -261,10 +260,9 @@ export default function Earn() {
         isOpen={showImportFarmModal}
         onDismiss={() => setShowImportFarmModal(false)}
       />
-      {account &&
-        customFarms.map((farmAddress, index) => (
-          <ImportedPoolCard key={index} farmAddress={farmAddress} onUpdateFarm={(farm) => handleUpdateFarm(farm)} />
-        ))}
+      {customFarms.map((farmAddress, index) => (
+        <ImportedPoolCard key={index} farmAddress={farmAddress} onUpdateFarm={(farm) => handleUpdateFarm(farm)} />
+      ))}
     </PageWrapper>
   )
 }

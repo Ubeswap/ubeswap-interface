@@ -42,7 +42,7 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
   const { address: account, network } = useContractKit()
   const { chainId } = network
   const library = useProvider()
-  const provider = getProviderOrSigner(library, account ? account : undefined)
+  const provider = getProviderOrSigner(library, account || undefined)
   const tokens = useAllTokens()
 
   const stakingContract = useStakingContract(isAddress(farmAddress) ? farmAddress : '')
@@ -99,7 +99,7 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, multiStakingContract])
 
-  const balanceOf = useSingleCallResult(stakingContract, 'balanceOf', [account ?? ''])?.result?.[0]
+  const balanceOf = useSingleCallResult(stakingContract, 'balanceOf', [account || undefined])?.result?.[0]
 
   const periodFinish = useSingleCallResult(stakingContract, 'periodFinish', [])?.result?.[0]
   const periodFinishSeconds = periodFinish?.toNumber()
@@ -113,7 +113,7 @@ export const useCustomStakingInfo = (farmAddress: string): CustomStakingInfo => 
   let rewardRates: any = useSingleCallResult(stakingContract, 'rewardRate', [])?.result
   rewardRates = rewardRates ? [...rewardRates, ...externalRewardsRates] : externalRewardsRates
 
-  const earnedAmount = useSingleCallResult(stakingContract, 'earned', [account ?? ''])?.result?.[0]
+  const earnedAmount = useSingleCallResult(stakingContract, 'earned', [account || undefined])?.result?.[0]
   const earnedAmountsAll: BigNumber[] = earnedAmount ? [earnedAmount, ...externalEarnedAmounts] : externalEarnedAmounts
   const totalSupply = useSingleCallResult(stakingContract, 'totalSupply', [])?.result?.[0]
 
