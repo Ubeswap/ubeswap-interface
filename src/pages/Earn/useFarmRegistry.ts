@@ -1,4 +1,5 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
+import { parseEther } from '@ethersproject/units'
 import { TokenAmount } from '@ubeswap/sdk'
 import { ethers } from 'ethers'
 import React, { useEffect } from 'react'
@@ -123,7 +124,7 @@ export const useImportedFarmRegistry = (farmAddress: string): FarmSummary | unde
       token0Address: tokens[0].address,
       token1Address: tokens[1].address,
       isFeatured: false,
-      tvlUSD: valueOfTotalStakedAmountInCUSD,
+      tvlUSD: parseEther(valueOfTotalStakedAmountInCUSD).toString(),
       rewardsUSDPerYear: '0',
       isImported: true,
       totalRewardRates,
