@@ -172,6 +172,8 @@ export const DEFAULT_DEADLINE_FROM_NOW = 60 * 20
 // used for rewards deadlines
 export const BIG_INT_SECONDS_IN_WEEK = JSBI.BigInt(60 * 60 * 24 * 7)
 
+export const INT_SECONDS_IN_WEEK = 60 * 60 * 24 * 7
+
 export const BIG_INT_SECONDS_IN_YEAR = JSBI.BigInt(60 * 60 * 24 * 365)
 
 export const BIG_INT_ZERO = JSBI.BigInt(0)
@@ -194,3 +196,5 @@ export const BETTER_TRADE_LESS_HOPS_THRESHOLD = new Percent(JSBI.BigInt(50), JSB
 
 export const ZERO_PERCENT = new Percent('0')
 export const ONE_HUNDRED_PERCENT = new Percent('1')
+
+export const IMPORTED_FARMS = 'imported_farms'

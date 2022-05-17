@@ -3,11 +3,13 @@ import { useContractKit } from '@celo-tools/use-contractkit'
 import { BigNumber } from '@ethersproject/bignumber'
 import { formatEther, parseEther } from '@ethersproject/units'
 import { Percent } from '@ubeswap/sdk'
+import { TokenAmount } from '@ubeswap/sdk'
 import { ethers } from 'ethers'
 import React, { useEffect } from 'react'
 import { AbiItem } from 'web3-utils'
 
 import farmRegistryAbi from '../../constants/abis/FarmRegistry.json'
+import { useCustomStakingInfo } from './useCustomStakingInfo'
 
 type FarmData = {
   tvlUSD: string
@@ -27,10 +29,13 @@ export type FarmSummary = {
   swapApr?: Percent
   apr?: Percent
   apy?: string
+  isImported: boolean
+  totalRewardRates?: TokenAmount[]
 }
 
 const blacklist: Record<string, boolean> = {
   '0x4488682fd16562a68ea0d0f898413e075f42e6da': true,
+  '0xC245976Db329Bb0414253376246a367B7c96C762': true,
 }
 
 const featuredPoolWhitelist: Record<string, boolean> = {
@@ -109,6 +114,7 @@ export const useFarmRegistry = () => {
           tvlUSD: BigNumber.from(farmData[e.returnValues.stakingAddress].tvlUSD),
           rewardsUSDPerYear: BigNumber.from(farmData[e.returnValues.stakingAddress].rewardsUSDPerYear),
           isFeatured: !!featuredPoolWhitelist[e.returnValues.stakingAddress],
+          isImported: false,
         })
       })
 
@@ -161,9 +167,29 @@ export const useFarmRegistry = () => {
   return farmSummaries
 }
 
+export const useImportedFarmRegistry = (farmAddress: string): FarmSummary | undefined => {
+  const { stakingToken, totalRewardRates, valueOfTotalStakedAmountInCUSD, tokens } = useCustomStakingInfo(farmAddress)
+
+  if (stakingToken && totalRewardRates && valueOfTotalStakedAmountInCUSD && tokens) {
+    const farmSummary: FarmSummary = {
+      farmName: '',
+      stakingAddress: farmAddress,
+      lpAddress: stakingToken?.address,
+      token0Address: tokens[0].address,
+      token1Address: tokens[1].address,
+      isFeatured: false,
+      tvlUSD: parseEther(valueOfTotalStakedAmountInCUSD).toString(),
+      rewardsUSDPerYear: '0',
+      isImported: true,
+      totalRewardRates,
+    }
+    return farmSummary
+  }
+  return undefined
+}
+
 export const useUniqueBestFarms = () => {
   const farmSummaries = useFarmRegistry()
-
   const farmsUniqueByBestFarm = farmSummaries.reduce((prev: Record<string, FarmSummary>, current) => {
     if (!prev[current.lpAddress]) {
       prev[current.lpAddress] = current

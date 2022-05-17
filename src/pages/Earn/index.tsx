@@ -1,13 +1,20 @@
 import { formatEther } from '@ethersproject/units'
 import { faArrowDownWideShort } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { ErrorBoundary } from '@sentry/react'
 import { Token } from '@ubeswap/sdk'
+import { ButtonPrimary } from 'components/Button'
 import TokenSelect from 'components/CurrencyInputPanel/TokenSelect'
 import ClaimAllRewardPanel from 'components/earn/ClaimAllRewardPanel'
+import { ImportedPoolCard } from 'components/earn/ImportedPoolCard'
+import ImportFarmModal from 'components/earn/ImportFarmModal'
 import Loader from 'components/Loader'
-import React, { useMemo, useState } from 'react'
+import { isEqual } from 'lodash'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Text } from 'rebass'
+import { useImportedFarmActionHandlers, useImportedFarmState } from 'state/importfarm/hooks'
 import { useOwnerStakedPools } from 'state/stake/useOwnerStakedPools'
 import styled from 'styled-components'
 
@@ -15,9 +22,10 @@ import { AutoColumn, ColumnCenter, TopSection } from '../../components/Column'
 import { PoolCard } from '../../components/earn/PoolCard'
 import { CardNoise, CardSection, DataCard } from '../../components/earn/styled'
 import { RowBetween, RowStart } from '../../components/Row'
+import { IMPORTED_FARMS } from '../../constants'
 import { ExternalLink, TYPE } from '../../theme'
 import LiquidityWarning from '../Pool/LiquidityWarning'
-import { useFarmRegistry } from './useFarmRegistry'
+import { FarmSummary, useFarmRegistry } from './useFarmRegistry'
 
 enum FarmSort {
   UNKNOWN,
@@ -78,6 +86,40 @@ const Header: React.FC = ({ children }) => {
   )
 }
 
+export const MobileContainer = styled.div`
+  display: none;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    display: block;
+  `}
+`
+
+export const DesktopContainer = styled.div`
+  display: block;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    display: none;
+  `}
+`
+
+export const StyledButton = styled.div`
+  text-decoration: none;
+  cursor: pointer;
+  color: ${({ theme }) => theme.primary1};
+  font-weight: 500;
+
+  :hover {
+    text-decoration: underline;
+  }
+
+  :focus {
+    outline: none;
+    text-decoration: underline;
+  }
+
+  :active {
+    text-decoration: none;
+  }
+`
+
 function useTokenFilter(): [Token | null, (t: Token | null) => void] {
   const [token, setToken] = useState<Token | null>(null)
   return [token, setToken]
@@ -85,17 +127,36 @@ function useTokenFilter(): [Token | null, (t: Token | null) => void] {
 
 export default function Earn() {
   const { t } = useTranslation()
+  const { address: account } = useContractKit()
+
+  const importedFarmsAddress = localStorage.getItem(IMPORTED_FARMS)
+  const [prevImportedFarmAddress, setPrevImportedFarmAddress] = useState<string | null>(null)
+  const [customFarms, setCustomFarms] = useState<string[]>([])
   const [filteringToken, setFilteringToken] = useTokenFilter()
+  const [showImportFarmModal, setShowImportFarmModal] = useState<boolean>(false)
   const farmSummaries = useFarmRegistry()
-  const [sortType, setSortType] = useState<FarmSort>(FarmSort.UNKNOWN)
+          const [sortType, setSortType] = useState<FarmSort>(FarmSort.UNKNOWN)
+  const { importedFarmSummaries } = useImportedFarmState()
+  const { onAddImportedFarm, onRemoveImportedFarm } = useImportedFarmActionHandlers()
+  useEffect(() => {
+    if (!isEqual(importedFarmsAddress, prevImportedFarmAddress)) {
+      setPrevImportedFarmAddress(importedFarmsAddress)
+      setCustomFarms(importedFarmsAddress ? JSON.parse(importedFarmsAddress) : [])
+    }
+  }, [importedFarmsAddress, prevImportedFarmAddress])
+
   const filteredFarms = useMemo(() => {
-    const sortedSummaries =
+    const importedSummaries: FarmSummary[] = importedFarmSummaries.filter(
+      (summary) => summary !== undefined
+    ) as unknown as FarmSummary[]
+            
+    const allSummaries = [...farmSummaries, ...importedSummaries]
+     const sortedSummaries =
       sortType === FarmSort.YIELD
-        ? farmSummaries.sort((a, b) => Number(b.apy) - Number(a.apy))
-        : farmSummaries.sort((a, b) => {
+        ? allSummaries.sort((a, b) => Number(b.apy) - Number(a.apy))
+        : allSummaries.sort((a, b) => {
             return Number(formatEther(b.tvlUSD.sub(a.tvlUSD)))
           })
-
     if (filteringToken === null) {
       return sortedSummaries
     } else {
@@ -103,9 +164,21 @@ export default function Earn() {
         (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
       )
     }
-  }, [filteringToken, farmSummaries, sortType])
+  }, [filteringToken, farmSummaries, importedFarmSummaries])
 
-  const { stakedFarms, featuredFarms, unstakedFarms } = useOwnerStakedPools(filteredFarms)
+  const { stakedFarms, featuredFarms, unstakedFarms, importedFarms } = useOwnerStakedPools(filteredFarms)
+
+  const handleRemoveFarm = (farmAddress: string) => {
+    if (customFarms) {
+      localStorage.setItem(IMPORTED_FARMS, JSON.stringify(customFarms.filter((farm: string) => farm !== farmAddress)))
+      onRemoveImportedFarm(farmAddress)
+    }
+  }
+
+  const handleUpdateFarm = (farmSummary: FarmSummary) => {
+    onAddImportedFarm(farmSummary)
+  }
+
   return (
     <PageWrapper>
       <ClaimAllRewardPanel stakedFarms={stakedFarms} />
@@ -136,6 +209,25 @@ export default function Earn() {
         </TopSection>
       )}
       <TopSection gap="md">
+        <MobileContainer>
+          {farmSummaries.length !== 0 && (
+            <AutoColumn justify={'start'} gap="md">
+              <Text
+                textAlign="center"
+                fontSize={16}
+                style={{ padding: '.5rem 0 .5rem 0' }}
+                onClick={() => {
+                  setShowImportFarmModal(true)
+                }}
+              >
+                <ButtonPrimary padding="8px 16px" borderRadius="8px" disabled={!account}>
+                  {t('ImportFarm')}
+                </ButtonPrimary>
+              </Text>
+            </AutoColumn>
+          )}
+        </MobileContainer>
+        <RowBetween>
         <AutoColumn>
           <RowStart>
             <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
@@ -160,6 +252,25 @@ export default function Earn() {
             </Option>
           </RowStart>
         </AutoColumn>
+          <DesktopContainer>
+            {farmSummaries.length !== 0 && (
+              <AutoColumn justify={'end'} gap="md">
+                <Text
+                  textAlign="center"
+                  fontSize={16}
+                  style={{ padding: '.5rem 0 .5rem 0' }}
+                  onClick={() => {
+                    setShowImportFarmModal(true)
+                  }}
+                >
+                  <ButtonPrimary padding="8px 16px" borderRadius="8px">
+                    {'Import Farm'}
+                  </ButtonPrimary>
+                </Text>
+              </AutoColumn>
+            )}
+          </DesktopContainer>
+        </RowBetween>
       </TopSection>
       <ColumnCenter>
         {farmSummaries.length > 0 && filteredFarms.length == 0 && `No Farms for ${filteringToken?.symbol}`}
@@ -168,10 +279,22 @@ export default function Earn() {
       {stakedFarms.length > 0 && (
         <>
           <Header>{t('yourPools')}</Header>
-          {stakedFarms.map((farmSummary) => (
-            <PoolWrapper key={farmSummary.stakingAddress}>
+          {stakedFarms.map((farmSummary, index) => (
+            <PoolWrapper key={index}>
               <ErrorBoundary>
                 <PoolCard farmSummary={farmSummary} />
+              </ErrorBoundary>
+            </PoolWrapper>
+          ))}
+        </>
+      )}
+      {importedFarms.length > 0 && (
+        <>
+          <Header>{t('importedPools')}</Header>
+          {importedFarms.map((farmSummary, index) => (
+            <PoolWrapper key={index}>
+              <ErrorBoundary>
+                <PoolCard farmSummary={farmSummary} onRemoveImportedFarm={handleRemoveFarm} />
               </ErrorBoundary>
             </PoolWrapper>
           ))}
@@ -201,6 +324,14 @@ export default function Earn() {
           ))}
         </>
       )}
+      <ImportFarmModal
+        farmSummaries={farmSummaries}
+        isOpen={showImportFarmModal}
+        onDismiss={() => setShowImportFarmModal(false)}
+      />
+      {customFarms.map((farmAddress, index) => (
+        <ImportedPoolCard key={index} farmAddress={farmAddress} onUpdateFarm={(farm) => handleUpdateFarm(farm)} />
+      ))}
     </PageWrapper>
   )
 }
