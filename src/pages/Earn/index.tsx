@@ -1,7 +1,7 @@
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { formatEther } from '@ethersproject/units'
 import { faArrowDownWideShort } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { ErrorBoundary } from '@sentry/react'
 import { Token } from '@ubeswap/sdk'
 import { ButtonPrimary } from 'components/Button'
@@ -135,7 +135,7 @@ export default function Earn() {
   const [filteringToken, setFilteringToken] = useTokenFilter()
   const [showImportFarmModal, setShowImportFarmModal] = useState<boolean>(false)
   const farmSummaries = useFarmRegistry()
-          const [sortType, setSortType] = useState<FarmSort>(FarmSort.UNKNOWN)
+  const [sortType, setSortType] = useState<FarmSort>(FarmSort.UNKNOWN)
   const { importedFarmSummaries } = useImportedFarmState()
   const { onAddImportedFarm, onRemoveImportedFarm } = useImportedFarmActionHandlers()
   useEffect(() => {
@@ -149,9 +149,9 @@ export default function Earn() {
     const importedSummaries: FarmSummary[] = importedFarmSummaries.filter(
       (summary) => summary !== undefined
     ) as unknown as FarmSummary[]
-            
+
     const allSummaries = [...farmSummaries, ...importedSummaries]
-     const sortedSummaries =
+    const sortedSummaries =
       sortType === FarmSort.YIELD
         ? allSummaries.sort((a, b) => Number(b.apy) - Number(a.apy))
         : allSummaries.sort((a, b) => {
@@ -164,7 +164,7 @@ export default function Earn() {
         (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
       )
     }
-  }, [filteringToken, farmSummaries, importedFarmSummaries])
+  }, [importedFarmSummaries, farmSummaries, sortType, filteringToken])
 
   const { stakedFarms, featuredFarms, unstakedFarms, importedFarms } = useOwnerStakedPools(filteredFarms)
 
@@ -228,30 +228,30 @@ export default function Earn() {
           )}
         </MobileContainer>
         <RowBetween>
-        <AutoColumn>
-          <RowStart>
-            <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
-            <Option
-              style={{ marginLeft: '8px', marginBottom: '10px' }}
-              onClick={() => {
-                setSortType(sortType === FarmSort.DEPOSIT ? FarmSort.UNKNOWN : FarmSort.DEPOSIT)
-              }}
-              active={sortType === FarmSort.DEPOSIT}
-            >
-              <FontAwesomeIcon icon={faArrowDownWideShort} />
-              &nbsp;{t('deposit')}
-            </Option>
-            <Option
-              onClick={() => {
-                setSortType(sortType === FarmSort.YIELD ? FarmSort.UNKNOWN : FarmSort.YIELD)
-              }}
-              active={sortType === FarmSort.YIELD}
-            >
-              <FontAwesomeIcon icon={faArrowDownWideShort} />
-              &nbsp;{t('yield')}
-            </Option>
-          </RowStart>
-        </AutoColumn>
+          <AutoColumn>
+            <RowStart>
+              <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
+              <Option
+                style={{ marginLeft: '8px', marginBottom: '10px' }}
+                onClick={() => {
+                  setSortType(sortType === FarmSort.DEPOSIT ? FarmSort.UNKNOWN : FarmSort.DEPOSIT)
+                }}
+                active={sortType === FarmSort.DEPOSIT}
+              >
+                <FontAwesomeIcon icon={faArrowDownWideShort} />
+                &nbsp;{t('deposit')}
+              </Option>
+              <Option
+                onClick={() => {
+                  setSortType(sortType === FarmSort.YIELD ? FarmSort.UNKNOWN : FarmSort.YIELD)
+                }}
+                active={sortType === FarmSort.YIELD}
+              >
+                <FontAwesomeIcon icon={faArrowDownWideShort} />
+                &nbsp;{t('yield')}
+              </Option>
+            </RowStart>
+          </AutoColumn>
           <DesktopContainer>
             {farmSummaries.length !== 0 && (
               <AutoColumn justify={'end'} gap="md">

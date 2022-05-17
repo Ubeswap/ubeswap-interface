@@ -2,8 +2,7 @@ import { ApolloQueryResult, gql, useApolloClient } from '@apollo/client'
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { BigNumber } from '@ethersproject/bignumber'
 import { formatEther, parseEther } from '@ethersproject/units'
-import { Percent } from '@ubeswap/sdk'
-import { TokenAmount } from '@ubeswap/sdk'
+import { Percent, TokenAmount } from '@ubeswap/sdk'
 import { ethers } from 'ethers'
 import React, { useEffect } from 'react'
 import { AbiItem } from 'web3-utils'
@@ -178,8 +177,8 @@ export const useImportedFarmRegistry = (farmAddress: string): FarmSummary | unde
       token0Address: tokens[0].address,
       token1Address: tokens[1].address,
       isFeatured: false,
-      tvlUSD: parseEther(valueOfTotalStakedAmountInCUSD).toString(),
-      rewardsUSDPerYear: '0',
+      tvlUSD: parseEther(valueOfTotalStakedAmountInCUSD),
+      rewardsUSDPerYear: BigNumber.from(0),
       isImported: true,
       totalRewardRates,
     }

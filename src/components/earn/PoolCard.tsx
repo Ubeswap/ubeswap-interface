@@ -1,6 +1,6 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { formatEther } from '@ethersproject/units'
-import { JSBI, Percent, TokenAmount } from '@ubeswap/sdk'
+import { JSBI, TokenAmount } from '@ubeswap/sdk'
 import CurrencyLogo from 'components/CurrencyLogo'
 import { useToken } from 'hooks/Tokens'
 import { useStakingContract } from 'hooks/useContract'
@@ -134,7 +134,8 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
 
   if (
     !farmSummary.isImported &&
-    Number(formatEther(farmSummary.rewardsUSDPerYear)) < 100 && !userValueCUSD?.greaterThan('0')
+    Number(formatEther(farmSummary.rewardsUSDPerYear)) < 100 &&
+    !userValueCUSD?.greaterThan('0')
   ) {
     return null
   }
