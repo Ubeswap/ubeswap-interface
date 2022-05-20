@@ -149,7 +149,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
   )
 
   let compoundedAPY: React.ReactNode | undefined = <>🤯</>
-  if (!farmSummary.isImported) {
+  if (farmSummary.tvlUSD !== '0') {
     try {
       compoundedAPY = annualizedPercentageYield(apr, COMPOUNDS_PER_YEAR)
     } catch (e) {
@@ -207,7 +207,19 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
               {token0?.symbol}-{token1?.symbol}
             </TYPE.white>
           )}
-          {farmSummary.isImported ? (
+          {apr && apr.greaterThan('0') && farmSummary.tvlUSD !== '0' && (
+            <span
+              aria-label="Toggle APR/APY"
+              onClick={() => dispatch(updateUserAprMode({ userAprMode: !userAprMode }))}
+            >
+              <TYPE.white>
+                <TYPE.small className="apr" fontWeight={400} fontSize={14}>
+                  {displayedPercentageReturn} {userAprMode ? 'APR' : 'APY'}
+                </TYPE.small>
+              </TYPE.white>
+            </span>
+          )}
+          {farmSummary.isImported && (
             <>
               {farmSummary.totalRewardRates
                 ?.filter((rewardRate) => rewardRate.greaterThan('0'))
@@ -225,18 +237,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
                   </span>
                 ))}
             </>
-          ) : apr && apr.greaterThan('0') ? (
-            <span
-              aria-label="Toggle APR/APY"
-              onClick={() => dispatch(updateUserAprMode({ userAprMode: !userAprMode }))}
-            >
-              <TYPE.white>
-                <TYPE.small className="apr" fontWeight={400} fontSize={14}>
-                  {displayedPercentageReturn} {userAprMode ? 'APR' : 'APY'}
-                </TYPE.small>
-              </TYPE.white>
-            </span>
-          ) : null}
+          )}
         </PoolInfo>
         <StyledInternalLink
           to={`/farm/${isSingleToken ? token0?.address : token0?.address + '/' + token1?.address}/${
@@ -259,20 +260,7 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
             maximumFractionDigits: 0,
           })}
         />
-        {farmSummary.isImported ? (
-          <PoolStatRow
-            statName={`Pool Rate`}
-            statArrayValue={farmSummary.totalRewardRates
-              ?.filter((rewardRate) => rewardRate.greaterThan('0'))
-              .map(
-                (rewardRate) =>
-                  rewardRate.multiply(BIG_INT_SECONDS_IN_WEEK)?.toSignificant(4, { groupSeparator: ',' }) +
-                  ' ' +
-                  rewardRate.token.symbol +
-                  ' / Week'
-              )}
-          />
-        ) : apr && apr.greaterThan('0') ? (
+        {apr && apr.greaterThan('0') && farmSummary.tvlUSD !== '0' && (
           <div aria-label="Toggle APR/APY" onClick={() => dispatch(updateUserAprMode({ userAprMode: !userAprMode }))}>
             <PoolStatRow
               helperText={
@@ -291,7 +279,21 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
               statValue={displayedPercentageReturn}
             />
           </div>
-        ) : null}
+        )}
+        {farmSummary.isImported && (
+          <PoolStatRow
+            statName={`Pool Rate`}
+            statArrayValue={farmSummary.totalRewardRates
+              ?.filter((rewardRate) => rewardRate.greaterThan('0'))
+              .map(
+                (rewardRate) =>
+                  rewardRate.multiply(BIG_INT_SECONDS_IN_WEEK)?.toSignificant(4, { groupSeparator: ',' }) +
+                  ' ' +
+                  rewardRate.token.symbol +
+                  ' / Week'
+              )}
+          />
+        )}
       </StatContainer>
 
       {isStaking && (

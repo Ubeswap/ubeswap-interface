@@ -114,7 +114,8 @@ export const useFarmRegistry = () => {
 }
 
 export const useImportedFarmRegistry = (farmAddress: string): FarmSummary | undefined => {
-  const { stakingToken, totalRewardRates, valueOfTotalStakedAmountInCUSD, tokens } = useCustomStakingInfo(farmAddress)
+  const { stakingToken, totalRewardRates, valueOfTotalStakedAmountInCUSD, tokens, rewardsUSDPerYear } =
+    useCustomStakingInfo(farmAddress)
 
   if (stakingToken && totalRewardRates && valueOfTotalStakedAmountInCUSD && tokens) {
     const farmSummary: FarmSummary = {
@@ -125,7 +126,7 @@ export const useImportedFarmRegistry = (farmAddress: string): FarmSummary | unde
       token1Address: tokens[1].address,
       isFeatured: false,
       tvlUSD: parseEther(valueOfTotalStakedAmountInCUSD).toString(),
-      rewardsUSDPerYear: '0',
+      rewardsUSDPerYear,
       isImported: true,
       totalRewardRates,
     }
