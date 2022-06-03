@@ -209,7 +209,7 @@ export default function Earn() {
         </TopSection>
       )}
       <TopSection gap="md">
-        <MobileContainer>
+        {/* <MobileContainer>
           {farmSummaries.length !== 0 && (
             <AutoColumn justify={'start'} gap="md">
               <Text
@@ -226,7 +226,7 @@ export default function Earn() {
               </Text>
             </AutoColumn>
           )}
-        </MobileContainer>
+        </MobileContainer> */}
         <RowBetween>
           <AutoColumn>
             <RowStart>
@@ -252,7 +252,7 @@ export default function Earn() {
               </Option>
             </RowStart>
           </AutoColumn>
-          <DesktopContainer>
+          <>
             {farmSummaries.length !== 0 && (
               <AutoColumn justify={'end'} gap="md">
                 <Text
@@ -264,12 +264,12 @@ export default function Earn() {
                   }}
                 >
                   <ButtonPrimary padding="8px 16px" borderRadius="8px">
-                    {'Import Farm'}
+                    {t('Import')}
                   </ButtonPrimary>
                 </Text>
               </AutoColumn>
             )}
-          </DesktopContainer>
+          </>
         </RowBetween>
       </TopSection>
       <ColumnCenter>
