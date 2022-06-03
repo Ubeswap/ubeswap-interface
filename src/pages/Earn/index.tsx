@@ -1,4 +1,3 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { formatEther } from '@ethersproject/units'
 import { faArrowDownWideShort } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -127,7 +126,6 @@ function useTokenFilter(): [Token | null, (t: Token | null) => void] {
 
 export default function Earn() {
   const { t } = useTranslation()
-  const { address: account } = useContractKit()
 
   const importedFarmsAddress = localStorage.getItem(IMPORTED_FARMS)
   const [prevImportedFarmAddress, setPrevImportedFarmAddress] = useState<string | null>(null)
@@ -209,24 +207,6 @@ export default function Earn() {
         </TopSection>
       )}
       <TopSection gap="md">
-        {/* <MobileContainer>
-          {farmSummaries.length !== 0 && (
-            <AutoColumn justify={'start'} gap="md">
-              <Text
-                textAlign="center"
-                fontSize={16}
-                style={{ padding: '.5rem 0 .5rem 0' }}
-                onClick={() => {
-                  setShowImportFarmModal(true)
-                }}
-              >
-                <ButtonPrimary padding="8px 16px" borderRadius="8px" disabled={!account}>
-                  {t('ImportFarm')}
-                </ButtonPrimary>
-              </Text>
-            </AutoColumn>
-          )}
-        </MobileContainer> */}
         <RowBetween>
           <AutoColumn>
             <RowStart>
