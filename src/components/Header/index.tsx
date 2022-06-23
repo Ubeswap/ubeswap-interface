@@ -467,7 +467,7 @@ export default function Header() {
               </StyledSubMenuItem>
               <StyledSubMenuItem>
                 <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://transferto.xyz/'}>
-                  Transferto
+                  LI.FI
                 </StyledDrawerExternalLink>
               </StyledSubMenuItem>
               <StyledMenuItem>

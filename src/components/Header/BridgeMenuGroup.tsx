@@ -70,7 +70,7 @@ export default function BridgeMenuGroup() {
             Orbit
           </MenuItem>
           <MenuItem id="link" href="https://transferto.xyz/">
-            Transferto
+            LI.FI
           </MenuItem>
         </MenuFlyout>
       )}
