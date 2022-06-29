@@ -3728,10 +3728,10 @@
     tiny-warning "^1.0.3"
     toformat "^2.0.0"
 
-"@uniswap/default-token-list@^2.0.0":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@uniswap/default-token-list/-/default-token-list-2.3.0.tgz#e5e522e775791999643aac9b0faf1ccfb4c49bd8"
-  integrity sha512-yfd4snv9K20tEbNwy9Vjym41RU3Yb2lN0seKxsgkr+m3f6oub2lWyXfTiNwgGFbOQPDvX4dxjMhA+M+S7mxqKg==
+"@uniswap/default-token-list@^4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@uniswap/default-token-list/-/default-token-list-4.1.0.tgz#bbda8b946096f248b92809f71b77b4d407768796"
+  integrity sha512-NxFW4OhYpnAunD37CKDRadG5ujp3r6cYnfBzTD1Eq4jwdr3ULt01xGqGljq0SuGAGhTsD+bmR46vPg3TdDwW0g==
 
 "@uniswap/token-lists@^1.0.0-beta.24":
   version "1.0.0-beta.28"
