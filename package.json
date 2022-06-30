@@ -115,7 +115,7 @@
   "dependencies": {
     "@apollo/client": "^3.6.5",
     "@celo-tools/use-contractkit": "^3.1.0",
-    "@celo/contractkit": "^1.2.0",
+    "@celo/contractkit": "^2.0.0",
     "@celo/utils": "^1.2.1",
     "@craco/craco": "^6.1.2",
     "@ensdomains/ensjs": "^2.0.1",
