@@ -40,7 +40,7 @@ interface StakingModalProps {
   onDismiss: () => void
   stakingInfo: StakingInfo | CustomStakingInfo
   userLiquidityUnstaked: TokenAmount | undefined
-  dummyPair: Pair | null
+  dummyPair?: Pair | null
 }
 
 export default function StakingModal({
