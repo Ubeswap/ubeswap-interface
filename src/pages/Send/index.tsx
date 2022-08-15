@@ -5,7 +5,7 @@ import { useDoTransaction } from 'components/swap/routing'
 import { ERC20_ABI } from 'constants/abis/erc20'
 import { Erc20 } from 'generated/Erc20'
 import useENS from 'hooks/useENS'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback } from 'react'
 import { Text } from 'rebass'
 import { getContract } from 'utils'
 import { isBanned } from 'utils/isBannedUser'
@@ -23,7 +23,6 @@ import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import AppBody from '../AppBody'
 
 export default function Send() {
-  const [isLockUI, setIsLockUI] = useState(false)
   // dismiss warning if all imported tokens are in active lists
   const { address: account } = useContractKit()
   const library = useProvider()
@@ -75,18 +74,6 @@ export default function Send() {
     maxAmountInput && onUserInput(Field.INPUT, maxAmountInput.toExact())
   }, [maxAmountInput, onUserInput])
 
-  useEffect(() => {
-    if (isBanned(recipientAddress)) {
-      setIsLockUI(true)
-    } else {
-      setIsLockUI(false)
-    }
-  }, [recipientAddress])
-
-  if (isLockUI) {
-    return null
-  }
-
   return (
     <>
       <SwapPoolTabs active={'swap'} />
@@ -115,7 +102,7 @@ export default function Send() {
                   handleSend()
                 }}
                 id="send-button"
-                disabled={!isValid}
+                disabled={!isValid || isBanned(recipientAddress)}
               >
                 <Text fontSize={20} fontWeight={500}>
                   {notEnoughFunds ? 'Not enough funds' : 'Send'}
