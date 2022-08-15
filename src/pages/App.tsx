@@ -1,8 +1,10 @@
 import { DappKitResponseStatus } from '@celo/utils'
+import { useContractKit } from '@celo-tools/use-contractkit'
 import { ErrorBoundary } from '@sentry/react'
-import React, { Suspense } from 'react'
+import React, { Suspense, useState } from 'react'
 import { Route, Switch, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
+import { isBanned } from 'utils/isBannedUser'
 
 import GoogleAnalyticsReporter from '../components/analytics/GoogleAnalyticsReporter'
 import Header from '../components/Header'
@@ -70,6 +72,17 @@ const localStorageKey = 'valoraRedirect'
 
 export default function App() {
   const location = useLocation()
+  const { address } = useContractKit()
+  const [isLockUI, setIsLockUI] = useState(false)
+
+  React.useEffect(() => {
+    if (isBanned(address)) {
+      setIsLockUI(true)
+    } else {
+      setIsLockUI(false)
+    }
+  }, [address])
+
   React.useEffect(() => {
     // Close window if search params from Valora redirect are present (handles Valora connection issue)
     if (typeof window !== 'undefined') {
@@ -88,6 +101,11 @@ export default function App() {
       }
     }
   }, [location])
+
+  if (isLockUI) {
+    return null
+  }
+
   return (
     <Suspense fallback={null}>
       <Route component={GoogleAnalyticsReporter} />
