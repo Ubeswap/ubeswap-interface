@@ -21,15 +21,10 @@ import WalletModal from '../WalletModal'
 
 const Web3StatusGeneric = styled(ButtonSecondary)`
   ${({ theme }) => theme.flexRowNoWrap}
-  width: 100%;
-  align-items: center;
-  padding: 0.5rem;
-  border-radius: 12px;
-  cursor: pointer;
-  user-select: none;
-  :focus {
-    outline: none;
-  }
+  background: linear-gradient(123.99deg, #F89800 1.5%, #004A56 74.51%);
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  
 `
 const Web3StatusError = styled(Web3StatusGeneric)`
   background-color: ${({ theme }) => theme.red1};
@@ -173,7 +168,7 @@ function Web3StatusInner() {
   } else {
     return (
       <Web3StatusConnect id="connect-wallet" onClick={() => connect().catch(console.warn)} faded={!address}>
-        <Text>{t('ConnectToAWallet')}</Text>
+        <Text>{t('connectWallet')}</Text>
       </Web3StatusConnect>
     )
   }

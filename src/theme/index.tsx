@@ -8,7 +8,6 @@ import styled, {
   ThemeProvider as StyledComponentsThemeProvider,
 } from 'styled-components'
 
-import { useIsDarkMode } from '../state/user/hooks'
 import { Colors } from './styled'
 
 export * from './components'
@@ -42,50 +41,36 @@ export function colors(darkMode: boolean): Colors {
     black,
 
     // text
-    text1: darkMode ? '#FFFFFF' : '#000000',
-    text2: darkMode ? '#C3C5CB' : '#565A69',
-    text3: darkMode ? '#6C7284' : '#888D9B',
-    text4: darkMode ? '#565A69' : '#C3C5CB',
-    text5: darkMode ? '#2C2F36' : '#EDEEF2',
+    text1: '#ffffff',
+    text2: '#9A9C9D',
+    text3: 'rgba(255, 255, 255, 0.3)',
 
-    // backgrounds / greys
-    bg1: darkMode ? '#212429' : '#FFFFFF',
-    bg2: darkMode ? '#2C2F36' : '#F7F8FA',
-    bg3: darkMode ? '#40444F' : '#EDEEF2',
-    bg4: darkMode ? '#565A69' : '#CED0D9',
-    bg5: darkMode ? '#6C7284' : '#888D9B',
+    // backgrounds
+    bg1: 'rgba(0, 86, 71, 0.6)',
+    bg2: 'rgba(0, 86, 71, 0.84)',
+    buttonBg1: 'linear-gradient(119.42deg, #F89800 7.07%, #004A56 78.91%)',
+    buttonBg2: 'linear-gradient(136.13deg, #207375 12.9%, #004A56 100%)',
+    payFormBg: 'rgba(0, 86, 71, 0.6)',
+    registerFormBg: 'rgba(0, 86, 71, 0.84)',
+    formFieldBg: 'rgba(33, 33, 33, 0.6)',
 
     //specialty colors
-    modalBG: darkMode ? 'rgba(0,0,0,.425)' : 'rgba(0,0,0,0.3)',
-    advancedBG: darkMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.6)',
+    modalBG: 'rgba(0,0,0,0.3)',
 
     //primary colors
-    primary1: darkMode ? '#8878C3' : '#8878C3',
-    primary2: darkMode ? '#E3DFF3' : '#FF8CC3',
-    primary3: darkMode ? '#BFB7DE' : '#FF99C9',
-    primary4: darkMode ? '#6D619A' : '#F6DDE8',
-    primary5: darkMode ? '#6D619A70' : '#E3DFF3',
+    primary1: '#8878C3',
+    primary2: '#FF8CC3',
+    primary3: '#FF99C9',
+    primary4: '#F6DDE8',
+    primary5: '#E3DFF3',
 
     // color text
-    primaryText1: darkMode ? '#E3DFF3' : '#8878C3',
-
-    // secondary colors
-    secondary1: darkMode ? '#00ffbd' : '#ff007a',
-    secondary2: darkMode ? '#001715' : '#F6DDE8',
-    secondary3: darkMode ? '#001617' : '#FDEAF1',
+    primaryText1: '#ffffff',
 
     // other
     red1: '#FD4040',
     red2: '#F82D3A',
     red3: '#D60000',
-    green1: '#27AE60',
-    yellow1: '#FFE270',
-    yellow2: '#F3841E',
-    blue1: '#35D07F',
-
-    // dont wanna forget these blue yet
-    // blue4: darkMode ? '#153d6f70' : '#C4D9F8',
-    // blue5: darkMode ? '#153d6f70' : '#EBF4FF',
   }
 }
 
@@ -100,7 +85,7 @@ export function theme(darkMode: boolean): DefaultTheme {
     },
 
     //shadows
-    shadow1: darkMode ? '#000' : '#2F80ED',
+    shadow1: 'rgba(0, 0, 0, 0.15)',
 
     // media queries
     mediaWidth: mediaWidthTemplates,
@@ -118,9 +103,7 @@ export function theme(darkMode: boolean): DefaultTheme {
 }
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const darkMode = useIsDarkMode()
-
-  const themeObject = useMemo(() => theme(darkMode), [darkMode])
+  const themeObject = useMemo(() => theme(false), [false])
 
   return <StyledComponentsThemeProvider theme={themeObject}>{children}</StyledComponentsThemeProvider>
 }
@@ -145,32 +128,29 @@ export const TYPE = {
   body(props: TextProps) {
     return <TextWrapper fontWeight={400} fontSize={16} color={'text1'} {...props} />
   },
-  largeHeader(props: TextProps) {
+  h1(props: TextProps) {
+    return <TextWrapper fontWeight={600} fontSize={48} {...props} />
+  },
+  h2(props: TextProps) {
+    return <TextWrapper fontWeight={600} fontSize={36} {...props} />
+  },
+  h3(props: TextProps) {
+    return <TextWrapper fontWeight={600} fontSize={32} {...props} />
+  },
+  h4(props: TextProps) {
+    return <TextWrapper fontWeight={600} fontSize={28} {...props} />
+  },
+  h5(props: TextProps) {
     return <TextWrapper fontWeight={600} fontSize={24} {...props} />
   },
-  mediumHeader(props: TextProps) {
-    return <TextWrapper fontWeight={500} fontSize={20} {...props} />
+  h6(props: TextProps) {
+    return <TextWrapper fontWeight={600} fontSize={18} {...props} />
   },
-  subHeader(props: TextProps) {
-    return <TextWrapper fontWeight={400} fontSize={14} {...props} />
+  label(props: TextProps) {
+    return <TextWrapper fontWeight={600} fontSize={11} {...props} />
   },
   small(props: TextProps) {
-    return <TextWrapper fontWeight={500} fontSize={11} {...props} />
-  },
-  blue(props: TextProps) {
-    return <TextWrapper fontWeight={500} color={'blue1'} {...props} />
-  },
-  yellow(props: TextProps) {
-    return <TextWrapper fontWeight={500} color={'yellow1'} {...props} />
-  },
-  darkGray(props: TextProps) {
-    return <TextWrapper fontWeight={500} color={'text3'} {...props} />
-  },
-  gray(props: TextProps) {
-    return <TextWrapper fontWeight={500} color={'bg3'} {...props} />
-  },
-  italic(props: TextProps) {
-    return <TextWrapper fontWeight={500} fontSize={12} fontStyle={'italic'} color={'text2'} {...props} />
+    return <TextWrapper fontWeight={500} fontSize={9} {...props} />
   },
   error({ error, ...props }: { error: boolean } & TextProps) {
     return <TextWrapper fontWeight={500} color={error ? 'red1' : 'text2'} {...props} />
@@ -190,7 +170,7 @@ body {
 }
 
  a {
-   color: ${colors(false).blue1}; 
+   color: ${colors(false).white}; 
  }
 
 * {

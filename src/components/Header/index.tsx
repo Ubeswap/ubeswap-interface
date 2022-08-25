@@ -21,8 +21,7 @@ import { CountUp } from 'use-count-up'
 import { relevantDigits } from 'utils/relevantDigits'
 
 import Icon from '../../assets/svg/icon-ube.svg'
-import Logo from '../../assets/svg/logo.svg'
-import LogoDark from '../../assets/svg/logo-dark.svg'
+import Logo from '../../assets/images/carbonpay-logo.png'
 import { useDarkModeManager } from '../../state/user/hooks'
 import { YellowCard } from '../Card'
 import Menu from '../Menu'
@@ -387,163 +386,16 @@ export default function Header() {
         <Title to="/">
           <UbeIcon>
             <StyledMobileLogo width={'32px'} height={'36px'} src={Icon} alt="Ubeswap" />
-            <StyledDesktopLogo width={'140px'} height={'26px'} src={darkMode ? LogoDark : Logo} alt="Ubeswap" />
+            <StyledDesktopLogo width={'200px'} src={Logo} alt="Ubeswap" />
           </UbeIcon>
         </Title>
-        <HeaderLinks>
-          <StyledNavLink id={`swap-nav-link`} to={'/swap'}>
-            {t('swap')}
-          </StyledNavLink>
-          <StyledNavLinkExtraSmall id={`swap-nav-link`} to={'/limit-order'}>
-            {t('limitOrder')}
-          </StyledNavLinkExtraSmall>
-          <StyledNavLink
-            id={`pool-nav-link`}
-            to={'/pool'}
-            isActive={(match, { pathname }) =>
-              Boolean(match) ||
-              pathname.startsWith('/add') ||
-              pathname.startsWith('/remove') ||
-              pathname.startsWith('/create') ||
-              pathname.startsWith('/find')
-            }
-          >
-            {t('pool')}
-          </StyledNavLink>
-          <StyledNavLink id="farm-nav-link" to="/farm">
-            {t('farm')}
-          </StyledNavLink>
-          <BridgeMenuGroup />
-          <StyledNavLinkExtraSmall id={`stake-nav-link`} to={'/stake'}>
-            {t('stake')}
-          </StyledNavLinkExtraSmall>
-          <ChartsMenuGroup />
-        </HeaderLinks>
-        <BurgerElement>
-          <Hamburger size={18} hideOutline={false} label="show menu" toggled={drawerVisible} onToggle={onToggle} />
-          <StyledDrawer
-            open={drawerVisible}
-            placement={'right'}
-            width={'250px'}
-            level={null}
-            handler={false}
-            onClose={onDrawerClose}
-          >
-            <StyledMenu>
-              <StyledMenuItem>
-                <StyledNavLink id={'stake-drawer-nav-link'} to={'/stake'} onClick={onDrawerClose}>
-                  {t('stake')}
-                </StyledNavLink>
-              </StyledMenuItem>
-              <StyledMenuItem>
-                <StyledNavLink id={'limit-orders-drawer-nav-link'} to={'/limit-order'} onClick={onDrawerClose}>
-                  Limit Orders
-                </StyledNavLink>
-              </StyledMenuItem>
-              <StyledMenuItem>
-                <StyledNavLink id={'stake-drawer-nav-link'} to={'#'}>
-                  Bridge
-                </StyledNavLink>
-              </StyledMenuItem>
-              <StyledSubMenuItem>
-                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://allbridge.io/'}>
-                  Allbridge
-                </StyledDrawerExternalLink>
-              </StyledSubMenuItem>
-              <StyledSubMenuItem>
-                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://app.multichain.org/#/router'}>
-                  Multichain
-                </StyledDrawerExternalLink>
-              </StyledSubMenuItem>
-              <StyledSubMenuItem>
-                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://optics.app/'}>
-                  Optics
-                </StyledDrawerExternalLink>
-              </StyledSubMenuItem>
-              <StyledSubMenuItem>
-                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://bridge.orbitchain.io/'}>
-                  Orbit
-                </StyledDrawerExternalLink>
-              </StyledSubMenuItem>
-              <StyledSubMenuItem>
-                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://transferto.xyz/'}>
-                  LI.FI
-                </StyledDrawerExternalLink>
-              </StyledSubMenuItem>
-              <StyledSubMenuItem>
-                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://www.portalbridge.com/#/transfer'}>
-                  Portal
-                </StyledDrawerExternalLink>
-              </StyledSubMenuItem>
-              <StyledMenuItem>
-                <StyledNavLink id={'charts-drawer-nav-link'} to={'#'}>
-                  Charts
-                </StyledNavLink>
-              </StyledMenuItem>
-              <StyledSubMenuItem>
-                <StyledDrawerExternalLink id={`charts-analytics-drawer-nav-link`} href={'https://info.ubeswap.org/'}>
-                  Analytics
-                </StyledDrawerExternalLink>
-              </StyledSubMenuItem>
-              <StyledSubMenuItem>
-                <StyledDrawerExternalLink id={`charts-celo-tracker-drawer-nav-link`} href={'https://celotracker.com/'}>
-                  Celo Tracker
-                </StyledDrawerExternalLink>
-              </StyledSubMenuItem>
-            </StyledMenu>
-          </StyledDrawer>
-        </BurgerElement>
       </HeaderRow>
       <HeaderControls>
         <HeaderElement>
-          <HideSmall>
-            {chainId && NETWORK_LABELS[chainId] && (
-              <NetworkCard title={NETWORK_LABELS[chainId]}>{NETWORK_LABELS[chainId]}</NetworkCard>
-            )}
-          </HideSmall>
-
-          {aggregateBalance && (
-            <UBEWrapper onClick={() => setShowUbeBalanceModal(true)}>
-              <UBEAmount active={!!account} style={{ pointerEvents: 'auto' }}>
-                {account && (
-                  <HideSmall>
-                    <TYPE.white
-                      style={{
-                        paddingRight: '.4rem',
-                      }}
-                    >
-                      <CountUp
-                        key={countUpValue}
-                        isCounting
-                        start={parseFloat(countUpValuePrevious)}
-                        end={parseFloat(countUpValue)}
-                        thousandsSeparator={','}
-                        duration={1}
-                      />
-                    </TYPE.white>
-                  </HideSmall>
-                )}
-                UBE
-              </UBEAmount>
-              <CardNoise />
-            </UBEWrapper>
-          )}
-
           <AccountElement active={!!account} style={{ pointerEvents: 'auto' }}>
-            {account && userCELOBalance ? (
-              <BalanceText style={{ flexShrink: 0 }} pl="0.75rem" pr="0.5rem" fontWeight={500}>
-                {relevantDigits(userCELOBalance) ?? '0.00'} CELO
-              </BalanceText>
-            ) : null}
             <Web3Status />
           </AccountElement>
         </HeaderElement>
-        <HeaderElementWrap>
-          <StyledMenuButton aria-label={t('toggleDarkMode')} onClick={() => toggleDarkMode()}>
-            {darkMode ? <Moon size={20} /> : <Sun size={20} />}
-          </StyledMenuButton>
-          <Menu />
-        </HeaderElementWrap>
       </HeaderControls>
     </HeaderFrame>
   )
