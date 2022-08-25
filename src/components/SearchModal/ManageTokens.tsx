@@ -31,7 +31,7 @@ const Footer = styled.div`
   border-radius: 20px;
   border-top-right-radius: 0;
   border-top-left-radius: 0;
-  border-top: 1px solid ${({ theme }) => theme.bg3};
+  border-top: 1px solid ${({ theme }) => theme.bg2};
   padding: 20px;
   text-align: center;
 `
@@ -133,7 +133,7 @@ export default function ManageTokens({
             </TYPE.main>
             {userAddedTokens.length > 0 && (
               <ButtonText onClick={handleRemoveAll}>
-                <TYPE.blue>{t('ClearAll')}</TYPE.blue>
+                {t('ClearAll')}
               </ButtonText>
             )}
           </RowBetween>
@@ -141,7 +141,7 @@ export default function ManageTokens({
         </PaddedColumn>
       </Column>
       <Footer>
-        <TYPE.darkGray>{t('TipCustomTokensAreStoredLocallyInYourBrowser')}</TYPE.darkGray>
+        {t('TipCustomTokensAreStoredLocallyInYourBrowser')}
       </Footer>
     </Wrapper>
   )

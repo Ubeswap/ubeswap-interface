@@ -24,7 +24,7 @@ export const ButtonText = styled.button`
 `
 
 export const Button = styled.button.attrs<{ warning: boolean }, { backgroundColor: string }>(({ warning, theme }) => ({
-  backgroundColor: warning ? theme.red1 : theme.primary1,
+  backgroundColor: warning ? theme.red1 : theme.buttonBg1,
 }))`
   padding: 1rem 2rem 1rem 2rem;
   border-radius: 3rem;
@@ -47,8 +47,8 @@ export const Button = styled.button.attrs<{ warning: boolean }, { backgroundColo
   }
 
   :disabled {
-    background-color: ${({ theme }) => theme.bg1};
-    color: ${({ theme }) => theme.text4};
+    background-color: ${({ theme }) => theme.buttonBg2};
+    color: ${({ theme }) => theme.text3};
     cursor: auto;
   }
 `
@@ -66,9 +66,6 @@ export const IconWrapper = styled.div<{ stroke?: string; size?: string; marginRi
   height: ${({ size }) => size ?? '20px'};
   margin-right: ${({ marginRight }) => marginRight ?? 0};
   margin-left: ${({ marginLeft }) => marginLeft ?? 0};
-  & > * {
-    stroke: ${({ theme, stroke }) => stroke ?? theme.blue1};
-  }
 `
 
 // A button that triggers some onClick result, but looks like a link.
@@ -162,7 +159,6 @@ export const LinkIcon = styled(LinkIconFeather)`
   height: 16px;
   width: 18px;
   margin-left: 10px;
-  stroke: ${({ theme }) => theme.blue1};
 `
 
 export const TrashIcon = styled(Trash)`

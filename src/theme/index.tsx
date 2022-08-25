@@ -71,6 +71,10 @@ export function colors(darkMode: boolean): Colors {
     red1: '#FD4040',
     red2: '#F82D3A',
     red3: '#D60000',
+    green1: '#27AE60',
+    yellow1: '#FFE270',
+    yellow2: '#F3841E',
+    blue1: '#35D07F',
   }
 }
 
@@ -151,6 +155,21 @@ export const TYPE = {
   },
   small(props: TextProps) {
     return <TextWrapper fontWeight={500} fontSize={9} {...props} />
+  },
+  blue(props: TextProps) {
+    return <TextWrapper fontWeight={500} color={'blue1'} {...props} />
+  },
+  yellow(props: TextProps) {
+    return <TextWrapper fontWeight={500} color={'yellow1'} {...props} />
+  },
+  darkGray(props: TextProps) {
+    return <TextWrapper fontWeight={500} color={'text3'} {...props} />
+  },
+  gray(props: TextProps) {
+    return <TextWrapper fontWeight={500} color={'bg3'} {...props} />
+  },
+  italic(props: TextProps) {
+    return <TextWrapper fontWeight={500} fontSize={12} fontStyle={'italic'} color={'text2'} {...props} />
   },
   error({ error, ...props }: { error: boolean } & TextProps) {
     return <TextWrapper fontWeight={500} color={error ? 'red1' : 'text2'} {...props} />
