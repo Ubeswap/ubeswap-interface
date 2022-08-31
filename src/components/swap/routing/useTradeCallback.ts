@@ -5,8 +5,10 @@ import { useMemo } from 'react'
 
 import { INITIAL_ALLOWED_SLIPPAGE } from '../../../constants'
 import { useDoTransaction } from '.'
+import { executeMinimaTrade } from './minima/executeMinimaTrade'
 import { executeMoolaDirectTrade } from './moola/executeMoolaDirectTrade'
 import { MoolaDirectTrade } from './moola/MoolaDirectTrade'
+import { MinimaRouterTrade } from './trade'
 
 /**
  * Use callback to allow trading
@@ -46,7 +48,13 @@ export const useTradeCallback = (
 
     const signer = library.getSigner(account)
     const env = { signer, chainId, doTransaction }
-    if (trade instanceof MoolaDirectTrade) {
+    if (trade instanceof MinimaRouterTrade) {
+      return {
+        state: SwapCallbackState.VALID,
+        callback: async () => (await executeMinimaTrade({ ...env, trade })).hash,
+        error: null,
+      }
+    } else if (trade instanceof MoolaDirectTrade) {
       return {
         state: SwapCallbackState.VALID,
         callback: async () => (await executeMoolaDirectTrade({ ...env, trade })).hash,
