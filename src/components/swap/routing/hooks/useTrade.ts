@@ -354,7 +354,7 @@ export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): M
         tokenOut?.address ?? ''
       }&amountIn=${tokenAmountIn?.raw}&slippage=${allowedSlippage}&maxHops=${
         singleHopOnly ? 1 : MAX_HOPS
-      }&includeTxn=true&priceImpact=1&from=${account}`,
+      }&includeTxn=true&priceImpact=1`,
       {
         method: 'GET',
         headers: {

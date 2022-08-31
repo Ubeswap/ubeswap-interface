@@ -15,7 +15,7 @@ export const executeMinimaTrade: TradeExecutor<MinimaRouterTrade> = async ({ tra
 
   const { details, inputAmount, outputAmount } = trade
   const inputToken = inputAmount.token
-  const outputToken = inputAmount.token
+  const outputToken = outputAmount.token
 
   const convert = async (): Promise<ContractTransaction> => {
     const inputSymbol = inputToken.symbol ?? null
