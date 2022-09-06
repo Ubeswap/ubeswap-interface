@@ -4,6 +4,7 @@ import { ERC20_ABI, ERC20_BYTES32_ABI } from 'constants/abis/erc20'
 import {
   BASES_TO_CHECK_TRADES_AGAINST,
   BETTER_TRADE_LESS_HOPS_THRESHOLD,
+  FETCH_MINIMA_ROUTER_TIMER,
   MINIMA_API_KEY,
   MINIMA_API_URL,
   UBESWAP_MOOLA_ROUTER_ADDRESS,
@@ -346,6 +347,9 @@ export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): M
     if (_.isEqual(deps, curDeps) && !fetchUpdatedData) {
       return
     }
+    if (!fetchUpdatedData) {
+      setMinimaTrade(null)
+    }
     setDeps(curDeps)
     setFetchUpdatedData(false)
     // fetch information of minima router
@@ -418,7 +422,6 @@ export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): M
                 path,
                 {
                   ...data.details,
-                  to: account ?? '',
                   inputAmount: BigNumber.from(data.details.inputAmount),
                   minOutputAmount: BigNumber.from(data.minimumExpectedOut ?? '0'),
                   expectedOutputAmount: BigNumber.from(data.details.expectedOutputAmount),
@@ -430,7 +433,7 @@ export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): M
               setFetchTimeout(
                 setTimeout(() => {
                   setFetchUpdatedData(true)
-                }, 5000)
+                }, FETCH_MINIMA_ROUTER_TIMER)
               )
             }
           })

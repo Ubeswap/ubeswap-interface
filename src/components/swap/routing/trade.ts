@@ -44,7 +44,7 @@ export interface SwapPayload {
   inputAmount: BigNumberish
   minOutputAmount: BigNumberish
   expectedOutputAmount: BigNumberish
-  to: string
+  to?: string
   deadline: BigNumberish
   partner: BigNumberish
   sig: BytesLike

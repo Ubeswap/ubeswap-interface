@@ -204,3 +204,5 @@ export const IMPORTED_FARMS = 'imported_farms'
 export const MINIMA_API_KEY = '89a53bcb-1998-475a-9b4d-49aed4daa79e'
 
 export const MINIMA_API_URL = 'https://router.nodefinance.org/routes'
+
+export const FETCH_MINIMA_ROUTER_TIMER = 5000
