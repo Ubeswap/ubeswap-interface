@@ -1,18 +1,17 @@
 import { ChainId, useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { currencyEquals, JSBI, Pair, Percent, Price, Token, TokenAmount, Trade, TradeType } from '@ubeswap/sdk'
-import { ERC20_ABI, ERC20_BYTES32_ABI } from 'constants/abis/erc20'
+import { ERC20_ABI } from 'constants/abis/erc20'
 import {
   BASES_TO_CHECK_TRADES_AGAINST,
   BETTER_TRADE_LESS_HOPS_THRESHOLD,
   FETCH_MINIMA_ROUTER_TIMER,
-  MINIMA_API_KEY,
   MINIMA_API_URL,
   UBESWAP_MOOLA_ROUTER_ADDRESS,
 } from 'constants/index'
 import { PairState, usePairs } from 'data/Reserves'
 import { BigNumber, ContractInterface, ethers } from 'ethers'
-import { Erc20, Erc20Bytes32 } from 'generated'
-import { parseStringOrBytes32, useAllTokens } from 'hooks/Tokens'
+import { Erc20 } from 'generated'
+import { useAllTokens } from 'hooks/Tokens'
 import _ from 'lodash'
 import flatMap from 'lodash.flatmap'
 import React, { useMemo } from 'react'
@@ -317,8 +316,8 @@ interface Dependencies {
   inputAmount: string | undefined
 }
 
-export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): MinimaRouterTrade | null {
-  const [minimaTrade, setMinimaTrade] = React.useState<MinimaRouterTrade | null>(null)
+export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): MinimaRouterTrade | null | undefined {
+  const [minimaTrade, setMinimaTrade] = React.useState<MinimaRouterTrade | null | undefined>(undefined)
   const [deps, setDeps] = React.useState<Dependencies | undefined>(undefined)
   const [singleHopOnly] = useUserSingleHopOnly()
   const [allowedSlippage] = useUserSlippageTolerance()
@@ -348,7 +347,7 @@ export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): M
       return
     }
     if (!fetchUpdatedData) {
-      setMinimaTrade(null)
+      setMinimaTrade(undefined)
     }
     setDeps(curDeps)
     setFetchUpdatedData(false)
@@ -358,12 +357,12 @@ export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): M
         tokenOut?.address ?? ''
       }&amountIn=${tokenAmountIn?.raw}&slippage=${allowedSlippage}&maxHops=${
         singleHopOnly ? 1 : MAX_HOPS
-      }&includeTxn=true&priceImpact=1`,
+      }&includeTxn=true&priceImpact=true${account ? '&from=' + account : ''}`,
       {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-KEY': MINIMA_API_KEY,
+          'X-API-KEY': process.env.REACT_APP_MINIMA_KEY ?? '',
         },
       }
     )
@@ -377,35 +376,22 @@ export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): M
           .then(async (data: MinimaTradePayload) => {
             if (data.details) {
               const path = await Promise.all(
-                data.details.path.map(async (path) => {
-                  if (!tokens[path]) {
+                data.details.path.map(async (pathItem) => {
+                  if (!tokens[pathItem]) {
                     // in case of a token address cannot be found on Ubeswap or Uniswap tokenlists
                     const tokenContract = new ethers.Contract(
-                      path,
+                      pathItem,
                       ERC20_ABI as ContractInterface,
                       provider
                     ) as unknown as Erc20
-                    const tokenContractBytes32 = new ethers.Contract(
-                      path,
-                      ERC20_BYTES32_ABI as ContractInterface,
-                      provider
-                    ) as unknown as Erc20Bytes32
-                    const [tokenName, tokenNameBytes32, symbol, symbolBytes32, decimals] = await Promise.all([
+                    const [tokenName, symbol, decimals] = await Promise.all([
                       tokenContract.name(),
-                      tokenContractBytes32.name(),
                       tokenContract.symbol(),
-                      tokenContractBytes32.symbol(),
                       tokenContract.decimals(),
                     ])
-                    return new Token(
-                      chainId as number,
-                      path,
-                      decimals,
-                      parseStringOrBytes32(symbol, symbolBytes32, 'UNKNOWN'),
-                      parseStringOrBytes32(tokenName, tokenNameBytes32, 'Unknown Token')
-                    )
+                    return new Token(chainId as number, pathItem, decimals, symbol, tokenName)
                   }
-                  return tokens[path]
+                  return tokens[pathItem]
                 })
               )
               const trade = MinimaRouterTrade.fromMinimaTradePayload(
@@ -437,11 +423,13 @@ export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): M
               )
             }
           })
-          .catch(() => {
+          .catch((e) => {
+            console.error(e)
             setMinimaTrade(null)
           })
       })
-      .catch(() => {
+      .catch((e) => {
+        console.error(e)
         setMinimaTrade(null)
       })
   }, [
