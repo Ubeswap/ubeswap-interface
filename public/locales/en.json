@@ -240,5 +240,8 @@
   "AreYouSure": "Are you sure?",
   "limitOrder": "Limit Order",
   "price": "Price",
-  "placeOrder": "Place Order"
+  "placeOrder": "Place Order",
+  "showMore": "Show More",
+  "showLess": "Show Less",
+  "proposal": "Proposal"
 }

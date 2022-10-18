@@ -109,3 +109,16 @@ export function AddRemoveTabs({ adding, creating }: { adding: boolean; creating:
     </Tabs>
   )
 }
+
+export function ProposalTabs() {
+  const { t } = useTranslation()
+  return (
+    <Tabs>
+      <RowBetween style={{ padding: '1rem 1rem 0 1rem' }}>
+        <HistoryLink to="/stake">
+          <StyledArrowLeft />
+        </HistoryLink>
+      </RowBetween>
+    </Tabs>
+  )
+}

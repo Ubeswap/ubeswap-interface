@@ -145,6 +145,7 @@
     "hamburger-react": "^2.4.1",
     "hash.js": "^1.1.7",
     "jsbi": "^4.3.0",
+    "moment": "^2.29.4",
     "prop-types": "^15.7.2",
     "randombytes": "^2.1.0",
     "rc-drawer": "^4.4.3",
