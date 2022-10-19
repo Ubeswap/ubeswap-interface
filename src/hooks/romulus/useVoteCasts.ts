@@ -2,7 +2,7 @@ import { Address } from '@celo/contractkit'
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { BigNumber } from 'ethers'
 import { RomulusDelegate__factory } from 'generated'
-import { TypedEvent } from 'generated/commons'
+import { TypedEvent } from 'generated/common'
 import React from 'react'
 import { getProviderOrSigner } from 'utils'
 
