@@ -1,35 +1,33 @@
-import { TokenAmount } from '@ubeswap/sdk'
 import { ButtonPrimary } from 'components/Button'
 import Loader from 'components/Loader'
 import Row from 'components/Row'
-import { BigNumber } from 'ethers'
 import { useProposals } from 'hooks/romulus/useProposals'
 import React, { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useHistory } from 'react-router-dom'
 import { Box } from 'rebass'
 
 import { ProposalCard } from './ProposalCard'
 
-interface IProps {
-  romulusAddress: string
-  totalVotingPower?: BigNumber
-  proposalThreshold?: TokenAmount | undefined
+interface ProposalProps {
+  onClickProposal: (url: string) => void
 }
 
-export const Proposals: React.FC<IProps> = ({ romulusAddress }: IProps) => {
+export const Proposals: React.FC<ProposalProps> = ({ onClickProposal }: ProposalProps) => {
   const { t } = useTranslation()
   const [showMore, setShowMore] = useState<boolean>(false)
-  const [proposals] = useProposals((romulusAddress as string) || '')
+  const proposals = useProposals()
   const visibleProposals = useMemo(
     () =>
-      proposals.length > 1 ? (showMore ? proposals.slice(1).reverse() : proposals.slice(-3).reverse()) : undefined,
+      proposals && proposals?.length > 1
+        ? showMore
+          ? proposals.slice(1).reverse()
+          : proposals.slice(-3).reverse()
+        : undefined,
     [proposals, showMore]
   )
-  const history = useHistory()
 
   const showProposal = (url: string) => {
-    history.push(url)
+    onClickProposal(url)
   }
 
   return (
@@ -37,7 +35,7 @@ export const Proposals: React.FC<IProps> = ({ romulusAddress }: IProps) => {
       {visibleProposals ? (
         <>
           {visibleProposals.map((proposalEvent, idx) => (
-            <Box my={2} key={idx} onClick={() => showProposal(`/stake/proposals/${proposalEvent.args.id.toString()}`)}>
+            <Box my={2} key={idx} onClick={() => showProposal(proposalEvent.args.id.toString())}>
               <ProposalCard proposalEvent={proposalEvent} clickable={true} showId={true} showAuthor={false} />
             </Box>
           ))}

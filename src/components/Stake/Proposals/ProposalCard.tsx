@@ -1,5 +1,6 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { ExternalProvider, JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
+import { JSBI, TokenAmount } from '@ubeswap/sdk'
 import { StyledControlButton } from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { BigNumber } from 'ethers'
 import { getAddress } from 'ethers/lib/utils'
@@ -8,16 +9,17 @@ import { TypedEvent } from 'generated/common'
 import { ProposalState, Support, useProposal } from 'hooks/romulus/useProposal'
 import { useVoteCasts } from 'hooks/romulus/useVoteCasts'
 import { useVotingTokens } from 'hooks/romulus/useVotingTokens'
-import { useAsyncState } from 'hooks/useAsyncState'
+import { useLatestBlockNumber } from 'hooks/useLatestBlockNumber'
 import moment from 'moment'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { CheckCircle, Loader, PlayCircle, XCircle } from 'react-feather'
 import { Box, Button, Card, Link, Text } from 'rebass'
+import { WrappedTokenInfo } from 'state/lists/hooks'
 import styled from 'styled-components'
 import { getProviderOrSigner } from 'utils'
 import { humanFriendlyWei } from 'utils/number'
 
-import { BIG_ZERO, KNOWN_ADDRESSES, ubeGovernanceAddresses } from '../../../constants'
+import { BIG_INT_ZERO, KNOWN_ADDRESSES, ubeGovernanceAddresses } from '../../../constants'
 
 export const InformationWrapper = styled.div<{ fontWeight?: number; fontSize?: number; gap?: number }>`
   display: flex;
@@ -142,8 +144,20 @@ interface ProposalContent {
 
 const SECONDS_PER_BLOCK = 5
 
+const ube = new WrappedTokenInfo(
+  {
+    address: '0x00be915b9dcf56a3cbe739d9b9c202ca692409ec',
+    name: 'Ubeswap Governance Token',
+    symbol: 'UBE',
+    chainId: 42220,
+    decimals: 18,
+    logoURI: 'https://raw.githubusercontent.com/ubeswap/default-token-list/master/assets/asset_UBE.png',
+  },
+  []
+)
+
 export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showId, showAuthor, outline = true }) => {
-  const { address, kit, network } = useContractKit()
+  const { network } = useContractKit()
   const mountedRef = useRef(true)
   const [proposalContent, setProposalContent] = useState<ProposalContent>({
     stateStr: '',
@@ -153,12 +167,13 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
   })
   const getConnectedSigner = useGetConnectedSigner()
   const romulusAddress = ubeGovernanceAddresses[network.chainId]
-  const [latestBlockNumber] = useAsyncState(0, kit.web3.eth.getBlockNumber)
-  const [{ proposal, proposalState }, refetchProposal] = useProposal(
-    (romulusAddress as string) || '',
-    proposalEvent.args.id
-  )
-
+  const [latestBlockNumber] = useLatestBlockNumber()
+  const { proposal, proposalState } = useProposal((romulusAddress as string) || '', proposalEvent.args.id)
+  const { votingPower, releaseVotingPower } = useVotingTokens(proposalEvent.args.startBlock)
+  const voteCasts = useVoteCasts(romulusAddress || '')
+  const vote = voteCasts?.[proposalEvent.args.id.toString()]
+  const zeroAmount = new TokenAmount(ube, BIG_INT_ZERO)
+  const totalVotingPower = votingPower?.add(releaseVotingPower ?? zeroAmount)
   const onCancelClick = React.useCallback(async () => {
     if (!romulusAddress || !mountedRef.current) {
       return
@@ -167,23 +182,14 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
     if (!signer) {
       throw new Error('no signer')
     }
-    const romulus = RomulusDelegate__factory.connect(romulusAddress as string, signer)
+    const romulus = RomulusDelegate__factory.connect(romulusAddress, signer)
     try {
       await romulus.cancel(proposalEvent.args.id)
     } catch (e) {
       console.warn(e)
       alert(e)
     }
-    refetchProposal()
-  }, [getConnectedSigner, proposalEvent.args.id, refetchProposal, romulusAddress, mountedRef])
-
-  const [{ votingPower, releaseVotingPower }] = useVotingTokens(
-    (romulusAddress as string) || '',
-    address,
-    proposalEvent.args.startBlock
-  )
-  const [voteCasts] = useVoteCasts((romulusAddress as string) || '')
-  const vote = voteCasts[proposalEvent.args.id.toString()]
+  }, [getConnectedSigner, proposalEvent.args.id, romulusAddress, mountedRef])
 
   const castVote = React.useCallback(
     async (support: Support) => {
@@ -194,11 +200,10 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
       if (!signer) {
         throw new Error('no signer')
       }
-      const romulus = RomulusDelegate__factory.connect(romulusAddress as string, signer)
+      const romulus = RomulusDelegate__factory.connect(romulusAddress, signer)
       await romulus.castVote(proposalEvent.args.id, support)
-      refetchProposal()
     },
-    [getConnectedSigner, proposalEvent.args.id, refetchProposal, romulusAddress, mountedRef]
+    [getConnectedSigner, proposalEvent.args.id, romulusAddress, mountedRef]
   )
 
   useEffect(() => {
@@ -212,10 +217,8 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
     if (!mountedRef.current) {
       return
     }
-    const secondsTilStart =
-      (Number(latestBlockNumber) - Number(proposalEvent.args.startBlock.toString())) * SECONDS_PER_BLOCK
-    const secondsTilEnd =
-      (Number(proposalEvent.args.endBlock.toString()) - Number(latestBlockNumber)) * SECONDS_PER_BLOCK
+    const secondsTilStart = (latestBlockNumber - Number(proposalEvent.args.startBlock.toString())) * SECONDS_PER_BLOCK
+    const secondsTilEnd = (Number(proposalEvent.args.endBlock.toString()) - latestBlockNumber) * SECONDS_PER_BLOCK
     switch (proposalState) {
       case ProposalState.PENDING:
         setProposalContent({
@@ -289,69 +292,79 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
     }
   }, [latestBlockNumber, proposalEvent.args.endBlock, proposalEvent.args.startBlock, proposalState])
 
-  if (!romulusAddress) {
-    return <div>Invalid romulus address</div>
-  }
-
-  let voteContent
-
-  if (proposalState === ProposalState.CANCELED) {
-    voteContent = ''
-  } else if (proposalEvent.args.startBlock.gt(latestBlockNumber)) {
-    voteContent = <Text>Voting has not started yet.</Text>
-  } else if (votingPower.add(releaseVotingPower).lte(BIG_ZERO)) {
-    voteContent = <Text>You have no voting power for this proposal.</Text>
-  } else if (vote) {
-    let supportText = <></>
-    if (vote.args.support === Support.FOR) {
-      supportText = (
-        <>
-          <Text>for</Text> votes
-        </>
+  const voteContent = useRef<JSX.Element | string>('')
+  useEffect(() => {
+    if (proposalState === ProposalState.CANCELED) {
+      voteContent.current = ''
+    } else if (proposalEvent.args.startBlock.gt(latestBlockNumber)) {
+      voteContent.current = <Text>Voting has not started yet.</Text>
+    } else if (totalVotingPower && JSBI.lessThanOrEqual(totalVotingPower.raw, zeroAmount.raw)) {
+      voteContent.current = <Text>You have no voting power for this proposal.</Text>
+    } else if (vote) {
+      let supportText = <></>
+      if (vote.args.support === Support.FOR) {
+        supportText = (
+          <>
+            <Text>for</Text> votes
+          </>
+        )
+      } else if (vote.args.support === Support.ABSTAIN) {
+        supportText = (
+          <>
+            <Text>abstained</Text> votes
+          </>
+        )
+      } else if (vote.args.support === Support.AGAINST) {
+        supportText = (
+          <>
+            <Text>against</Text> votes
+          </>
+        )
+      }
+      voteContent.current = (
+        <Text>
+          You made {humanFriendlyWei(vote.args.votes.toString())} {supportText}.
+        </Text>
       )
-    } else if (vote.args.support === Support.ABSTAIN) {
-      supportText = (
+    } else if (proposalEvent.args.endBlock.lt(latestBlockNumber)) {
+      voteContent.current = <Text>Voting has already ended.</Text>
+    } else {
+      voteContent.current = (
         <>
-          <Text>abstained</Text> votes
-        </>
-      )
-    } else if (vote.args.support === Support.AGAINST) {
-      supportText = (
-        <>
-          <Text>against</Text> votes
+          <Button onClick={() => castVote(Support.FOR)} disabled={!(proposalState === ProposalState.ACTIVE)} mx={2}>
+            Vote For
+          </Button>
+          <Button onClick={() => castVote(Support.AGAINST)} disabled={!(proposalState === ProposalState.ACTIVE)} mx={2}>
+            Vote Against
+          </Button>
         </>
       )
     }
-    voteContent = (
-      <Text>
-        You made {humanFriendlyWei(vote.args.votes.toString())} {supportText}.
-      </Text>
-    )
-  } else if (proposalEvent.args.endBlock.lt(latestBlockNumber)) {
-    voteContent = <Text>Voting has already ended.</Text>
-  } else {
-    voteContent = (
-      <>
-        <Button onClick={() => castVote(Support.FOR)} disabled={!(proposalState === ProposalState.ACTIVE)} mx={2}>
-          Vote For
-        </Button>
-        <Button onClick={() => castVote(Support.AGAINST)} disabled={!(proposalState === ProposalState.ACTIVE)} mx={2}>
-          Vote Against
-        </Button>
-      </>
-    )
+  }, [
+    castVote,
+    latestBlockNumber,
+    proposalEvent.args.endBlock,
+    proposalEvent.args.startBlock,
+    proposalState,
+    releaseVotingPower,
+    vote,
+    votingPower,
+  ])
+
+  if (!romulusAddress) {
+    return <div>Invalid romulus address</div>
   }
 
   return (
     <ClickableCard clickable={clickable} outline={outline}>
       <InformationWrapper fontWeight={400} gap={6} style={{ alignItems: 'center' }}>
-        {showId && (
-          <Text fontWeight={600} fontSize={16}>
-            {proposalEvent.args.id.toString().length === 1
+        <Text fontWeight={600} fontSize={16}>
+          {showId
+            ? proposalEvent.args.id.toString().length === 1
               ? `Proposal 00${proposalEvent.args.id.toString()}`
-              : `Proposal 0${proposalEvent.args.id.toString()}`}
-          </Text>
-        )}
+              : `Proposal 0${proposalEvent.args.id.toString()}`
+            : ''}
+        </Text>
         <ProposalStatusContainer stateColor={proposalContent.stateColor}>
           {statusSymbol.current}
           <Text>&nbsp;{proposalContent.stateStr}</Text>
@@ -380,7 +393,7 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
           </InformationWrapper>
         </>
       )}
-      <InformationWrapper gap={8}>{voteContent}</InformationWrapper>
+      <InformationWrapper gap={8}>{voteContent.current}</InformationWrapper>
       {proposalContent.timeText && (
         <InformationWrapper gap={4}>
           <VotingTimeText votingTimeColor={proposalContent.votingTimeColor}>{proposalContent.timeText}</VotingTimeText>

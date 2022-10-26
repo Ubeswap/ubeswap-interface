@@ -1,11 +1,7 @@
 import { Address } from '@celo/contractkit'
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
-import { BigNumber, BigNumberish } from 'ethers'
-import React from 'react'
-import { getProviderOrSigner } from 'utils'
-
-import { RomulusDelegate__factory } from '../../generated'
-import { useAsyncState } from '../useAsyncState'
+import { BigNumber } from 'ethers'
+import { useRomulusDelegateContract } from 'hooks/useContract'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export enum Support {
   AGAINST = 0,
@@ -48,19 +44,28 @@ type Proposal = [
   executed: boolean
 }
 
-export const useProposal = (romulusAddress: Address, proposalId: BigNumberish) => {
-  const { address } = useContractKit()
-  const library = useProvider()
-  const provider = getProviderOrSigner(library, address || undefined)
-  const proposalCall = React.useCallback(async () => {
-    const romulus = RomulusDelegate__factory.connect(romulusAddress, provider)
-    const proposal = await romulus.proposals(proposalId)
-    const proposalState = await romulus.state(proposalId)
-    return { proposal, proposalState }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [romulusAddress, proposalId])
-  return useAsyncState<{
-    proposal: Proposal | null
-    proposalState: ProposalState
-  }>({ proposal: null, proposalState: ProposalState.CANCELED }, proposalCall)
+export const useProposal = (romulusAddress: Address, proposalId: BigNumber) => {
+  const mountRef = useRef(true)
+  const romulusContract = useRomulusDelegateContract(romulusAddress)
+  const [proposal, setProposal] = useState<Proposal | undefined>(undefined)
+  const [proposalState, setproposalState] = useState<ProposalState>(ProposalState.CANCELED)
+  const call = useCallback(async () => {
+    if (!romulusContract || !mountRef.current) return
+    const proposalData = await romulusContract.proposals(proposalId)
+    const proposalStateData = await romulusContract.state(proposalId)
+    setProposal(proposalData)
+    setproposalState(proposalStateData)
+  }, [romulusContract, proposalId])
+
+  useEffect(() => {
+    call()
+  }, [call])
+
+  useEffect(() => {
+    return () => {
+      mountRef.current = false
+    }
+  }, [])
+
+  return { proposal, proposalState }
 }
