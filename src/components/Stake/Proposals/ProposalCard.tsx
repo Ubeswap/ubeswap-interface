@@ -347,8 +347,10 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
     proposalEvent.args.startBlock,
     proposalState,
     releaseVotingPower,
+    totalVotingPower,
     vote,
     votingPower,
+    zeroAmount.raw,
   ])
 
   if (!romulusAddress) {
