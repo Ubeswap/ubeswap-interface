@@ -53,6 +53,15 @@ const VotingTimeText = styled(Text)<{
   padding: 8px;
 `
 
+const ProposalDetailLink = styled(Text)`
+  font-weight: 500;
+  font-size: 12px;
+  padding: 8px;
+  width: 100%;
+  text-align: center;
+  padding: 4px;
+`
+
 const ClickableCard = styled(Card)<{
   clickable: boolean
   outline: boolean
@@ -292,10 +301,10 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
     }
   }, [latestBlockNumber, proposalEvent.args.endBlock, proposalEvent.args.startBlock, proposalState])
 
-  const voteContent = useRef<JSX.Element | string>('')
+  const voteContent = useRef<JSX.Element | undefined>(undefined)
   useEffect(() => {
     if (proposalState === ProposalState.CANCELED) {
-      voteContent.current = ''
+      voteContent.current = undefined
     } else if (proposalEvent.args.startBlock.gt(latestBlockNumber)) {
       voteContent.current = <Text>Voting has not started yet.</Text>
     } else if (totalVotingPower && JSBI.lessThanOrEqual(totalVotingPower.raw, zeroAmount.raw)) {
@@ -327,7 +336,11 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
         </Text>
       )
     } else if (proposalEvent.args.endBlock.lt(latestBlockNumber)) {
-      voteContent.current = <Text>Voting has already ended.</Text>
+      if (proposalState === ProposalState.ACTIVE || proposalState === ProposalState.PENDING) {
+        voteContent.current = <Text>Voting has already ended.</Text>
+      } else {
+        voteContent.current = undefined
+      }
     } else {
       voteContent.current = (
         <>
@@ -395,7 +408,7 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
           </InformationWrapper>
         </>
       )}
-      <InformationWrapper gap={8}>{voteContent.current}</InformationWrapper>
+      {voteContent.current && <InformationWrapper gap={8}>{voteContent.current}</InformationWrapper>}
       {proposalContent.timeText && (
         <InformationWrapper gap={4}>
           <VotingTimeText votingTimeColor={proposalContent.votingTimeColor}>{proposalContent.timeText}</VotingTimeText>
@@ -412,6 +425,7 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
           )}
         </InformationWrapper>
       )}
+      {clickable && <ProposalDetailLink>Proposal Details &gt;&gt;</ProposalDetailLink>}
     </ClickableCard>
   )
 }
