@@ -22,6 +22,7 @@ import { useLatestBlockNumber } from 'hooks/useLatestBlockNumber'
 import { BodyWrapper } from 'pages/AppBody'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useHistory } from 'react-router'
 import { Text } from 'rebass'
 import { WrappedTokenInfo } from 'state/lists/hooks'
 import { useSingleCallResult } from 'state/multicall/hooks'
@@ -70,6 +71,7 @@ const ube = new WrappedTokenInfo(
 export const Stake: React.FC = () => {
   const { t } = useTranslation()
 
+  const history = useHistory()
   const { address, connect, network } = useContractKit()
   const getConnectedSigner = useGetConnectedSigner()
   const [amount, setAmount] = useState('')
@@ -103,6 +105,9 @@ export const Stake: React.FC = () => {
   const [latestBlockNumber] = useLatestBlockNumber()
   const { votingPower, releaseVotingPower } = useVotingTokens(latestBlockNumber)
   const totalVotingPower = votingPower?.add(releaseVotingPower ?? new TokenAmount(ube, BIG_INT_ZERO))
+
+  // const disablePropose = !totalVotingPower || !proposalThreshold || totalVotingPower?.lessThan(proposalThreshold?.raw)
+  const disablePropose = false
 
   const doTransaction = useDoTransaction()
   const onStakeClick = useCallback(async () => {
@@ -265,9 +270,24 @@ export const Stake: React.FC = () => {
 
         <StakeCollapseCard title={t('Governance')} gap={'12px'}>
           <Text fontSize={14}>{t('CreateAndViewProposalsDelegateVotesAndParticipateInProtocolGovernance')}</Text>
-          <Text fontWeight={500} fontSize={16} marginTop={12}>
-            {t('UserDetails')}
-          </Text>
+          <InformationWrapper>
+            <Text fontWeight={500} fontSize={16} marginTop={12}>
+              {t('UserDetails')}
+            </Text>
+            <ButtonPrimary
+              padding="6px"
+              borderRadius="8px"
+              width="120px"
+              marginTop="8px"
+              fontSize={14}
+              disabled={disablePropose}
+              onClick={() => {
+                history.push('/add-proposal')
+              }}
+            >
+              Propose
+            </ButtonPrimary>
+          </InformationWrapper>
           <InformationWrapper fontWeight={400}>
             <Text>{t('TokenBalance')}</Text>
             <Text>{ubeBalance ? `${ubeBalance?.toFixed(2, { groupSeparator: ',' })} UBE` : '-'} </Text>
@@ -307,6 +327,7 @@ export const Stake: React.FC = () => {
             <Text>{t('ProposalThreshold')}</Text>
             <Text>{proposalThreshold ? `${proposalThreshold?.toFixed(2, { groupSeparator: ',' })} UBE` : '-'}</Text>
           </InformationWrapper>
+
           {stakeBalance.greaterThan('0') && (
             <>
               <Text fontWeight={500} fontSize={16} marginTop={12}>
