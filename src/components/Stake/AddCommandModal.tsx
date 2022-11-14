@@ -57,7 +57,7 @@ interface AddCommandModalProps {
 export default function AddCommandModal({ isOpen, defaultCommand, onConfirm, onDismiss }: AddCommandModalProps) {
   const [error, setError] = useState<string | undefined>('')
 
-  const [functionFragment, setFunctionFragment] = useState<FunctionFragment | undefined>('')
+  const [functionFragment, setFunctionFragment] = useState<FunctionFragment | undefined>(undefined)
   const [abi, setAbi] = useState<Interface | null>(defaultCommand ? defaultCommand.abi : null)
   const [init, setInit] = useState(true)
 
@@ -174,7 +174,6 @@ export default function AddCommandModal({ isOpen, defaultCommand, onConfirm, onD
   useEffect(() => {
     setInit(true)
     formik.resetForm()
-    console.log(defaultCommand)
     if (defaultCommand) {
       formik.values.target = defaultCommand.target
       formik.values.value = defaultCommand.value
