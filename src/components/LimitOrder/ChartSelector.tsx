@@ -94,6 +94,14 @@ async function getCoingeckoID(contract: string) {
     .then((data) => data.id)
 }
 
+async function getCoingeckoPrice(id: string) {
+  return await fetch(
+    `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`
+  )
+    .then((response) => (response.ok ? response.json() : Promise.reject(response)))
+    .then((data) => data[id])
+}
+
 interface ChartSelectorProps {
   currencies: { [field in Field]?: Token }
 }
@@ -126,6 +134,13 @@ export default function ChartSelector({ currencies }: ChartSelectorProps) {
               coingeckoID: id,
             },
           ])
+          getCoingeckoPrice(id).then((price) => {
+            setChoices((choices) =>
+              choices.map((choice) =>
+                choice.currencies == token ? { ...choice, price: price.usd, change24H: price.usd_24h_change } : choice
+              )
+            )
+          })
         })
     })
   }, [currencies[Field.PRICE], currencies[Field.TOKEN]])
