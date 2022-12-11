@@ -2,6 +2,7 @@ import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
 import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount, Trade } from '@ubeswap/sdk'
 import { CardNoise, CardSection, DataCard } from 'components/earn/styled'
+import PriceInputPanel from 'components/PriceInputPanel'
 import { useQueueLimitOrderTrade } from 'components/swap/routing/limit/queueLimitOrderTrade'
 import { useTradeCallback } from 'components/swap/routing/useTradeCallback'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
@@ -300,30 +301,38 @@ export default function LimitOrder() {
           />
 
           <AutoColumn gap={'md'}>
-            <TYPE.body color={theme.text2} style={{ display: 'inline', marginLeft: 8 }}>
-              {buying ? 'Buy' : 'Sell'} Amount
-            </TYPE.body>
-            <CurrencyInputPanel
-              value={formattedAmounts[Field.TOKEN]}
-              currency={currencies[Field.TOKEN]}
-              onUserInput={handleTypeTokenAmount}
-              onCurrencySelect={handleTokenSelect}
-              otherCurrency={currencies[Field.PRICE]}
-              hideBalance={buying}
-              id="limit-order-token"
-            />
-            <TYPE.body color={theme.text2} style={{ display: 'inline', marginLeft: 8, marginTop: 16 }}>
-              Limit Price
-            </TYPE.body>
-            <CurrencyInputPanel
-              value={formattedAmounts[Field.PRICE]}
-              currency={currencies[Field.PRICE]}
-              onUserInput={handleTypePrice}
-              onCurrencySelect={handlePriceSelect}
-              otherCurrency={currencies[Field.TOKEN]}
-              hideBalance={!buying}
-              id="limit-order-price"
-            />
+            <Column style={{ gap: '8px' }}>
+              <TYPE.body fontWeight={600} style={{ margin: '0 0.75rem' }}>
+                You Pay
+              </TYPE.body>
+              <CurrencyInputPanel
+                value={formattedAmounts[Field.TOKEN]}
+                currency={currencies[Field.TOKEN]}
+                onUserInput={handleTypeTokenAmount}
+                onCurrencySelect={handleTokenSelect}
+                otherCurrency={currencies[Field.PRICE]}
+                hideBalance={buying}
+                id="limit-order-token"
+              />
+              <PriceInputPanel
+                id="limit-order-price"
+                value={formattedAmounts[Field.PRICE]}
+                onUserInput={handleTypePrice}
+              />
+            </Column>
+            <Column style={{ gap: '8px' }}>
+              <TYPE.body fontWeight={600} style={{ margin: '0 0.75rem' }}>
+                You Receive
+              </TYPE.body>
+              <CurrencyInputPanel
+                value={parsedOutputTotal ? parsedOutputTotal.toExact() : ''}
+                currency={currencies[Field.PRICE]}
+                onCurrencySelect={handlePriceSelect}
+                otherCurrency={currencies[Field.TOKEN]}
+                disabled
+                id="limit-order-token"
+              />
+            </Column>
 
             <Card padding={'0px'} borderRadius={'20px'}>
               <AutoColumn gap="8px" style={{ padding: '0 16px' }}>

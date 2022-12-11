@@ -99,7 +99,7 @@ const ButtonGroup = styled.div``
 
 interface CurrencyInputPanelProps {
   value: string
-  onUserInput: (value: string) => void
+  onUserInput?: (value: string) => void
   onMax?: () => void
   onHalf?: () => void
   showMaxButton?: boolean
