@@ -109,9 +109,9 @@ export default function LimitOrder() {
   ]).result?.[0]
 
   const { onCurrencySelection, onSwitchTokens, onUserInput } = useLimitOrderActionHandlers()
-  const defaultPriceCurrency = useCurrency(cUSD[chainId].address)
+  const defaultTokenCurrency = useCurrency(cUSD[chainId].address)
   useEffect(() => {
-    defaultPriceCurrency && onCurrencySelection(Field.PRICE, defaultPriceCurrency)
+    defaultTokenCurrency && onCurrencySelection(Field.TOKEN, defaultTokenCurrency)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
