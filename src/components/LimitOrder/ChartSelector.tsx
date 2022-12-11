@@ -1,4 +1,5 @@
 import { Token } from '@ubeswap/sdk'
+import Column from 'components/Column'
 import CurrencyLogo from 'components/CurrencyLogo'
 import Row from 'components/Row'
 import { useOnClickOutside } from 'hooks/useOnClickOutside'
@@ -6,8 +7,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Field } from 'state/limit/actions'
 import styled, { useTheme } from 'styled-components'
 import { TYPE } from 'theme'
+import { formatDelta, formatDollar, formatTransactionAmount } from 'utils/formatNumbers'
 
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
+import { LoadingBubble } from './loading'
 
 const ChartTitle = styled.button<{ clickable: boolean; active: boolean }>`
   all: unset;
@@ -189,27 +192,60 @@ export default function ChartSelector({ currencies }: ChartSelectorProps) {
           {choices.map((choice: ChartOption) => (
             <MenuItem active={choice === chart} key={choice.pairID || choice.coingeckoID}>
               <Row style={{ gap: '0.25rem' }}>
-                <Row width={'44px'}>
-                  <Row style={{ position: 'relative', width: '46px' }}>
+                <Row>
+                  <Row width={'44px'} style={{ position: 'relative' }}>
                     {choice.currencies instanceof Token ? (
-                      <CurrencyLogo currency={choice.currencies} size={'24px'} style={{ marginLeft: '7px' }} />
+                      <CurrencyLogo
+                        currency={choice.currencies}
+                        size={'24px'}
+                        style={{ marginLeft: '7px', border: `2px solid ${theme.white}` }}
+                      />
                     ) : (
                       <>
-                        <CurrencyLogo currency={choice.currencies[0]} size={'24px'} />
+                        <CurrencyLogo
+                          currency={choice.currencies[0]}
+                          size={'24px'}
+                          style={{ border: `2px solid ${theme.white}` }}
+                        />
                         <CurrencyLogo
                           currency={choice.currencies[1]}
                           size={'24px'}
-                          style={{ position: 'absolute', left: '26px' }}
+                          style={{ position: 'absolute', left: '26px', border: `2px solid ${theme.white}` }}
                         />
                       </>
                     )}
                   </Row>
+                  <TYPE.black fontSize={[14, 14]} style={{ whiteSpace: 'nowrap' }}>
+                    {choice.currencies instanceof Token
+                      ? choice.currencies.symbol
+                      : choice.currencies[0].symbol + ' / ' + choice.currencies[1].symbol}
+                  </TYPE.black>
                 </Row>
-                <TYPE.black fontSize={[14, 14]} style={{ whiteSpace: 'nowrap' }}>
-                  {choice.currencies instanceof Token
-                    ? choice.currencies.symbol
-                    : choice.currencies[0].symbol + ' / ' + choice.currencies[1].symbol}
-                </TYPE.black>
+                <Column style={{ fontSize: '12px', gap: '4px', alignItems: 'flex-end' }}>
+                  <div style={{ fontSize: '10px' }}>
+                    {choice.price ? (
+                      choice.currencies instanceof Token ? (
+                        formatDollar({ num: choice.price, isPrice: true })
+                      ) : (
+                        `${formatTransactionAmount(Number(choice.price))}`
+                      )
+                    ) : (
+                      <LoadingBubble height={12} width={60} />
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      color: choice.change24H != undefined && choice.change24H >= 0 ? theme.green1 : theme.red1,
+                      fontSize: '10px',
+                    }}
+                  >
+                    {choice.change24H != undefined ? (
+                      formatDelta(choice.change24H)
+                    ) : (
+                      <LoadingBubble height={12} width={40} />
+                    )}
+                  </div>
+                </Column>
               </Row>
             </MenuItem>
           ))}
