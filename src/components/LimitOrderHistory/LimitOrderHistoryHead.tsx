@@ -12,11 +12,16 @@ const HeaderCell = styled.th`
   }
 `
 
-export const LimitOrderHistoryHead = ({ columns }: { columns: { label: string; size: number }[] }) => {
+export type HistoryColumn = {
+  label: string
+  size: number
+}
+
+export const LimitOrderHistoryHead = ({ columns }: { columns: HistoryColumn[] }) => {
   return (
     <thead>
       <tr>
-        {columns.map((c) => {
+        {columns.map((c: HistoryColumn) => {
           return (
             <HeaderCell colSpan={c.size} key={c.label}>
               {c.label}

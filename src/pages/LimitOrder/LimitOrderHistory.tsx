@@ -2,7 +2,8 @@ import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId as UbeswapChainId } from '@ubeswap/sdk'
 import { ButtonLight, TabButton } from 'components/Button'
 import { ColumnCenter } from 'components/Column'
-import LimitOrderHistoryHead from 'components/LimitOrderHistory/LimitOrderHistoryHead'
+import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistoryBody'
+import LimitOrderHistoryHead, { HistoryColumn } from 'components/LimitOrderHistory/LimitOrderHistoryHead'
 import { useToken } from 'hooks/Tokens'
 import { useOrderBookRewardDistributorContract } from 'hooks/useContract'
 import React, { useState } from 'react'
@@ -66,7 +67,7 @@ export const LimitOrderHistory: React.FC = () => {
   const rewardCurrencyAddress = useSingleCallResult(rewardDistributorContract, 'rewardCurrency', []).result?.[0]
   const rewardCurrency = useToken(rewardCurrencyAddress)
 
-  const columns = [
+  const columns: HistoryColumn[] = [
     { label: 'Pay', size: 2 },
     { label: 'Receive', size: 1 },
     { label: 'Rate', size: 1 },
@@ -107,6 +108,11 @@ export const LimitOrderHistory: React.FC = () => {
       }).length ? (
         <table style={{ borderSpacing: '0 12px', width: '100%' }}>
           <LimitOrderHistoryHead columns={columns}></LimitOrderHistoryHead>
+          <LimitOrderHistoryBody
+            historyData={limitOrderHistory.filter(
+              (limitOrderHist) => limitOrderHist.isOrderOpen == openOrdersTabActive
+            )}
+          ></LimitOrderHistoryBody>
         </table>
       ) : (
         <ColumnCenter style={{ gap: '16px', marginTop: '12px' }}>
