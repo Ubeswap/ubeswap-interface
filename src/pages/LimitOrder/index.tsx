@@ -72,21 +72,22 @@ const ChartContainer = styled.div<{
   flex-direction: row;
   justify-content: space-between;
   justify-self: center;
-  padding: 1rem 1rem 40px 1rem;
+  padding: 1rem 1rem 0 1rem;
   position: fixed;
-  bottom: 16px;
-  left: 0px;
-  width: calc(100% - 20px);
-  z-index: 100;
-  height: calc(100% - 120px);
-  max-height: 552px;
-  overflow-y: auto;
+  bottom: 70px;
+  height: calc(100% - 180px);
+  max-height: 480px;
+  left: 0;
   margin: 0 10px;
+  width: calc(100% - 20px - 2rem);
+  z-index: 100;
+  overflow-y: auto;
   border-radius: 30px 30px 0 0;
   box-shadow: 0px 0px 1px rgb(0 0 0 / 1%), 0px 4px 8px rgb(0 0 0 / 4%), 0px 16px 24px rgb(0 0 0 / 4%), 0px 24px 32px rgb(0 0 0 / 1%);
   background-color: ${({ theme }) => theme.bg2};
   border: 1px solid  ${({ theme }) => theme.bg4};
   animation: appearChart 200ms ease-in-out;
+  box-sizing: content-box;
   @keyframes appearChart {
     0% {
       bottom: -620px;
