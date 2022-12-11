@@ -291,7 +291,7 @@ export default function LimitOrder() {
             setChart(c)
           }}
         ></ChartSelector>
-        <ChartSection></ChartSection>
+        <ChartSection chart={chart}></ChartSection>
         <LimitOrderHistory />
       </LeftPanel>
       <RightPanel>
