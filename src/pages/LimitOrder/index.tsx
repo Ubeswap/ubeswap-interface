@@ -12,7 +12,8 @@ import { useTradeCallback } from 'components/swap/routing/useTradeCallback'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
 import { useOrderBookContract, useOrderBookRewardDistributorContract } from 'hooks/useContract'
 import useENS from 'hooks/useENS'
-import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { useOnClickOutside } from 'hooks/useOnClickOutside'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { ArrowDown, X } from 'react-feather'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
@@ -76,7 +77,7 @@ const ChartContainer = styled.div<{
   position: fixed;
   bottom: 70px;
   height: calc(100% - 180px);
-  max-height: 480px;
+  max-height: 500px;
   left: 0;
   margin: 0 10px;
   width: calc(100% - 20px - 2rem);
@@ -343,11 +344,13 @@ export default function LimitOrder() {
   const [chart, setChart] = useState<ChartOption | undefined>(undefined)
   const [showChart, setShowChart] = useState<boolean>(false)
   const toggleChart = () => setShowChart((show) => !show)
+  const node = useRef<HTMLDivElement>()
+  useOnClickOutside(node, showChart ? toggleChart : undefined)
 
   return (
     <LimitOrderLayout>
       <LeftPanel>
-        <ChartContainer show={showChart}>
+        <ChartContainer show={showChart} ref={node as any}>
           <StyledCloseButton onClick={() => toggleChart()}>
             <StyledCloseIcon />
           </StyledCloseButton>

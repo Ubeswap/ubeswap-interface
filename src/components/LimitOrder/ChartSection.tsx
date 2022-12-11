@@ -20,7 +20,6 @@ const ChartContainer = styled.div`
 
 const TimeOptionsContainer = styled.div`
   position: absolute;
-  margin-top: 16px;
   width: 100%;
   @media only screen and (max-width: 1115px) {
     position: static;
