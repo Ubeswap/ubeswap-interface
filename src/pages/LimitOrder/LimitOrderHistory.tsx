@@ -46,7 +46,7 @@ const HeaderTabs = styled.div`
 `
 
 export const LimitOrderHistory: React.FC = () => {
-  const { network } = useContractKit()
+  const { account, network } = useContractKit()
   const chainId = network.chainId as unknown as UbeswapChainId
   const limitOrderHistory = useLimitOrdersHistory()
 
@@ -68,10 +68,20 @@ export const LimitOrderHistory: React.FC = () => {
         </HeaderTitle>
         <HeaderTabs>
           <TabButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
-            Active Orders
+            Active Orders{' '}
+            {account && (
+              <span style={{ marginLeft: '0.15rem' }}>
+                ({limitOrderHistory.filter((limitOrderHist) => limitOrderHist.isOrderOpen).length})
+              </span>
+            )}
           </TabButton>
           <TabButton active={!openOrdersTabActive} onClick={() => setOpenOrdersTabActive(false)}>
-            Order History
+            Order History{' '}
+            {account && (
+              <span style={{ marginLeft: '0.15rem' }}>
+                ({limitOrderHistory.filter((limitOrderHist) => !limitOrderHist.isOrderOpen).length})
+              </span>
+            )}
           </TabButton>
         </HeaderTabs>
       </Header>
