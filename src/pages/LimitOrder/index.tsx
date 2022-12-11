@@ -309,7 +309,7 @@ export default function LimitOrder() {
             Sell
           </TabButton>
         </div>
-        <Wrapper id="swap-page">
+        <Wrapper id="swap-page" style={{ padding: '0' }}>
           <ConfirmSwapModal
             isOpen={showConfirm}
             trade={tradeToConfirm}
@@ -330,7 +330,7 @@ export default function LimitOrder() {
                 gap: '8px',
                 borderBottom: `1px solid ${theme.bg3}`,
                 position: 'relative',
-                padding: '22px 0 42px',
+                padding: '22px 1rem 42px',
               }}
             >
               <TYPE.body fontWeight={600} style={{ margin: '0 0.75rem' }}>
@@ -360,7 +360,12 @@ export default function LimitOrder() {
                 <ArrowDown size="16" color={theme.primary1} />
               </ArrowContainer>
             </Column>
-            <Column style={{ gap: '8px', padding: '22px 0 42px' }}>
+            <Column
+              style={{
+                gap: '8px',
+                padding: '22px 1rem 42px',
+              }}
+            >
               <TYPE.body fontWeight={600} style={{ margin: '0 0.75rem' }}>
                 You Receive
               </TYPE.body>
@@ -396,7 +401,7 @@ export default function LimitOrder() {
                 Get more {parsedInputTotal?.currency.symbol} via Ramp
               </ButtonLight>
             ) : (
-              <RowBetween>
+              <RowBetween style={{ padding: '1rem' }}>
                 <ButtonConfirmed
                   onClick={approvalCallback}
                   disabled={
