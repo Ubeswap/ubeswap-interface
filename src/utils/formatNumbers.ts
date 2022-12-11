@@ -122,3 +122,15 @@ export const formatTransactionAmount = (num: number | undefined | null, maxDigit
   }
   return `${Number(num.toFixed(2)).toLocaleString(DEFAULT_LOCALE, { minimumFractionDigits: 2 })}`
 }
+
+export const formatDelta = (delta: number | undefined | null) => {
+  // Null-check not including zero
+  if (delta === null || delta === undefined || delta === Infinity || isNaN(delta)) {
+    return '-'
+  }
+  let formattedDelta = delta.toFixed(2) + '%'
+  if (Math.sign(delta) > 0) {
+    formattedDelta = '+' + formattedDelta
+  }
+  return formattedDelta
+}
