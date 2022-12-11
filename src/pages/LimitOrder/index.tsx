@@ -300,7 +300,7 @@ export default function LimitOrder() {
         </TopSectionLimitOrder>
       )}
       <AppBody>
-        <SwapHeader title={t('limitOrder')} hideSettings={true} />
+        <SwapHeader title={'Limit'} hideSettings={true} />
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <TabButton active={buying} onClick={() => setBuying(true)}>
             Buy
