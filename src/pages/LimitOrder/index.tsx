@@ -3,6 +3,7 @@ import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount, Trade } from '@ubeswap/sdk'
 import { CardNoise, CardSection, DataCard } from 'components/earn/styled'
 import ChartSection from 'components/LimitOrder/ChartSection'
+import ChartSelector from 'components/LimitOrder/ChartSelector'
 import { LeftPanel, LimitOrderLayout, RightPanel } from 'components/LimitOrder/Skeleton'
 import PriceInputPanel from 'components/PriceInputPanel'
 import { AdvancedDetailsFooter } from 'components/swap/AdvancedSwapDetailsDropdown'
@@ -282,6 +283,7 @@ export default function LimitOrder() {
   return (
     <LimitOrderLayout>
       <LeftPanel>
+        <ChartSelector currencies={currencies}></ChartSelector>
         <ChartSection></ChartSection>
         <LimitOrderHistory />
       </LeftPanel>
