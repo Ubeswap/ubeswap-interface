@@ -92,15 +92,20 @@ export type ChartOption = {
   pairID?: string
 }
 
-async function getCoingeckoID(contract: string) {
-  return await fetch(`https://api.coingecko.com/api/v3/coins/celo/contract/${contract}`)
+async function getCoingeckoID(contract: string, controllerRef: any) {
+  return await fetch(`https://api.coingecko.com/api/v3/coins/celo/contract/${contract}`, {
+    signal: controllerRef.current?.signal,
+  })
     .then((response) => (response.ok ? response.json() : Promise.reject(response)))
     .then((data) => data.id)
 }
 
-async function getCoingeckoPrice(id: string) {
+async function getCoingeckoPrice(id: string, controllerRef: any) {
   return await fetch(
-    `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`
+    `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`,
+    {
+      signal: controllerRef.current?.signal,
+    }
   )
     .then((response) => (response.ok ? response.json() : Promise.reject(response)))
     .then((data) => data[id])
@@ -131,8 +136,16 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
 
   const [choices, setChoices] = useState<ChartOption[]>([])
 
+  const controllerRef = useRef<AbortController | null>()
+
   // Generation of all possible chart choices
   useEffect(() => {
+    if (controllerRef.current) {
+      controllerRef.current.abort()
+    }
+    const controller = new AbortController()
+    controllerRef.current = controller
+
     const tokens = [currencies[Field.TOKEN], currencies[Field.PRICE]]
     const reverseTokens = [...tokens].reverse()
 
@@ -157,22 +170,32 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
     // Generating token chart from Coingecko
     tokens.forEach((token) => {
       if (token)
-        getCoingeckoID(token.address).then((id) => {
-          setChoices((choices) => [
-            ...choices,
-            {
-              currencies: token,
-              coingeckoID: id,
-            },
-          ])
-          getCoingeckoPrice(id).then((price) => {
-            setChoices((choices) =>
-              choices.map((choice) =>
-                choice.currencies == token ? { ...choice, price: price.usd, change24H: price.usd_24h_change } : choice
-              )
-            )
+        try {
+          getCoingeckoID(token.address, controllerRef).then((id) => {
+            setChoices((choices) => [
+              ...choices,
+              {
+                currencies: token,
+                coingeckoID: id,
+              },
+            ])
+            try {
+              getCoingeckoPrice(id, controllerRef).then((price) => {
+                setChoices((choices) =>
+                  choices.map((choice) =>
+                    choice.currencies == token
+                      ? { ...choice, price: price.usd, change24H: price.usd_24h_change }
+                      : choice
+                  )
+                )
+              })
+            } catch (e) {
+              console.log('Request canceled')
+            }
           })
-        })
+        } catch (e) {
+          console.log('Request canceled')
+        }
     })
   }, [currencies[Field.PRICE], currencies[Field.TOKEN]])
 

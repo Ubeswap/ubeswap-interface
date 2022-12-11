@@ -138,9 +138,9 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
     }
   }, [prices, endingPrice])
 
-  const graphHeight = height - 64 - 16
+  const graphHeight = height - 64 - 16 > 0 ? height - 64 - 16 : 0
   const graphInnerHeight =
-    graphHeight - margin.top - margin.bottom > 0 ? graphHeight - margin.top - margin.bottom - 40 : 0
+    graphHeight - margin.top - margin.bottom - 40 > 0 ? graphHeight - margin.top - margin.bottom - 40 : 0
 
   // x scale
   const timeScale = useMemo(
@@ -275,7 +275,6 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
           <ArrowCell>{arrow}</ArrowCell>
         </Row>
       </Column>
-
       <svg height={graphHeight}>
         {!hasData ? (
           <MissingPriceChart height={graphHeight} width={width} message={'Missing chart data'} />

@@ -445,7 +445,6 @@ export default function LimitOrder() {
                 <ArrowContainer
                   onClick={() => {
                     setApprovalSubmitted(false) // reset 2 step UI for approvals
-                    handleTypeTokenAmount(formattedAmounts[Field.TOKEN])
                     onSwitchTokens()
                   }}
                 >

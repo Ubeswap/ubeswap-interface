@@ -1,5 +1,5 @@
 import { ParentSize } from '@visx/responsive'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 
 import { ChartOption } from './ChartSelector'
@@ -46,9 +46,12 @@ function toCoingeckoHistoryDuration(timePeriod: TimePeriod) {
   }
 }
 
-async function getCoingeckoPrice(id: string, t: TimePeriod) {
+async function getCoingeckoPrice(id: string, t: TimePeriod, controllerRef: any) {
   return await fetch(
-    `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=USD&days=${toCoingeckoHistoryDuration(t)}`
+    `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=USD&days=${toCoingeckoHistoryDuration(t)}`,
+    {
+      signal: controllerRef.current?.signal,
+    }
   )
     .then((response) => (response.ok ? response.json() : Promise.reject(response)))
     .then((data) => data.prices)
@@ -58,10 +61,22 @@ async function getCoingeckoPrice(id: string, t: TimePeriod) {
 
 export default function ChartSection({ chart }: { chart: ChartOption | undefined }) {
   const [chartSetting, setChartSetting] = useState<[PricePoint[] | null, TimePeriod]>([null, TimePeriod.MONTH])
+  const controllerRef = useRef<AbortController | null>()
 
-  const fetchPrice = (ch: ChartOption | undefined, ti: TimePeriod) => {
-    if (ch?.coingeckoID) {
-      return getCoingeckoPrice(ch?.coingeckoID, ti).then((coingeckoPrices) => setChartSetting([coingeckoPrices, ti]))
+  const fetchPrice = async (ch: ChartOption | undefined, ti: TimePeriod) => {
+    if (controllerRef.current) {
+      controllerRef.current.abort()
+    }
+    const controller = new AbortController()
+    controllerRef.current = controller
+    try {
+      if (ch?.coingeckoID) {
+        return getCoingeckoPrice(ch?.coingeckoID, ti, controllerRef).then((coingeckoPrices) =>
+          setChartSetting([coingeckoPrices, ti])
+        )
+      }
+    } catch (e) {
+      console.log('Request canceled')
     }
   }
 
