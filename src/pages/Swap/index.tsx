@@ -519,7 +519,7 @@ export default function Swap() {
         </Wrapper>
       </AppBody>
       {!swapIsUnsupported ? (
-        <Row justify="center" style={{ height: 'fit-content', overflow: 'hidden' }}>
+        <Row justify="center" style={{ height: 'fit-content', overflow: 'hidden', padding: '0 16px' }}>
           <AdvancedSwapDetailsDropdown trade={trade} />
         </Row>
       ) : (

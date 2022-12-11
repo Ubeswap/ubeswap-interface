@@ -104,7 +104,6 @@ const StyledCloseButton = styled.button`
   position: absolute;
   right: 20px;
   height: 35px;
-  padding: 0.15rem 0.5rem;
   border-radius: 0.5rem;
   cursor: pointer;
   outline: none;
@@ -304,7 +303,7 @@ export default function LimitOrder() {
   }, [swapCallback, tradeToConfirm, showConfirm, recipient, recipientAddress, account, trade])
 
   // errors
-  const [showInverted, setShowInverted] = useState<boolean>(false)
+  const [showInverted, setShowInverted] = useState<boolean>(true)
 
   // show approve flow when: no error on inputs, not approved or pending, or approved in current session
   // never show if price impact is above threshold in non expert mode
@@ -433,14 +432,14 @@ export default function LimitOrder() {
                 />
                 <Row justify="flex-end" style={{ height: '20px', paddingRight: '12px' }}>
                   {marketPriceDiffIndicator && (
-                    <>
+                    <span style={{ display: 'flex' }}>
                       <Text fontWeight={500} fontSize={14} color={getColor()}>
                         {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'}&nbsp;
                       </Text>
                       <Text fontWeight={500} fontSize={14} color={theme.text2}>
                         market price
                       </Text>
-                    </>
+                    </span>
                   )}
                 </Row>
                 <ArrowContainer
@@ -470,6 +469,20 @@ export default function LimitOrder() {
                   disabled
                   id="limit-order-token"
                 />
+                <RowBetween align="center">
+                  <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                    Market Price
+                  </Text>
+                  {trade ? (
+                    <TradePrice
+                      price={trade.executionPrice}
+                      showInverted={showInverted}
+                      setShowInverted={setShowInverted}
+                    />
+                  ) : (
+                    <Text>-</Text>
+                  )}
+                </RowBetween>
               </Column>
             </AutoColumn>
             <BottomGrouping style={{ padding: '1rem' }}>
@@ -557,23 +570,9 @@ export default function LimitOrder() {
             </BottomGrouping>
           </Wrapper>
         </AppBody>
-        <Row justify="center" style={{ height: 'fit-content', overflow: 'hidden' }}>
+        <Row justify="center" style={{ height: 'fit-content', overflow: 'hidden', padding: '0 16px' }}>
           <AdvancedDetailsFooter show={parsedOutputTotal || parsedInputTotal ? true : false}>
             <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
-              <RowBetween align="center">
-                <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                  Market Price
-                </Text>
-                {trade ? (
-                  <TradePrice
-                    price={trade.executionPrice}
-                    showInverted={buying ? showInverted : !showInverted}
-                    setShowInverted={setShowInverted}
-                  />
-                ) : (
-                  <Text>-</Text>
-                )}
-              </RowBetween>
               <RowBetween align="center">
                 <Text fontWeight={500} fontSize={14} color={theme.text2}>
                   Order Reward

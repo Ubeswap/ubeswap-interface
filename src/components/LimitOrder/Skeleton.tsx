@@ -11,6 +11,7 @@ export const LimitOrderLayout = styled.div`
   @media (max-width: 1115px) {
     flex-direction: column-reverse;
     align-items: center;
+    padding: 0;
   }
 `
 
