@@ -47,6 +47,39 @@ const StyledDropDown = styled(DropDown)<{ selected: boolean }>`
   ${({ selected }) => (selected ? 'transform: rotate(180deg);' : '')}
 `
 
+const MenuFlyout = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-width: calc(100% + 12px);
+  border: 1px solid ${({ theme }) => theme.bg5};
+  background-color: ${({ theme }) => theme.bg1};
+  box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04),
+    0px 24px 32px rgba(0, 0, 0, 0.01);
+  border-radius: 20px;
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  left: -12px;
+  top: 3.15rem;
+  animation: dropMenu 100ms ease;
+  @keyframes dropMenu {
+    0% {
+      top: 1.5rem;
+    }
+  }
+`
+
+const MenuItem = styled.button<{ active: boolean }>`
+  all: unset;
+  flex: 1;
+  padding: 12px;
+  cursor: pointer;
+  background-color: ${({ active, theme }) => (active ? theme.bg2 : 'inherit')};
+  :hover {
+    background-color: ${({ theme }) => theme.bg2};
+  }
+`
+
 export type ChartOption = {
   currencies: [Token, Token] | Token
   price?: number
@@ -102,7 +135,7 @@ export default function ChartSelector({ currencies }: ChartSelectorProps) {
   }, [choices])
 
   return (
-    <div style={{ position: 'relative' }} ref={node as any}>
+    <div style={{ position: 'relative', width: 'fit-content' }} ref={node as any}>
       <ChartTitle clickable={choices.length > 1} active={open} onClick={toggle}>
         {chart ? (
           <>
@@ -136,6 +169,37 @@ export default function ChartSelector({ currencies }: ChartSelectorProps) {
           <TYPE.largeHeader>- / -</TYPE.largeHeader>
         )}
       </ChartTitle>
+      {open && choices.length > 1 && (
+        <MenuFlyout>
+          {choices.map((choice: ChartOption) => (
+            <MenuItem active={choice === chart} key={choice.pairID || choice.coingeckoID}>
+              <Row style={{ gap: '0.25rem' }}>
+                <Row width={'44px'}>
+                  <Row style={{ position: 'relative', width: '46px' }}>
+                    {choice.currencies instanceof Token ? (
+                      <CurrencyLogo currency={choice.currencies} size={'24px'} style={{ marginLeft: '7px' }} />
+                    ) : (
+                      <>
+                        <CurrencyLogo currency={choice.currencies[0]} size={'24px'} />
+                        <CurrencyLogo
+                          currency={choice.currencies[1]}
+                          size={'24px'}
+                          style={{ position: 'absolute', left: '26px' }}
+                        />
+                      </>
+                    )}
+                  </Row>
+                </Row>
+                <TYPE.black fontSize={[14, 14]} style={{ whiteSpace: 'nowrap' }}>
+                  {choice.currencies instanceof Token
+                    ? choice.currencies.symbol
+                    : choice.currencies[0].symbol + ' / ' + choice.currencies[1].symbol}
+                </TYPE.black>
+              </Row>
+            </MenuItem>
+          ))}
+        </MenuFlyout>
+      )}
     </div>
   )
 }
