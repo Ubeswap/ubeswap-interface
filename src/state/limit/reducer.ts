@@ -34,7 +34,7 @@ const initialState: LimitState = {
     currencyId: '',
   },
   recipient: null,
-  buying: true,
+  buying: false,
 }
 
 export default createReducer<LimitState>(initialState, (builder) =>

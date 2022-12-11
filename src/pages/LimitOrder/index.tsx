@@ -21,7 +21,7 @@ import { useDerivedLimitOrderInfo, useLimitOrderActionHandlers, useLimitOrderSta
 import { useSingleCallResult } from 'state/multicall/hooks'
 import styled, { ThemeContext } from 'styled-components'
 
-import { ButtonConfirmed, ButtonLight, ButtonPrimary, TabButton } from '../../components/Button'
+import { ButtonConfirmed, ButtonLight, ButtonPrimary } from '../../components/Button'
 import Column, { AutoColumn, TopSectionLimitOrder } from '../../components/Column'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import Loader from '../../components/Loader'
@@ -108,7 +108,7 @@ export default function LimitOrder() {
     buying ? currencies?.PRICE?.address : currencies?.TOKEN?.address,
   ]).result?.[0]
 
-  const { onCurrencySelection, onSwitchTokens, onUserInput, setBuying } = useLimitOrderActionHandlers()
+  const { onCurrencySelection, onSwitchTokens, onUserInput } = useLimitOrderActionHandlers()
   const defaultPriceCurrency = useCurrency(cUSD[chainId].address)
   useEffect(() => {
     defaultPriceCurrency && onCurrencySelection(Field.PRICE, defaultPriceCurrency)
@@ -317,14 +317,6 @@ export default function LimitOrder() {
         )}
         <AppBody>
           <SwapHeader title={'Limit'} hideSettings={true} />
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <TabButton active={buying} onClick={() => setBuying(true)}>
-              Buy
-            </TabButton>
-            <TabButton active={!buying} onClick={() => setBuying(false)}>
-              Sell
-            </TabButton>
-          </div>
           <Wrapper id="swap-page" style={{ padding: '0' }}>
             <ConfirmSwapModal
               isOpen={showConfirm}
