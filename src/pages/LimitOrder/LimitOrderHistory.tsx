@@ -1,12 +1,16 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId as UbeswapChainId } from '@ubeswap/sdk'
-import { TabButton } from 'components/Button'
+import { ButtonLight, TabButton } from 'components/Button'
+import { ColumnCenter } from 'components/Column'
 import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistoryBody'
 import LimitOrderHistoryItem from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { Wrapper } from 'components/swap/styleds'
 import { useToken } from 'hooks/Tokens'
 import { useOrderBookRewardDistributorContract } from 'hooks/useContract'
 import React, { useState } from 'react'
+import { Archive } from 'react-feather'
+import { useTranslation } from 'react-i18next'
+import { useWalletModalToggle } from 'state/application/hooks'
 import { useSingleCallResult } from 'state/multicall/hooks'
 import styled from 'styled-components'
 import { TYPE } from 'theme'
@@ -46,7 +50,13 @@ const HeaderTabs = styled.div`
 `
 
 export const LimitOrderHistory: React.FC = () => {
+  const { t } = useTranslation()
+
   const { account, network } = useContractKit()
+
+  // toggle wallet when disconnected
+  const toggleWalletModal = useWalletModalToggle()
+
   const chainId = network.chainId as unknown as UbeswapChainId
   const limitOrderHistory = useLimitOrdersHistory()
 
@@ -62,13 +72,11 @@ export const LimitOrderHistory: React.FC = () => {
     <>
       <Header>
         <HeaderTitle>
-          <TYPE.black my={2} fontWeight={500}>
-            Limit Orders
-          </TYPE.black>
+          <TYPE.black my={2}>Limit Orders</TYPE.black>
         </HeaderTitle>
         <HeaderTabs>
           <TabButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
-            Active Orders{' '}
+            Active Orders
             {account && (
               <span style={{ marginLeft: '0.15rem' }}>
                 ({limitOrderHistory.filter((limitOrderHist) => limitOrderHist.isOrderOpen).length})
@@ -76,7 +84,7 @@ export const LimitOrderHistory: React.FC = () => {
             )}
           </TabButton>
           <TabButton active={!openOrdersTabActive} onClick={() => setOpenOrdersTabActive(false)}>
-            Order History{' '}
+            Order History
             {account && (
               <span style={{ marginLeft: '0.15rem' }}>
                 ({limitOrderHistory.filter((limitOrderHist) => !limitOrderHist.isOrderOpen).length})
@@ -85,38 +93,60 @@ export const LimitOrderHistory: React.FC = () => {
           </TabButton>
         </HeaderTabs>
       </Header>
+      {account &&
+      limitOrderHistory.filter((limitOrderHist) => {
+        if (openOrdersTabActive) {
+          return limitOrderHist.isOrderOpen
+        }
+        return !limitOrderHist.isOrderOpen
+      }).length ? (
+        <LimitOrderHistoryBody>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <TabButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
+              Open ({limitOrderHistory.filter((limitOrderHist) => limitOrderHist.isOrderOpen).length})
+            </TabButton>
+            <TabButton active={!openOrdersTabActive} onClick={() => setOpenOrdersTabActive(false)}>
+              Completed ({limitOrderHistory.filter((limitOrderHist) => !limitOrderHist.isOrderOpen).length})
+            </TabButton>
+          </div>
 
-      <LimitOrderHistoryBody>
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <TabButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
-            Open ({limitOrderHistory.filter((limitOrderHist) => limitOrderHist.isOrderOpen).length})
-          </TabButton>
-          <TabButton active={!openOrdersTabActive} onClick={() => setOpenOrdersTabActive(false)}>
-            Completed ({limitOrderHistory.filter((limitOrderHist) => !limitOrderHist.isOrderOpen).length})
-          </TabButton>
-        </div>
-
-        <Wrapper id="limit-order-history">
-          {limitOrderHistory
-            .filter((limitOrderHist) => {
-              if (openOrdersTabActive) {
-                return limitOrderHist.isOrderOpen
-              }
-              return !limitOrderHist.isOrderOpen
-            })
-            .reverse()
-            .map((limitOrderHist, idx, arr) => {
-              return (
-                <LimitOrderHistoryItem
-                  key={limitOrderHist.orderHash}
-                  item={limitOrderHist}
-                  rewardCurrency={rewardCurrency || undefined}
-                  lastDisplayItem={idx === arr.length - 1}
-                />
-              )
-            })}
-        </Wrapper>
-      </LimitOrderHistoryBody>
+          <Wrapper id="limit-order-history">
+            {limitOrderHistory
+              .filter((limitOrderHist) => {
+                if (openOrdersTabActive) {
+                  return limitOrderHist.isOrderOpen
+                }
+                return !limitOrderHist.isOrderOpen
+              })
+              .reverse()
+              .map((limitOrderHist, idx, arr) => {
+                return (
+                  <LimitOrderHistoryItem
+                    key={limitOrderHist.orderHash}
+                    item={limitOrderHist}
+                    rewardCurrency={rewardCurrency || undefined}
+                    lastDisplayItem={idx === arr.length - 1}
+                  />
+                )
+              })}
+          </Wrapper>
+        </LimitOrderHistoryBody>
+      ) : (
+        <ColumnCenter style={{ gap: '16px', marginTop: '12px' }}>
+          <TYPE.black my={2}>
+            {account
+              ? `Can't find any ${openOrdersTabActive ? 'active' : 'filled'} orders`
+              : `${openOrdersTabActive ? 'Active orders are' : 'Order history is'} not available`}
+          </TYPE.black>
+          {account ? (
+            <Archive size={'20'} />
+          ) : (
+            <ButtonLight onClick={toggleWalletModal} style={{ maxWidth: '190px', height: '50px' }}>
+              {t('connectWallet')}
+            </ButtonLight>
+          )}
+        </ColumnCenter>
+      )}
     </>
   )
 }
