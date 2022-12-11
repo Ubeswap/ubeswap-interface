@@ -23,7 +23,7 @@ export const StyledNavMenu = styled('div')`
     margin: 0 8px;
   }
 
-  @media (max-width: 550px) {
+  @media (max-width: 600px) {
     display: none;
   }
 `
