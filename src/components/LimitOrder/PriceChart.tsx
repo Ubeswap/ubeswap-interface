@@ -296,7 +296,7 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
             />
 
             {crosshair !== null && (
-              <Group style={{ filter: `drop-shadow(0 0 0mm ${theme.red1}) contrast(120%)` }}>
+              <Group>
                 <AxisBottom
                   scale={timeScale}
                   stroke={'transparent'}
@@ -312,42 +312,44 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
                     textAnchor: 'middle',
                   })}
                 />
-                <Line
-                  from={{ x: crosshair, y: 0 }}
-                  to={{ x: crosshair, y: graphHeight - 24 }}
-                  stroke={endingPrice.value - startingPrice.value >= 0 ? theme.green1 : theme.red1}
-                  strokeWidth={2}
-                  pointerEvents="none"
-                  strokeDasharray="2,4"
-                />
-                <rect
-                  x={crosshair - 60 - 1 > 0 ? (crosshair > width - 60 - 1 ? width - 120 - 1 : crosshair - 60 - 1) : 1}
-                  y={graphHeight - 35 + 0 + 8}
-                  fill={theme.bg1}
-                  width="120"
-                  height="20"
-                  stroke={endingPrice.value - startingPrice.value >= 0 ? theme.green1 : theme.red1}
-                  strokeWidth={1}
-                  rx={5}
-                ></rect>
-                <text
-                  x={crosshair - 60 - 1 > 0 ? (crosshair > width - 60 - 1 ? width - 60 - 1 : crosshair) : 60 + 1}
-                  y={graphHeight - 20 + 8}
-                  textAnchor={'middle'}
-                  fontSize={12}
-                  fontWeight={'500'}
-                  fill={theme.text1}
-                >
-                  {crosshairDateFormatter(displayPrice.timestamp)}
-                </text>
-                <GlyphCircle
-                  left={crosshair}
-                  top={rdScale(displayPrice.value) + margin.top}
-                  size={50}
-                  fill={endingPrice.value - startingPrice.value >= 0 ? theme.green1 : theme.red1}
-                  stroke={theme.white}
-                  strokeWidth={2}
-                />
+                <Group style={{ filter: `drop-shadow(0 0 0mm ${theme.red1}) contrast(120%)` }}>
+                  <Line
+                    from={{ x: crosshair, y: 0 }}
+                    to={{ x: crosshair, y: graphHeight - 24 }}
+                    stroke={endingPrice.value - startingPrice.value >= 0 ? theme.green1 : theme.red1}
+                    strokeWidth={2}
+                    pointerEvents="none"
+                    strokeDasharray="2,4"
+                  />
+                  <rect
+                    x={crosshair - 60 - 1 > 0 ? (crosshair > width - 60 - 1 ? width - 120 - 1 : crosshair - 60 - 1) : 1}
+                    y={graphHeight - 35 + 0 + 8}
+                    fill={theme.bg1}
+                    width="120"
+                    height="20"
+                    stroke={endingPrice.value - startingPrice.value >= 0 ? theme.green1 : theme.red1}
+                    strokeWidth={1}
+                    rx={5}
+                  ></rect>
+                  <text
+                    x={crosshair - 60 - 1 > 0 ? (crosshair > width - 60 - 1 ? width - 60 - 1 : crosshair) : 60 + 1}
+                    y={graphHeight - 20 + 8}
+                    textAnchor={'middle'}
+                    fontSize={12}
+                    fontWeight={'500'}
+                    fill={theme.text1}
+                  >
+                    {crosshairDateFormatter(displayPrice.timestamp)}
+                  </text>
+                  <GlyphCircle
+                    left={crosshair}
+                    top={rdScale(displayPrice.value) + margin.top}
+                    size={50}
+                    fill={endingPrice.value - startingPrice.value >= 0 ? theme.green1 : theme.red1}
+                    stroke={theme.white}
+                    strokeWidth={2}
+                  />
+                </Group>
               </Group>
             )}
             <rect
