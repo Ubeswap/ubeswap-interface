@@ -379,7 +379,7 @@ export default function LimitOrder() {
               />
             </Column>
           </AutoColumn>
-          <BottomGrouping>
+          <BottomGrouping style={{ padding: '1rem' }}>
             {swapIsUnsupported ? (
               <ButtonPrimary disabled={true}>
                 <TYPE.main mb="4px">Unsupported Asset</TYPE.main>
