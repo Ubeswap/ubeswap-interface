@@ -413,7 +413,7 @@ export default function LimitOrder() {
                 Get more {parsedInputTotal?.currency.symbol} via Ramp
               </ButtonLight>
             ) : (
-              <RowBetween style={{ padding: '1rem' }}>
+              <RowBetween>
                 <ButtonConfirmed
                   onClick={approvalCallback}
                   disabled={
