@@ -25,7 +25,4 @@ export const LeftPanel = styled.div`
 export const RightPanel = styled.div`
   max-width: 420px;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 `
