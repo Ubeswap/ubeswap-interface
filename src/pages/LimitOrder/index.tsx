@@ -1,7 +1,6 @@
 import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
 import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount, Trade } from '@ubeswap/sdk'
-import { CardNoise, CardSection, DataCard } from 'components/earn/styled'
 import ChartSection from 'components/LimitOrder/ChartSection'
 import ChartSelector, { ChartOption } from 'components/LimitOrder/ChartSelector'
 import { LeftPanel, LimitOrderLayout, RightPanel } from 'components/LimitOrder/Skeleton'
@@ -13,6 +12,7 @@ import { useIsTransactionUnsupported } from 'hooks/Trades'
 import { useOrderBookContract, useOrderBookRewardDistributorContract } from 'hooks/useContract'
 import useENS from 'hooks/useENS'
 import { useOnClickOutside } from 'hooks/useOnClickOutside'
+import { rgba } from 'polished'
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { ArrowDown, X } from 'react-feather'
 import ReactGA from 'react-ga'
@@ -23,7 +23,7 @@ import { useSingleCallResult } from 'state/multicall/hooks'
 import styled, { ThemeContext } from 'styled-components'
 
 import { ButtonConfirmed, ButtonLight, ButtonPrimary } from '../../components/Button'
-import Column, { AutoColumn, TopSectionLimitOrder } from '../../components/Column'
+import Column, { AutoColumn } from '../../components/Column'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import Loader from '../../components/Loader'
 import ProgressSteps from '../../components/ProgressSteps'
@@ -125,6 +125,19 @@ const StyledCloseIcon = styled(X)`
   }
 `
 
+const NotSupportedContainer = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  text-align: center;
+  background: ${({ theme }) => rgba(theme.bg1, 0.9)};
+  padding: 10rem 4rem;
+  border-radius: 30px;
+  z-index: 100;
+`
 export const BPS_DENOMINATOR = JSBI.BigInt(1_000_000)
 
 export default function LimitOrder() {
@@ -341,6 +354,8 @@ export default function LimitOrder() {
     walletType === WalletTypes.PrivateKey ||
     walletType === WalletTypes.Injected
 
+  const [showMetamaskWarning, setShowMetamaskWarning] = useState<boolean>(true)
+
   const [chart, setChart] = useState<ChartOption | undefined>(undefined)
   const [showChart, setShowChart] = useState<boolean>(false)
   const toggleChart = () => setShowChart((show) => !show)
@@ -365,27 +380,15 @@ export default function LimitOrder() {
         <LimitOrderHistory />
       </LeftPanel>
       <RightPanel>
-        {!walletIsSupported && (
-          <TopSectionLimitOrder gap="md">
-            <DataCard>
-              <CardNoise />
-              <CardSection>
-                <AutoColumn gap="md">
-                  <RowBetween>
-                    <TYPE.white fontWeight={600}>Notice</TYPE.white>
-                  </RowBetween>
-                  <RowBetween>
-                    <TYPE.white fontSize={14}>
-                      You must be connected to a Metamask wallet to place limit orders
-                    </TYPE.white>
-                  </RowBetween>{' '}
-                </AutoColumn>
-              </CardSection>
-              <CardNoise />
-            </DataCard>
-          </TopSectionLimitOrder>
-        )}
         <AppBody>
+          {!walletIsSupported && showMetamaskWarning && (
+            <NotSupportedContainer>
+              <TYPE.main fontSize={18} fontWeight={600}>
+                You must be connected to a Metamask wallet to place limit orders
+              </TYPE.main>
+              <ButtonLight onClick={() => setShowMetamaskWarning(false)}>{t('Dismiss')}</ButtonLight>
+            </NotSupportedContainer>
+          )}
           <SwapHeader title={'Limit'} hideSettings={true} hideChart={false} onChartToggle={() => toggleChart()} />
           <Wrapper id="swap-page" style={{ padding: '0' }}>
             <ConfirmSwapModal
