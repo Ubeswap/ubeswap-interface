@@ -341,16 +341,17 @@ export function ButtonRadio({ active, ...rest }: { active?: boolean } & ButtonPr
 export const TabButton = styled(ButtonLight)<{
   active?: boolean
 }>`
-  background-color: initial;
-  width: 35%;
-  ${({ active }) =>
-    active &&
-    `
-  box-shadow: 0 0 0 1pt #6D619A70;
-  background-color: #6D619A70;
-`}
+  background-color: ${({ active, theme }) => (active ? theme.bg2 : 'inherit')};
+  white-space: nowrap;
+  border-radius: 6px;
   font-size: 12px;
-  display: inline-block;
-  padding: 0.75rem;
-  margin: 0.5rem 0.05rem 0.5rem 0.5rem;
+  color: ${({ theme }) => theme.text1};
+  transition-duration: 100ms;
+  padding: 6px 16px;
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: ${({ theme }) => theme.bg2};
+    box-shadow: none;
+  }
 `
