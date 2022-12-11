@@ -57,6 +57,3 @@ export const monthTickFormatter = (locale: string) => (timestamp: NumberValue) =
 
 export const weekFormatter = (locale: string) => (timestamp: NumberValue) =>
   createDateFormatter(timestamp, locale, { weekday: 'long' })
-
-export const yearFormatter = (locale: string) => (timestamp: NumberValue) =>
-  createDateFormatter(timestamp, locale, { weekday: 'long' })
