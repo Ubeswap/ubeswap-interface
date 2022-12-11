@@ -188,11 +188,15 @@ export default function ChartSelector({ currencies }: ChartSelectorProps) {
               <CurrencyLogo currency={chart.currencies} size={'28px'} style={{ border: `2px solid ${theme.white}` }} />
             ) : (
               <div style={{ position: 'relative', width: '46px' }}>
-                <CurrencyLogo currency={chart.currencies[0]} size={'28px'} />
+                <CurrencyLogo
+                  currency={chart.currencies[0]}
+                  size={'28px'}
+                  style={{ border: `2px solid ${theme.white}` }}
+                />
                 <CurrencyLogo
                   currency={chart.currencies[1]}
                   size={'28px'}
-                  style={{ position: 'absolute', left: '18px' }}
+                  style={{ position: 'absolute', left: '18px', border: `2px solid ${theme.white}` }}
                 />
               </div>
             )}
@@ -218,9 +222,9 @@ export default function ChartSelector({ currencies }: ChartSelectorProps) {
         <MenuFlyout>
           {choices.map((choice: ChartOption) => (
             <MenuItem active={choice === chart} key={choice.pairID || choice.coingeckoID}>
-              <Row style={{ gap: '0.25rem' }}>
-                <Row>
-                  <Row width={'44px'} style={{ position: 'relative' }}>
+              <Row style={{ gap: '4rem' }}>
+                <Row style={{ gap: '0.75rem' }}>
+                  <Row width={'38px'} style={{ position: 'relative' }}>
                     {choice.currencies instanceof Token ? (
                       <CurrencyLogo
                         currency={choice.currencies}
@@ -237,7 +241,7 @@ export default function ChartSelector({ currencies }: ChartSelectorProps) {
                         <CurrencyLogo
                           currency={choice.currencies[1]}
                           size={'24px'}
-                          style={{ position: 'absolute', left: '26px', border: `2px solid ${theme.white}` }}
+                          style={{ position: 'absolute', left: '14px', border: `2px solid ${theme.white}` }}
                         />
                       </>
                     )}
