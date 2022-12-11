@@ -8,6 +8,7 @@ import { Field } from 'state/limit/actions'
 import styled, { useTheme } from 'styled-components'
 import { TYPE } from 'theme'
 import { formatDelta, formatDollar, formatTransactionAmount } from 'utils/formatNumbers'
+import getLpAddress from 'utils/getLpAddress'
 
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import { LoadingBubble } from './loading'
@@ -105,6 +106,14 @@ async function getCoingeckoPrice(id: string) {
     .then((data) => data[id])
 }
 
+function getPairID(token0Address: string, token1Address: string) {
+  try {
+    return getLpAddress(token0Address, token1Address)?.toLowerCase()
+  } catch (err) {
+    return undefined
+  }
+}
+
 interface ChartSelectorProps {
   currencies: { [field in Field]?: Token }
 }
@@ -125,6 +134,24 @@ export default function ChartSelector({ currencies }: ChartSelectorProps) {
   useEffect(() => {
     const tokens = [currencies[Field.TOKEN], currencies[Field.PRICE]]
     const reverseTokens = [...tokens].reverse()
+
+    // Generating pair from GraphQl
+    if (tokens[0] && tokens[1]) {
+      const pairID = getPairID.apply(
+        this,
+        tokens.map((t) => t.address)
+      )
+      setChoices([
+        {
+          currencies: tokens as [Token, Token],
+          pairID: pairID,
+        },
+        {
+          currencies: reverseTokens as [Token, Token],
+          pairID: pairID,
+        },
+      ])
+    }
 
     // Generating token chart from Coingecko
     tokens.forEach((token) => {
