@@ -16,6 +16,9 @@ const ChartContainer = styled.div`
   height: 436px;
   margin-bottom: 16px;
   width: 100%;
+  @media screen and (max-width: 1115px) {
+    border: 0;
+  }
 `
 
 const TimeOptionsContainer = styled.div`
@@ -54,27 +57,35 @@ async function getCoingeckoPrice(id: string, t: TimePeriod) {
 }
 
 export default function ChartSection({ chart }: { chart: ChartOption | undefined }) {
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>(TimePeriod.MONTH)
-  const [prices, setPrices] = useState<PricePoint[] | null>(null)
+  const [chartSetting, setChartSetting] = useState<[PricePoint[] | null, TimePeriod]>([null, TimePeriod.MONTH])
+
+  const fetchPrice = (ch: ChartOption | undefined, ti: TimePeriod) => {
+    if (ch?.coingeckoID) {
+      return getCoingeckoPrice(ch?.coingeckoID, ti).then((coingeckoPrices) => setChartSetting([coingeckoPrices, ti]))
+    }
+  }
 
   useEffect(() => {
-    if (chart?.coingeckoID) {
-      getCoingeckoPrice(chart?.coingeckoID, timePeriod).then((coingeckoPrices) => setPrices(coingeckoPrices))
-    }
-  }, [chart, timePeriod])
+    fetchPrice(chart, chartSetting[1])
+  }, [chart])
 
   return (
     <ChartContainer>
       <ParentSize>
         {(parent) => (
-          <PriceChart prices={prices ?? null} width={parent.width} height={parent.height} timePeriod={timePeriod} />
+          <PriceChart
+            prices={chartSetting[0] ?? null}
+            width={parent.width}
+            height={parent.height}
+            timePeriod={chartSetting[1]}
+          />
         )}
       </ParentSize>
       <TimeOptionsContainer>
         <TimePeriodSelector
-          currentTimePeriod={timePeriod}
+          currentTimePeriod={chartSetting[1]}
           onTimeChange={(t: TimePeriod) => {
-            setTimePeriod(t)
+            fetchPrice(chart, t)
           }}
         />
       </TimeOptionsContainer>

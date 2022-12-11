@@ -371,12 +371,12 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
 
 const StyledMissingChart = styled.svg`
   text {
-    font-size: 12px;
-    font-weight: 400;
+    font-size: 20px;
+    font-weight: 600;
   }
 `
 
-const chartBottomPadding = 15
+const chartBottomPadding = 40
 
 function MissingPriceChart({ width, height, message }: { width: number; height: number; message: ReactNode }) {
   const theme = useTheme()
@@ -390,8 +390,8 @@ function MissingPriceChart({ width, height, message }: { width: number; height: 
         fill="transparent"
         strokeWidth="2"
       />
-      <TrendingUp stroke={theme.bg2} x={-100} size={12} y={height - chartBottomPadding - 10} />
-      <text y={height - chartBottomPadding} x="20" fill={theme.text1}>
+      <TrendingUp stroke={theme.text1} size={40} y={height / 2 - 30} x={width / 2 - 20} />
+      <text y={height / 2 + chartBottomPadding} x={width / 2} textAnchor={'middle'} fill={theme.text1}>
         {message}
       </text>
     </StyledMissingChart>

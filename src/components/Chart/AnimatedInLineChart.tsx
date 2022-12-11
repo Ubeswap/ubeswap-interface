@@ -67,14 +67,9 @@ function AnimatedInLineChart<T>({
 
   return (
     <Group top={marginTop} style={{ filter: `drop-shadow(0 0 0 ${color}) contrast(120%)` }}>
-      <defs>
-        <clipPath id="clip">
-          <rect x={0} y={0} width={width} height={height} />
-        </clipPath>
-      </defs>
-      <LinearGradient id="area" from={color} to={color} fromOpacity={0.75} toOpacity={0} />
+      <LinearGradient id="area" from={color} to={color} fromOpacity={0.5} toOpacity={0} />
 
-      <AreaClosed data={data} x={getX} y={getY} yScale={yScale} fill="url(#area)" clipPath="url(#clip)" curve={curve} />
+      <AreaClosed data={data} x={getX} y={getY} yScale={yScale} fill="url(#area)" curve={curve} />
 
       <LinePath curve={curve} x={getX} y={getY}>
         {({ path }) => {
