@@ -1,4 +1,5 @@
 import React from 'react'
+import { BarChart2 } from 'react-feather'
 import styled from 'styled-components'
 
 import Row, { RowBetween } from '../Row'
@@ -28,12 +29,49 @@ const LinkSwapHeader = styled.a<{ active?: boolean }>`
   }
 `
 
+const StyledChartButton = styled.button`
+  position: relative;
+  height: 100%;
+  border: none;
+  background-color: transparent;
+  margin: 0;
+  padding: 0;
+  height: 35px;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  outline: none;
+  svg {
+    margin-top: 2px;
+  }
+  :hover {
+    opacity: 0.7;
+  }
+  display: none;
+  @media (max-width: 1115px) {
+    display: block;
+  }
+`
+
+const StyledChartIcon = styled(BarChart2)`
+  height: 20px;
+  width: 20px;
+
+  > * {
+    stroke: ${({ theme }) => theme.text2};
+  }
+`
+
 export default function SwapHeader({
   title = 'Swap',
   hideSettings = false,
+  hideChart = true,
+  onChartToggle,
 }: {
   title?: string
   hideSettings?: boolean
+  hideChart?: boolean
+  onChartToggle?: () => void
 }) {
   return (
     <StyledSwapHeader>
@@ -43,6 +81,11 @@ export default function SwapHeader({
           <LinkSwapHeader {...(title === 'Limit' ? { active: true } : { href: '#limit-order' })}>Limit</LinkSwapHeader>
         </Row>
         {hideSettings || <Settings />}
+        {hideChart || (
+          <StyledChartButton onClick={() => onChartToggle()}>
+            <StyledChartIcon />
+          </StyledChartButton>
+        )}
       </RowBetween>
     </StyledSwapHeader>
   )

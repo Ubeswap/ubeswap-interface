@@ -13,7 +13,7 @@ import { useIsTransactionUnsupported } from 'hooks/Trades'
 import { useOrderBookContract, useOrderBookRewardDistributorContract } from 'hooks/useContract'
 import useENS from 'hooks/useENS'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
-import { ArrowDown } from 'react-feather'
+import { ArrowDown, X } from 'react-feather'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
@@ -61,6 +61,65 @@ const ArrowContainer = styled.button`
   }
   :hover svg {
     transform: rotate(180deg);
+  }
+`
+
+const ChartContainer = styled.div<{
+  show: boolean
+}>`
+@media (max-width: 1115px) {
+  display: ${({ show }) => (show ? 'block' : 'none')};
+  flex-direction: row;
+  justify-content: space-between;
+  justify-self: center;
+  padding: 1rem 1rem 40px 1rem;
+  position: fixed;
+  bottom: 16px;
+  left: 0px;
+  width: calc(100% - 20px);
+  z-index: 100;
+  height: calc(100% - 120px);
+  max-height: 552px;
+  overflow-y: auto;
+  margin: 0 10px;
+  border-radius: 30px 30px 0 0;
+  box-shadow: 0px 0px 1px rgb(0 0 0 / 1%), 0px 4px 8px rgb(0 0 0 / 4%), 0px 16px 24px rgb(0 0 0 / 4%), 0px 24px 32px rgb(0 0 0 / 1%);
+  background-color: ${({ theme }) => theme.bg2};
+  border: 1px solid  ${({ theme }) => theme.bg4};
+  animation: appearChart 200ms ease-in-out;
+  @keyframes appearChart {
+    0% {
+      bottom: -620px;
+    }
+   100% {
+      bottom: 0;
+    }
+  }
+`
+
+const StyledCloseButton = styled.button`
+  all: unset;
+  position: absolute;
+  right: 20px;
+  height: 35px;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  outline: none;
+  :hover {
+    opacity: 0.7;
+  }
+  display: none;
+  @media (max-width: 1115px) {
+    display: block;
+  }
+`
+const StyledCloseIcon = styled(X)`
+  height: 20px;
+  width: 20px;
+
+  > * {
+    stroke: ${({ theme }) => theme.text1};
   }
 `
 
@@ -281,17 +340,24 @@ export default function LimitOrder() {
     walletType === WalletTypes.Injected
 
   const [chart, setChart] = useState<ChartOption | undefined>(undefined)
+  const [showChart, setShowChart] = useState<boolean>(false)
+  const toggleChart = () => setShowChart((show) => !show)
 
   return (
     <LimitOrderLayout>
       <LeftPanel>
-        <ChartSelector
-          currencies={currencies}
-          onChartChange={(c: ChartOption | undefined) => {
-            setChart(c)
-          }}
-        ></ChartSelector>
-        <ChartSection chart={chart}></ChartSection>
+        <ChartContainer show={showChart}>
+          <StyledCloseButton onClick={() => toggleChart()}>
+            <StyledCloseIcon />
+          </StyledCloseButton>
+          <ChartSelector
+            currencies={currencies}
+            onChartChange={(c: ChartOption | undefined) => {
+              setChart(c)
+            }}
+          ></ChartSelector>
+          <ChartSection chart={chart}></ChartSection>
+        </ChartContainer>
         <LimitOrderHistory />
       </LeftPanel>
       <RightPanel>
@@ -316,7 +382,7 @@ export default function LimitOrder() {
           </TopSectionLimitOrder>
         )}
         <AppBody>
-          <SwapHeader title={'Limit'} hideSettings={true} />
+          <SwapHeader title={'Limit'} hideSettings={true} hideChart={false} onChartToggle={() => toggleChart()} />
           <Wrapper id="swap-page" style={{ padding: '0' }}>
             <ConfirmSwapModal
               isOpen={showConfirm}
