@@ -23,7 +23,7 @@ import Column, { AutoColumn, TopSectionLimitOrder } from '../../components/Colum
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import Loader from '../../components/Loader'
 import ProgressSteps from '../../components/ProgressSteps'
-import { AutoRow, RowBetween } from '../../components/Row'
+import Row, { AutoRow, RowBetween } from '../../components/Row'
 import ConfirmSwapModal from '../../components/swap/ConfirmSwapModal'
 import { BottomGrouping, Wrapper } from '../../components/swap/styleds'
 import SwapHeader from '../../components/swap/SwapHeader'
@@ -350,6 +350,18 @@ export default function LimitOrder() {
                 value={formattedAmounts[Field.PRICE]}
                 onUserInput={handleTypePrice}
               />
+              <Row justify="flex-end" style={{ height: '20px', paddingRight: '12px' }}>
+                {marketPriceDiffIndicator && (
+                  <>
+                    <Text fontWeight={500} fontSize={14} color={getColor()}>
+                      {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'}&nbsp;
+                    </Text>
+                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                      market price
+                    </Text>
+                  </>
+                )}
+              </Row>
               <ArrowContainer
                 onClick={() => {
                   setApprovalSubmitted(false) // reset 2 step UI for approvals
@@ -466,18 +478,6 @@ export default function LimitOrder() {
       </AppBody>
       <AdvancedDetailsFooter show={parsedOutputTotal || parsedInputTotal ? true : false}>
         <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
-          <RowBetween align="center" style={{ marginBottom: '0.5rem' }}>
-            {marketPriceDiffIndicator && (
-              <div style={{ display: 'flex' }}>
-                <Text fontWeight={500} fontSize={14} color={getColor()}>
-                  {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'} &nbsp;
-                </Text>
-                <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                  market price
-                </Text>
-              </div>
-            )}
-          </RowBetween>
           <RowBetween align="center">
             <Text fontWeight={500} fontSize={14} color={theme.text2}>
               Market Price
