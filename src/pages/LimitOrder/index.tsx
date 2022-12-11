@@ -3,6 +3,7 @@ import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount, Trade } from '@ubeswap/sdk'
 import { CardNoise, CardSection, DataCard } from 'components/earn/styled'
 import PriceInputPanel from 'components/PriceInputPanel'
+import { AdvancedDetailsFooter } from 'components/swap/AdvancedSwapDetailsDropdown'
 import { useQueueLimitOrderTrade } from 'components/swap/routing/limit/queueLimitOrderTrade'
 import { useTradeCallback } from 'components/swap/routing/useTradeCallback'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
@@ -18,7 +19,6 @@ import { useSingleCallResult } from 'state/multicall/hooks'
 import styled, { ThemeContext } from 'styled-components'
 
 import { ButtonConfirmed, ButtonLight, ButtonPrimary, TabButton } from '../../components/Button'
-import Card from '../../components/Card'
 import Column, { AutoColumn, TopSectionLimitOrder } from '../../components/Column'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import Loader from '../../components/Loader'
@@ -373,87 +373,6 @@ export default function LimitOrder() {
                 id="limit-order-token"
               />
             </Column>
-
-            <Card padding={'0px'} borderRadius={'20px'}>
-              <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
-                <>
-                  <RowBetween align="center" style={{ marginBottom: '0.5rem' }}>
-                    {marketPriceDiffIndicator && (
-                      <div style={{ display: 'flex' }}>
-                        <Text fontWeight={500} fontSize={14} color={getColor()}>
-                          {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'} &nbsp;
-                        </Text>
-                        <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                          market price
-                        </Text>
-                      </div>
-                    )}
-                  </RowBetween>
-                  <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Market Price
-                    </Text>
-                    {trade ? (
-                      <TradePrice
-                        price={trade.executionPrice}
-                        showInverted={buying ? showInverted : !showInverted}
-                        setShowInverted={setShowInverted}
-                      />
-                    ) : (
-                      <Text>-</Text>
-                    )}
-                  </RowBetween>
-                  <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Order Reward
-                    </Text>
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      {reward?.toSignificant(2) ?? '-'} {reward?.currency.symbol}
-                    </Text>
-                  </RowBetween>
-                  <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Order Fee
-                    </Text>
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      {orderFee?.toSignificant(2) ?? '-'} {orderFee?.currency.symbol}
-                    </Text>
-                  </RowBetween>
-                  <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      {buying ? 'Total Buy' : 'Total Sell'}
-                    </Text>
-                    {buying ? (
-                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                        {parsedOutputTotal ? parsedOutputTotal.toSignificant(6) : '-'}{' '}
-                        {parsedOutputTotal?.currency.symbol}
-                      </Text>
-                    ) : (
-                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                        {parsedInputTotal && orderFee ? parsedInputTotal.add(orderFee).toSignificant(6) : '-'}{' '}
-                        {parsedInputTotal?.currency.symbol}
-                      </Text>
-                    )}
-                  </RowBetween>
-                  <RowBetween align="center">
-                    <Text fontWeight={800} fontSize={14} color={theme.text1}>
-                      {buying ? 'Total Cost' : 'Total Received'}
-                    </Text>
-                    {buying ? (
-                      <Text fontWeight={800} fontSize={14} color={theme.text1}>
-                        {parsedInputTotal && orderFee ? parsedInputTotal.add(orderFee).toSignificant(6) : '-'}{' '}
-                        {parsedInputTotal?.currency.symbol}
-                      </Text>
-                    ) : (
-                      <Text fontWeight={800} fontSize={14} color={theme.text1}>
-                        {parsedOutputTotal ? parsedOutputTotal.toSignificant(6) : '-'}{' '}
-                        {parsedOutputTotal?.currency.symbol}
-                      </Text>
-                    )}
-                  </RowBetween>
-                </>
-              </AutoColumn>
-            </Card>
           </AutoColumn>
           <BottomGrouping>
             {swapIsUnsupported ? (
@@ -540,6 +459,83 @@ export default function LimitOrder() {
           </BottomGrouping>
         </Wrapper>
       </AppBody>
+      <AdvancedDetailsFooter show={parsedOutputTotal || parsedInputTotal ? true : false}>
+        <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
+          <RowBetween align="center" style={{ marginBottom: '0.5rem' }}>
+            {marketPriceDiffIndicator && (
+              <div style={{ display: 'flex' }}>
+                <Text fontWeight={500} fontSize={14} color={getColor()}>
+                  {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'} &nbsp;
+                </Text>
+                <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                  market price
+                </Text>
+              </div>
+            )}
+          </RowBetween>
+          <RowBetween align="center">
+            <Text fontWeight={500} fontSize={14} color={theme.text2}>
+              Market Price
+            </Text>
+            {trade ? (
+              <TradePrice
+                price={trade.executionPrice}
+                showInverted={buying ? showInverted : !showInverted}
+                setShowInverted={setShowInverted}
+              />
+            ) : (
+              <Text>-</Text>
+            )}
+          </RowBetween>
+          <RowBetween align="center">
+            <Text fontWeight={500} fontSize={14} color={theme.text2}>
+              Order Reward
+            </Text>
+            <Text fontWeight={500} fontSize={14} color={theme.text2}>
+              {reward?.toSignificant(2) ?? '-'} {reward?.currency.symbol}
+            </Text>
+          </RowBetween>
+          <RowBetween align="center">
+            <Text fontWeight={500} fontSize={14} color={theme.text2}>
+              Order Fee
+            </Text>
+            <Text fontWeight={500} fontSize={14} color={theme.text2}>
+              {orderFee?.toSignificant(2) ?? '-'} {orderFee?.currency.symbol}
+            </Text>
+          </RowBetween>
+          <RowBetween align="center">
+            <Text fontWeight={500} fontSize={14} color={theme.text2}>
+              {buying ? 'Total Buy' : 'Total Sell'}
+            </Text>
+            {buying ? (
+              <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                {parsedOutputTotal ? parsedOutputTotal.toSignificant(6) : '-'} {parsedOutputTotal?.currency.symbol}
+              </Text>
+            ) : (
+              <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                {parsedInputTotal && orderFee ? parsedInputTotal.add(orderFee).toSignificant(6) : '-'}{' '}
+                {parsedInputTotal?.currency.symbol}
+              </Text>
+            )}
+          </RowBetween>
+          <RowBetween align="center">
+            <Text fontWeight={800} fontSize={14} color={theme.text1}>
+              {buying ? 'Total Cost' : 'Total Received'}
+            </Text>
+            {buying ? (
+              <Text fontWeight={800} fontSize={14} color={theme.text1}>
+                {parsedInputTotal && orderFee ? parsedInputTotal.add(orderFee).toSignificant(6) : '-'}{' '}
+                {parsedInputTotal?.currency.symbol}
+              </Text>
+            ) : (
+              <Text fontWeight={800} fontSize={14} color={theme.text1}>
+                {parsedOutputTotal ? parsedOutputTotal.toSignificant(6) : '-'} {parsedOutputTotal?.currency.symbol}
+              </Text>
+            )}
+          </RowBetween>
+        </AutoColumn>
+      </AdvancedDetailsFooter>
+
       <LimitOrderHistory />
     </>
   )
