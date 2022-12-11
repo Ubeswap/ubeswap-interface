@@ -2,9 +2,7 @@ import { useContractKit } from '@celo-tools/use-contractkit'
 import { ChainId as UbeswapChainId } from '@ubeswap/sdk'
 import { ButtonLight, TabButton } from 'components/Button'
 import { ColumnCenter } from 'components/Column'
-import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistoryBody'
-import LimitOrderHistoryItem from 'components/LimitOrderHistory/LimitOrderHistoryItem'
-import { Wrapper } from 'components/swap/styleds'
+import LimitOrderHistoryHead from 'components/LimitOrderHistory/LimitOrderHistoryHead'
 import { useToken } from 'hooks/Tokens'
 import { useOrderBookRewardDistributorContract } from 'hooks/useContract'
 import React, { useState } from 'react'
@@ -68,6 +66,13 @@ export const LimitOrderHistory: React.FC = () => {
   const rewardCurrencyAddress = useSingleCallResult(rewardDistributorContract, 'rewardCurrency', []).result?.[0]
   const rewardCurrency = useToken(rewardCurrencyAddress)
 
+  const columns = [
+    { label: 'Pay', size: 2 },
+    { label: 'Receive', size: 1 },
+    { label: 'Rate', size: 1 },
+    { label: 'Status', size: 1 },
+  ]
+
   return (
     <>
       <Header>
@@ -100,37 +105,9 @@ export const LimitOrderHistory: React.FC = () => {
         }
         return !limitOrderHist.isOrderOpen
       }).length ? (
-        <LimitOrderHistoryBody>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <TabButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
-              Open ({limitOrderHistory.filter((limitOrderHist) => limitOrderHist.isOrderOpen).length})
-            </TabButton>
-            <TabButton active={!openOrdersTabActive} onClick={() => setOpenOrdersTabActive(false)}>
-              Completed ({limitOrderHistory.filter((limitOrderHist) => !limitOrderHist.isOrderOpen).length})
-            </TabButton>
-          </div>
-
-          <Wrapper id="limit-order-history">
-            {limitOrderHistory
-              .filter((limitOrderHist) => {
-                if (openOrdersTabActive) {
-                  return limitOrderHist.isOrderOpen
-                }
-                return !limitOrderHist.isOrderOpen
-              })
-              .reverse()
-              .map((limitOrderHist, idx, arr) => {
-                return (
-                  <LimitOrderHistoryItem
-                    key={limitOrderHist.orderHash}
-                    item={limitOrderHist}
-                    rewardCurrency={rewardCurrency || undefined}
-                    lastDisplayItem={idx === arr.length - 1}
-                  />
-                )
-              })}
-          </Wrapper>
-        </LimitOrderHistoryBody>
+        <table style={{ borderSpacing: '0 12px', width: '100%' }}>
+          <LimitOrderHistoryHead columns={columns}></LimitOrderHistoryHead>
+        </table>
       ) : (
         <ColumnCenter style={{ gap: '16px', marginTop: '12px' }}>
           <TYPE.black my={2}>
