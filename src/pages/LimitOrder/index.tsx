@@ -2,6 +2,7 @@ import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
 import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount, Trade } from '@ubeswap/sdk'
 import { CardNoise, CardSection, DataCard } from 'components/earn/styled'
+import ChartSection from 'components/LimitOrder/ChartSection'
 import { LeftPanel, LimitOrderLayout, RightPanel } from 'components/LimitOrder/Skeleton'
 import PriceInputPanel from 'components/PriceInputPanel'
 import { AdvancedDetailsFooter } from 'components/swap/AdvancedSwapDetailsDropdown'
@@ -281,6 +282,7 @@ export default function LimitOrder() {
   return (
     <LimitOrderLayout>
       <LeftPanel>
+        <ChartSection></ChartSection>
         <LimitOrderHistory />
       </LeftPanel>
       <RightPanel>
