@@ -2,13 +2,21 @@ import React from 'react'
 import styled from 'styled-components'
 
 const HeaderCell = styled.th`
+  font-weight: 500;
   padding: 0 6px;
   font-size: 12px;
+  span {
+    width: 100%;
+    display: flex;
+  }
   &:first-child {
     padding-left: 12px;
   }
   &:last-child {
     padding-right: 12px;
+    span {
+      flex-direction: row-reverse;
+    }
   }
 `
 
@@ -17,14 +25,14 @@ export type HistoryColumn = {
   size: number
 }
 
-export const LimitOrderHistoryHead = ({ columns }: { columns: HistoryColumn[] }) => {
+export default function LimitOrderHistoryHead({ columns }: { columns: HistoryColumn[] }) {
   return (
     <thead>
       <tr>
         {columns.map((c: HistoryColumn) => {
           return (
             <HeaderCell colSpan={c.size} key={c.label}>
-              {c.label}
+              <span>{c.label}</span>
             </HeaderCell>
           )
         })}
@@ -32,5 +40,3 @@ export const LimitOrderHistoryHead = ({ columns }: { columns: HistoryColumn[] })
     </thead>
   )
 }
-
-export default LimitOrderHistoryHead

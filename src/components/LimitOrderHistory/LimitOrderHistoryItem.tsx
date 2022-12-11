@@ -166,7 +166,7 @@ export default function LimitOrderHistoryItem({ item, rewardCurrency, lastDispla
       </ItemCell>
       <ItemCell style={{ width: '175px' }}>
         <RowCenter style={{ gap: '5px' }}>
-          <CurrencyLogo currency={takerToken} size={'30px'} />
+          <CurrencyLogo currency={takerToken} size={'30px'} style={{ border: `2px solid ${theme.white}` }} />
           <div>
             <div style={{ fontWeight: 'bold' }}>{takerToken.symbol}</div>
             <div>{formatTransactionAmount(Number(item.takingAmount / 10 ** takerToken.decimals))}</div>

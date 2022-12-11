@@ -67,12 +67,12 @@ export const LimitOrderHistory: React.FC = () => {
   const rewardCurrencyAddress = useSingleCallResult(rewardDistributorContract, 'rewardCurrency', []).result?.[0]
   const rewardCurrency = useToken(rewardCurrencyAddress)
 
-  const columns: HistoryColumn[] = [
+  let columns: HistoryColumn[] = [
     { label: 'Pay', size: 2 },
     { label: 'Receive', size: 1 },
     { label: 'Rate', size: 1 },
-    { label: 'Status', size: 1 },
   ]
+  columns = openOrdersTabActive ? [...columns, { label: 'Status', size: 1 }] : columns
 
   return (
     <>
