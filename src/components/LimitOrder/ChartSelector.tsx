@@ -21,7 +21,7 @@ const ChartTitle = styled.button<{ clickable: boolean; active: boolean }>`
   margin-left: -12px;
   border: 1px solid transparent;
   height: 28px;
-  transition: all 100ms ease-in-out;
+  transition: all 200ms ease-in-out;
   display: flex;
   align-items: center;
   gap: 0.5rem;

@@ -137,7 +137,7 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
       setDisplayPrice(endingPrice)
     }
   }, [prices, endingPrice])
-  //
+
   const graphHeight = height - 64 - 16
   const graphInnerHeight =
     graphHeight - margin.top - margin.bottom > 0 ? graphHeight - margin.top - margin.bottom - 40 : 0
@@ -256,7 +256,6 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
   const delta = calculateDelta(startingPrice.value, displayPrice.value)
   const formattedDelta = formatDelta(delta)
   const arrow = getDeltaArrow(delta)
-  const crosshairEdgeMax = width * 0.85
 
   const curveTension = timePeriod === TimePeriod.HOUR ? 1 : 0.75
   const curve = useMemo(() => curveCardinal.tension(curveTension), [curveTension])
