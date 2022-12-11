@@ -386,7 +386,7 @@ export default function LimitOrder() {
               <TYPE.main fontSize={18} fontWeight={600}>
                 You must be connected to a Metamask wallet to place limit orders
               </TYPE.main>
-              <ButtonLight onClick={() => setShowMetamaskWarning(false)}>{t('Dismiss')}</ButtonLight>
+              <ButtonPrimary onClick={() => setShowMetamaskWarning(false)}>{t('Dismiss')}</ButtonPrimary>
             </NotSupportedContainer>
           )}
           <SwapHeader title={'Limit'} hideSettings={true} hideChart={false} onChartToggle={() => toggleChart()} />
