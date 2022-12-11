@@ -116,9 +116,10 @@ function getPairID(token0Address: string, token1Address: string) {
 
 interface ChartSelectorProps {
   currencies: { [field in Field]?: Token }
+  onChartChange: (t: ChartOption | undefined) => void
 }
 
-export default function ChartSelector({ currencies }: ChartSelectorProps) {
+export default function ChartSelector({ currencies, onChartChange }: ChartSelectorProps) {
   const theme = useTheme()
 
   const node = useRef<HTMLDivElement>()
@@ -177,6 +178,7 @@ export default function ChartSelector({ currencies }: ChartSelectorProps) {
 
   useEffect(() => {
     setChart(choices[0])
+    onChartChange(choices[0])
   }, [choices])
 
   return (
@@ -221,7 +223,15 @@ export default function ChartSelector({ currencies }: ChartSelectorProps) {
       {open && choices.length > 1 && (
         <MenuFlyout>
           {choices.map((choice: ChartOption) => (
-            <MenuItem active={choice === chart} key={choice.pairID || choice.coingeckoID}>
+            <MenuItem
+              onClick={() => {
+                onChartChange(choice)
+                setChart(choice)
+                toggle()
+              }}
+              active={choice === chart}
+              key={choice.pairID || choice.coingeckoID}
+            >
               <Row style={{ gap: '4rem' }}>
                 <Row style={{ gap: '0.75rem' }}>
                   <Row width={'38px'} style={{ position: 'relative' }}>
