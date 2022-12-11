@@ -9,12 +9,13 @@ import { useIsTransactionUnsupported } from 'hooks/Trades'
 import { useOrderBookContract, useOrderBookRewardDistributorContract } from 'hooks/useContract'
 import useENS from 'hooks/useENS'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { ArrowDown } from 'react-feather'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
 import { useDerivedLimitOrderInfo, useLimitOrderActionHandlers, useLimitOrderState } from 'state/limit/hooks'
 import { useSingleCallResult } from 'state/multicall/hooks'
-import { ThemeContext } from 'styled-components'
+import styled, { ThemeContext } from 'styled-components'
 
 import { ButtonConfirmed, ButtonLight, ButtonPrimary, TabButton } from '../../components/Button'
 import Card from '../../components/Card'
@@ -36,6 +37,29 @@ import { useUserSlippageTolerance } from '../../state/user/hooks'
 import { TYPE } from '../../theme'
 import AppBody from '../AppBody'
 import { LimitOrderHistory } from './LimitOrderHistory'
+
+const ArrowContainer = styled.button`
+  height: 36px;
+  width: 36px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.bg1};
+  border: 1px solid ${({ theme }) => theme.bg3};
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  svg {
+    stroke-width: 3px;
+    transition: all 0.1s ease-in-out;
+  }
+  :hover svg {
+    transform: rotate(180deg);
+  }
+`
 
 export const BPS_DENOMINATOR = JSBI.BigInt(1_000_000)
 
@@ -81,7 +105,7 @@ export default function LimitOrder() {
     buying ? currencies?.PRICE?.address : currencies?.TOKEN?.address,
   ]).result?.[0]
 
-  const { onCurrencySelection, onUserInput, setBuying } = useLimitOrderActionHandlers()
+  const { onCurrencySelection, onSwitchTokens, onUserInput, setBuying } = useLimitOrderActionHandlers()
   const defaultPriceCurrency = useCurrency(cUSD[chainId].address)
   useEffect(() => {
     defaultPriceCurrency && onCurrencySelection(Field.PRICE, defaultPriceCurrency)
@@ -301,7 +325,14 @@ export default function LimitOrder() {
           />
 
           <AutoColumn gap={'md'}>
-            <Column style={{ gap: '8px' }}>
+            <Column
+              style={{
+                gap: '8px',
+                borderBottom: `1px solid ${theme.bg3}`,
+                position: 'relative',
+                padding: '22px 0 42px',
+              }}
+            >
               <TYPE.body fontWeight={600} style={{ margin: '0 0.75rem' }}>
                 You Pay
               </TYPE.body>
@@ -319,8 +350,17 @@ export default function LimitOrder() {
                 value={formattedAmounts[Field.PRICE]}
                 onUserInput={handleTypePrice}
               />
+              <ArrowContainer
+                onClick={() => {
+                  setApprovalSubmitted(false) // reset 2 step UI for approvals
+                  handleTypeTokenAmount(formattedAmounts[Field.TOKEN])
+                  onSwitchTokens()
+                }}
+              >
+                <ArrowDown size="16" color={theme.primary1} />
+              </ArrowContainer>
             </Column>
-            <Column style={{ gap: '8px' }}>
+            <Column style={{ gap: '8px', padding: '22px 0 42px' }}>
               <TYPE.body fontWeight={600} style={{ margin: '0 0.75rem' }}>
                 You Receive
               </TYPE.body>
