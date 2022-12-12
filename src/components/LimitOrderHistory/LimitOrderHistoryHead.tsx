@@ -29,9 +29,9 @@ export default function LimitOrderHistoryHead({ columns }: { columns: HistoryCol
   return (
     <thead>
       <tr>
-        {columns.map((c: HistoryColumn) => {
+        {columns.map((c: HistoryColumn, index: number) => {
           return (
-            <HeaderCell colSpan={c.size} key={c.label}>
+            <HeaderCell colSpan={c.size} key={index}>
               <span>{c.label}</span>
             </HeaderCell>
           )

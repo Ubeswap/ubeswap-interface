@@ -1,3 +1,4 @@
+import { useApolloClient } from '@apollo/client'
 import { Token } from '@ubeswap/sdk'
 import Column from 'components/Column'
 import CurrencyLogo from 'components/CurrencyLogo'
@@ -12,6 +13,7 @@ import getLpAddress from 'utils/getLpAddress'
 
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import { LoadingBubble } from './loading'
+import { getBlockFromTimestamp, PRICE_TODAY_YESTERDAY } from './queries'
 
 const ChartTitle = styled.button<{ clickable: boolean; active: boolean }>`
   all: unset;
@@ -51,6 +53,15 @@ const StyledDropDown = styled(DropDown)<{ selected: boolean }>`
   ${({ selected }) => (selected ? 'transform: rotate(180deg);' : '')}
 `
 
+const Container = styled.div`
+  position: relative;
+  width: fit-content;
+
+  @media only screen and (max-width: 1115px) {
+    display: none;
+  }
+`
+
 const MenuFlyout = styled.div`
   display: flex;
   flex-direction: column;
@@ -84,31 +95,21 @@ const MenuItem = styled.button<{ active: boolean }>`
   }
 `
 
-export type ChartOption = {
-  currencies: [Token, Token] | Token
-  price?: number
-  change24H?: number
-  coingeckoID?: string
-  pairID?: string
-}
-
-async function getCoingeckoID(contract: string, controllerRef: any) {
-  return await fetch(`https://api.coingecko.com/api/v3/coins/celo/contract/${contract}`, {
-    signal: controllerRef.current?.signal,
-  })
+async function getCoingeckoID(contract: string, signal: any) {
+  return await fetch(`https://api.coingecko.com/api/v3/coins/celo/contract/${contract}`, { signal: signal })
     .then((response) => (response.ok ? response.json() : Promise.reject(response)))
     .then((data) => data.id)
+    .catch((e) => console.log('Error:', e))
 }
 
-async function getCoingeckoPrice(id: string, controllerRef: any) {
+async function getCoingeckoPrice(id: string, signal: any) {
   return await fetch(
     `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`,
-    {
-      signal: controllerRef.current?.signal,
-    }
+    { signal: signal }
   )
     .then((response) => (response.ok ? response.json() : Promise.reject(response)))
     .then((data) => data[id])
+    .catch((e) => console.log('Error:', e))
 }
 
 function getPairID(token0Address: string, token1Address: string) {
@@ -119,6 +120,27 @@ function getPairID(token0Address: string, token1Address: string) {
   }
 }
 
+async function getPairPrice(id: string, signal: any, gqlClient: any) {
+  const now = Math.round(new Date().getTime() / 1000)
+  const yesterday = now - 86400
+  return await getBlockFromTimestamp(yesterday, { context: { fetchOptions: { signal } } }).then((number) => {
+    return gqlClient
+      .query({ query: PRICE_TODAY_YESTERDAY(id, number), context: { fetchOptions: { signal } } })
+      .then((response) => {
+        return { now: response.data.now[0], yesterday: response.data.yesterday[0] }
+      })
+  })
+}
+
+export type ChartOption = {
+  currencies: [Token, Token] | Token
+  price?: number
+  errorNoPrice?: boolean
+  change24H?: number
+  coingeckoID?: string
+  pairID?: string
+}
+
 interface ChartSelectorProps {
   currencies: { [field in Field]?: Token }
   onChartChange: (t: ChartOption | undefined) => void
@@ -127,26 +149,30 @@ interface ChartSelectorProps {
 export default function ChartSelector({ currencies, onChartChange }: ChartSelectorProps) {
   const theme = useTheme()
 
+  const [chart, setChart] = useState<ChartOption | undefined>(undefined)
+  const [choices, setChoices] = useState<ChartOption[]>([])
+
   const node = useRef<HTMLDivElement>()
   const [open, setOpen] = useState<boolean>(false)
-  const toggle = () => setOpen((o) => !o)
+  const toggle = () => setOpen((o) => (choices.length > 1 ? !o : o))
   useOnClickOutside(node, open ? toggle : undefined)
-
-  const [chart, setChart] = useState<ChartOption | undefined>(undefined)
-
-  const [choices, setChoices] = useState<ChartOption[]>([])
 
   const controllerRef = useRef<AbortController | null>()
 
+  const client = useApolloClient()
+
   // Generation of all possible chart choices
   useEffect(() => {
+    setChoices([])
+
     if (controllerRef.current) {
       controllerRef.current.abort()
     }
     const controller = new AbortController()
     controllerRef.current = controller
+    const signal = controllerRef.current?.signal
 
-    const tokens = [currencies[Field.TOKEN], currencies[Field.PRICE]]
+    const tokens = [currencies[Field.PRICE], currencies[Field.TOKEN]]
     const reverseTokens = [...tokens].reverse()
 
     // Generating pair from GraphQl
@@ -155,23 +181,46 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
         this,
         tokens.map((t) => t.address)
       )
-      setChoices([
-        {
-          currencies: tokens as [Token, Token],
-          pairID: pairID,
-        },
-        {
-          currencies: reverseTokens as [Token, Token],
-          pairID: pairID,
-        },
-      ])
+      if (pairID) {
+        setChoices([
+          {
+            currencies: tokens as [Token, Token],
+            pairID: pairID,
+          },
+          {
+            currencies: reverseTokens as [Token, Token],
+            pairID: pairID,
+          },
+        ])
+        getPairPrice(pairID, signal, client).then((price) => {
+          setChoices((choices) =>
+            choices.map((choice) => {
+              if (choice.currencies instanceof Token) {
+                return choice
+              }
+              if (!price.now || !price.yesterday) {
+                return { ...choice, errorNoPrice: true }
+              }
+              const price0N = price.now.token0Price
+              const price1N = price.now.token1Price
+              const price0Y = price.yesterday.token0Price
+              const price1Y = price.yesterday.token1Price
+              const change0 = price0N / price0Y - 1
+              const change1 = price1N / price1Y - 1
+
+              const is1 = choice.currencies[0].address > choice.currencies[1].address
+              return { ...choice, price: is1 ? price1N : price0N, change24H: is1 ? change1 : change0 }
+            })
+          )
+        })
+      }
     }
 
     // Generating token chart from Coingecko
     tokens.forEach((token) => {
       if (token)
-        try {
-          getCoingeckoID(token.address, controllerRef).then((id) => {
+        getCoingeckoID(token.address, signal).then((id) => {
+          if (id) {
             setChoices((choices) => [
               ...choices,
               {
@@ -179,8 +228,8 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
                 coingeckoID: id,
               },
             ])
-            try {
-              getCoingeckoPrice(id, controllerRef).then((price) => {
+            getCoingeckoPrice(id, signal).then((price) => {
+              if (price) {
                 setChoices((choices) =>
                   choices.map((choice) =>
                     choice.currencies == token
@@ -188,14 +237,10 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
                       : choice
                   )
                 )
-              })
-            } catch (e) {
-              console.log('Request canceled')
-            }
-          })
-        } catch (e) {
-          console.log('Request canceled')
-        }
+              }
+            })
+          }
+        })
     })
   }, [currencies[Field.PRICE], currencies[Field.TOKEN]])
 
@@ -205,14 +250,20 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
   }, [choices])
 
   return (
-    <div style={{ position: 'relative', width: 'fit-content' }} ref={node as any}>
-      <ChartTitle clickable={choices.length > 1} active={open} onClick={toggle}>
+    <Container ref={node as any}>
+      <ChartTitle clickable={choices.length > 1} active={open && choices.length > 1} onClick={toggle}>
         {chart ? (
           <>
             {chart.currencies instanceof Token ? (
-              <CurrencyLogo currency={chart.currencies} size={'28px'} style={{ border: `2px solid ${theme.white}` }} />
+              <div style={{ height: '28px', width: '28px' }}>
+                <CurrencyLogo
+                  currency={chart.currencies}
+                  size={'28px'}
+                  style={{ border: `2px solid ${theme.white}` }}
+                />
+              </div>
             ) : (
-              <div style={{ position: 'relative', width: '46px' }}>
+              <div style={{ position: 'relative', height: '28px', width: '46px' }}>
                 <CurrencyLogo
                   currency={chart.currencies[0]}
                   size={'28px'}
@@ -240,12 +291,14 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
             {choices.length > 1 && <StyledDropDown selected={open}></StyledDropDown>}
           </>
         ) : (
-          <TYPE.largeHeader>- / -</TYPE.largeHeader>
+          <TYPE.largeHeader fontSize={[18, 20]} fontWeight={600}>
+            - / -
+          </TYPE.largeHeader>
         )}
       </ChartTitle>
       {open && choices.length > 1 && (
         <MenuFlyout>
-          {choices.map((choice: ChartOption) => (
+          {choices.map((choice: ChartOption, index: number) => (
             <MenuItem
               onClick={() => {
                 onChartChange(choice)
@@ -253,7 +306,7 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
                 toggle()
               }}
               active={choice === chart}
-              key={choice.pairID || choice.coingeckoID}
+              key={index}
             >
               <Row style={{ gap: '4rem' }}>
                 <Row style={{ gap: '0.75rem' }}>
@@ -286,13 +339,15 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
                   </TYPE.black>
                 </Row>
                 <Column style={{ fontSize: '12px', gap: '4px', alignItems: 'flex-end' }}>
-                  <div style={{ fontSize: '10px' }}>
+                  <div style={{ fontSize: '10px', minWidth: '60px', textAlign: 'right' }}>
                     {choice.price ? (
                       choice.currencies instanceof Token ? (
                         formatDollar({ num: choice.price, isPrice: true })
                       ) : (
-                        `${formatTransactionAmount(Number(choice.price))}`
+                        formatTransactionAmount(Number(choice.price))
                       )
+                    ) : choice.errorNoPrice ? (
+                      <span style={{ color: theme.red1 }}>NO DATA</span>
                     ) : (
                       <LoadingBubble height={12} width={60} />
                     )}
@@ -303,7 +358,7 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
                       fontSize: '10px',
                     }}
                   >
-                    {choice.change24H != undefined ? (
+                    {choice.change24H != undefined || choice.errorNoPrice ? (
                       formatDelta(choice.change24H)
                     ) : (
                       <LoadingBubble height={12} width={40} />
@@ -315,6 +370,6 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
           ))}
         </MenuFlyout>
       )}
-    </div>
+    </Container>
   )
 }

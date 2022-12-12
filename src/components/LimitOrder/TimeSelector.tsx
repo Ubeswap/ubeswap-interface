@@ -39,6 +39,9 @@ const TimeButton = styled.button<{ active: boolean }>`
     box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 2px 2px rgba(0, 0, 0, 0.04), 0px 2px 2px rgba(0, 0, 0, 0.04),
       0px 2px 2px rgba(0, 0, 0, 0.01);
   }
+  @media screen and (max-width: 1115px) {
+    padding: 2px;
+  }
 `
 
 export enum TimePeriod {
@@ -68,29 +71,39 @@ const ORDERED_TIMES: TimePeriod[] = [
   TimePeriod.ALL,
 ]
 
+// Restricted on Pair Chart
+export function isRestricted(timePeriod: TimePeriod): boolean {
+  return [TimePeriod.HOUR, TimePeriod.ALL].includes(timePeriod)
+}
+
 export default function TimePeriodSelector({
   currentTimePeriod,
   onTimeChange,
+  restrict,
 }: {
   currentTimePeriod: TimePeriod
   onTimeChange: (t: TimePeriod) => void
+  restrict: boolean
 }) {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(currentTimePeriod)
   return (
     <Row justify="flex-end">
       <TimeOptionsContainer>
-        {ORDERED_TIMES.map((time: TimePeriod) => (
-          <TimeButton
-            key={DISPLAYS[time]}
-            active={timePeriod === time}
-            onClick={() => {
-              onTimeChange(time)
-              setTimePeriod(time)
-            }}
-          >
-            {DISPLAYS[time]}
-          </TimeButton>
-        ))}
+        {ORDERED_TIMES.map(
+          (time: TimePeriod) =>
+            !(isRestricted(time) && restrict) && (
+              <TimeButton
+                key={DISPLAYS[time]}
+                active={timePeriod === time}
+                onClick={() => {
+                  onTimeChange(time)
+                  setTimePeriod(time)
+                }}
+              >
+                {DISPLAYS[time]}
+              </TimeButton>
+            )
+        )}
       </TimeOptionsContainer>
     </Row>
   )

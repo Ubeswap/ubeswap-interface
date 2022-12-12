@@ -20,11 +20,11 @@ import {
   monthYearFormatter,
   weekFormatter,
 } from 'utils/formatChartTimes'
-import { formatDelta, formatDollar } from 'utils/formatNumbers'
+import { formatDelta, formatDollar, formatTransactionAmount } from 'utils/formatNumbers'
 
 import { TimePeriod } from './TimeSelector'
 
-const TokenPrice = styled.span`
+export const TokenPrice = styled.span`
   font-size: 36px;
   line-height: 44px;
 `
@@ -70,6 +70,12 @@ const StyledDownArrow = styled(ArrowDownRight)`
   height: 16px;
 `
 
+export const Axis = styled.g`
+  @media only screen and (max-width: 1115px) {
+    display: none; /* Hide axis on small screen */
+  }
+`
+
 function calculateDelta(start: number, current: number) {
   return (current / start - 1) * 100
 }
@@ -109,7 +115,7 @@ function getPriceBounds(pricePoints: PricePoint[]): [number, number] {
 }
 
 const DATA_EMPTY = { value: 0, timestamp: 0 }
-const margin = { top: 40, bottom: 10 }
+export const margin = { top: 40, bottom: 10 }
 
 export type PricePoint = { timestamp: number; value: number }
 
@@ -117,10 +123,11 @@ interface PriceChartProps {
   width: number
   height: number
   prices: PricePoint[] | undefined | null
+  isDollar: boolean
   timePeriod: TimePeriod
 }
 
-export function PriceChart({ width, height, prices, timePeriod }: PriceChartProps) {
+export function PriceChart({ width, height, prices, isDollar, timePeriod }: PriceChartProps) {
   const locale = 'en-US'
   const theme = useContext(ThemeContext)
 
@@ -165,6 +172,7 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
     const offsetTime = (endingPrice.timestamp.valueOf() - startingPrice.timestamp.valueOf()) / 24
     const startDateWithOffset = new Date((startingPrice.timestamp.valueOf() + offsetTime) * 1000)
     const endDateWithOffset = new Date((endingPrice.timestamp.valueOf() - offsetTime) * 1000)
+
     switch (timePeriod) {
       case TimePeriod.HOUR:
         return [
@@ -266,7 +274,13 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
   return (
     <Column style={{ gap: '16px' }}>
       <Column style={{ gap: '4px' }}>
-        <TokenPrice>{formatDollar({ num: displayPrice.value, isPrice: true })}</TokenPrice>
+        <TokenPrice>
+          {hasData
+            ? isDollar
+              ? formatDollar({ num: displayPrice.value, isPrice: true })
+              : formatTransactionAmount(displayPrice.value)
+            : '-'}
+        </TokenPrice>
         <Row>
           <DeltaCell positive={delta >= 0}>{formattedDelta}</DeltaCell>
           <TimeCell>
@@ -277,7 +291,7 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
       </Column>
       <svg height={graphHeight}>
         {!hasData ? (
-          <MissingPriceChart height={graphHeight} width={width} message={'Missing chart data'} />
+          <MissingPriceChart height={graphInnerHeight} width={width} message={'Missing chart data'} />
         ) : (
           <>
             <AnimatedInLineChart
@@ -295,21 +309,23 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
 
             {crosshair !== null && (
               <Group>
-                <AxisBottom
-                  scale={timeScale}
-                  stroke={'transparent'}
-                  tickFormat={tickFormatter}
-                  tickLength={4}
-                  hideTicks={true}
-                  tickValues={ticks}
-                  tickTransform="translate(0 -5)"
-                  top={graphHeight - 24}
-                  tickLabelProps={() => ({
-                    fill: theme.text1,
-                    fontSize: 12,
-                    textAnchor: 'middle',
-                  })}
-                />
+                <Axis>
+                  <AxisBottom
+                    scale={timeScale}
+                    stroke={'transparent'}
+                    tickFormat={tickFormatter}
+                    tickLength={4}
+                    hideTicks={true}
+                    tickValues={ticks}
+                    tickTransform="translate(0 -5)"
+                    top={graphHeight - 24}
+                    tickLabelProps={() => ({
+                      fill: theme.text1,
+                      fontSize: 12,
+                      textAnchor: 'middle',
+                    })}
+                  />
+                </Axis>
                 <Group style={{ filter: `drop-shadow(0 0 0mm ${theme.red1}) contrast(120%)` }}>
                   <Line
                     from={{ x: crosshair, y: 0 }}
@@ -370,6 +386,8 @@ export function PriceChart({ width, height, prices, timePeriod }: PriceChartProp
 
 const StyledMissingChart = styled.svg`
   text {
+    user-select: none;
+    -webkit-user-select: none;
     font-size: 20px;
     font-weight: 600;
   }
@@ -384,13 +402,14 @@ function MissingPriceChart({ width, height, message }: { width: number; height: 
     <StyledMissingChart width={width} height={height} style={{ minWidth: '100%' }}>
       <path
         d={`M 0 ${midPoint} Q 104 ${midPoint - 70}, 208 ${midPoint} T 416 ${midPoint}
-        M 416 ${midPoint} Q 520 ${midPoint - 70}, 624 ${midPoint} T 832 ${midPoint}`}
+        M 416 ${midPoint} Q 520 ${midPoint - 70}, 624 ${midPoint} T 832 ${midPoint},
+        M 832 ${midPoint} Q 936 ${midPoint - 70}, 1040 ${midPoint} T 1248 ${midPoint}`}
         stroke={theme.bg4}
         fill="transparent"
         strokeWidth="2"
       />
-      <TrendingUp stroke={theme.text1} size={40} y={height / 2 - 30} x={width / 2 - 20} />
-      <text y={height / 2 + chartBottomPadding} x={width / 2} textAnchor={'middle'} fill={theme.text1}>
+      <TrendingUp stroke={theme.text1} size={40} y={height - chartBottomPadding - 60} x={width / 2 - 20} />
+      <text y={height - chartBottomPadding} x={width / 2} textAnchor={'middle'} fill={theme.text1}>
         {message}
       </text>
     </StyledMissingChart>

@@ -75,9 +75,8 @@ const ChartContainer = styled.div<{
   justify-self: center;
   padding: 1rem 1rem 0 1rem;
   position: fixed;
-  bottom: 70px;
-  height: calc(100% - 180px);
-  max-height: 500px;
+  bottom: 72px;
+  max-height: calc(100% - 180px);
   left: 0;
   margin: 0 10px;
   width: calc(100% - 20px - 2rem);
@@ -101,9 +100,9 @@ const ChartContainer = styled.div<{
 
 const StyledCloseButton = styled.button`
   all: unset;
-  position: absolute;
-  right: 20px;
-  height: 35px;
+  position: fixed;
+  right: 40px;
+  height: 3rem;
   border-radius: 0.5rem;
   cursor: pointer;
   outline: none;
@@ -430,16 +429,16 @@ export default function LimitOrder() {
                   value={formattedAmounts[Field.PRICE]}
                   onUserInput={handleTypePrice}
                 />
-                <Row justify="flex-end" style={{ height: '20px', paddingRight: '12px' }}>
+                <Row justify="flex-end" style={{ height: '20px', padding: '0 12px' }}>
                   {marketPriceDiffIndicator && (
-                    <span style={{ display: 'flex' }}>
+                    <Row>
                       <Text fontWeight={500} fontSize={14} color={getColor()}>
                         {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'}&nbsp;
                       </Text>
                       <Text fontWeight={500} fontSize={14} color={theme.text2}>
                         market price
                       </Text>
-                    </span>
+                    </Row>
                   )}
                 </Row>
                 <ArrowContainer
@@ -453,8 +452,8 @@ export default function LimitOrder() {
               </Column>
               <Column
                 style={{
-                  gap: '8px',
-                  padding: '22px 1rem 42px',
+                  gap: '12px',
+                  padding: '22px 1rem',
                 }}
               >
                 <TYPE.body fontWeight={600} style={{ margin: '0 0.75rem' }}>
@@ -468,20 +467,20 @@ export default function LimitOrder() {
                   disabled
                   id="limit-order-token"
                 />
-                <RowBetween align="center">
-                  <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                    Market Price
-                  </Text>
-                  {trade ? (
-                    <TradePrice
-                      price={trade.executionPrice}
-                      showInverted={showInverted}
-                      setShowInverted={setShowInverted}
-                    />
-                  ) : (
-                    <Text>-</Text>
+                <Row justify="flex-end" style={{ height: '20px', padding: '0 12px' }}>
+                  {trade && (
+                    <RowBetween align="center">
+                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                        Market Price
+                      </Text>
+                      <TradePrice
+                        price={trade.executionPrice}
+                        showInverted={showInverted}
+                        setShowInverted={setShowInverted}
+                      />
+                    </RowBetween>
                   )}
-                </RowBetween>
+                </Row>
               </Column>
             </AutoColumn>
             <BottomGrouping style={{ padding: '1rem' }}>
