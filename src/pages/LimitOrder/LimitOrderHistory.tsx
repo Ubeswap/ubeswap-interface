@@ -48,6 +48,13 @@ const HeaderTabs = styled.div`
   }
 `
 
+const TableContainer = styled.div`
+  overflow-x: auto;
+  table {
+    border-spacing: 0 12px;
+  }
+`
+
 export const LimitOrderHistory: React.FC = () => {
   const { t } = useTranslation()
 
@@ -106,14 +113,16 @@ export const LimitOrderHistory: React.FC = () => {
         }
         return !limitOrderHist.isOrderOpen
       }).length ? (
-        <table style={{ borderSpacing: '0 12px', width: '100%' }}>
-          <LimitOrderHistoryHead columns={columns}></LimitOrderHistoryHead>
-          <LimitOrderHistoryBody
-            historyData={limitOrderHistory.filter(
-              (limitOrderHist) => limitOrderHist.isOrderOpen == openOrdersTabActive
-            )}
-          ></LimitOrderHistoryBody>
-        </table>
+        <TableContainer>
+          <table>
+            <LimitOrderHistoryHead columns={columns}></LimitOrderHistoryHead>
+            <LimitOrderHistoryBody
+              historyData={limitOrderHistory.filter(
+                (limitOrderHist) => limitOrderHist.isOrderOpen == openOrdersTabActive
+              )}
+            ></LimitOrderHistoryBody>
+          </table>
+        </TableContainer>
       ) : (
         <ColumnCenter style={{ gap: '16px', marginTop: '12px' }}>
           <TYPE.black my={2}>

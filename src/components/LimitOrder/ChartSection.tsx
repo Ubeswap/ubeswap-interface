@@ -85,7 +85,7 @@ function toHourDuration(timePeriod: TimePeriod) {
   }
 }
 
-async function getPairPrice(id: string, t: TimePeriod, gqlClient: any, token1: boolean, signal: any) {
+async function getPairPrice(id: string, t: TimePeriod, gqlClient: any, is0: boolean, signal: any) {
   try {
     const [seconds, step] = toHourDuration(t)
     const utcEndTime = Math.round(new Date().getTime() / 1000)
@@ -115,7 +115,7 @@ async function getPairPrice(id: string, t: TimePeriod, gqlClient: any, token1: b
       if (timestamp && result[row]) {
         values.push({
           timestamp: Number(timestamp),
-          value: parseFloat(token1 ? result[row].token1Price : result[row].token0Price),
+          value: parseFloat(is0 ? result[row].token0Price : result[row].token1Price),
         })
       }
     }
@@ -126,7 +126,7 @@ async function getPairPrice(id: string, t: TimePeriod, gqlClient: any, token1: b
   }
 }
 
-const defaultTimePeriod = TimePeriod.DAY
+const defaultTimePeriod = TimePeriod.MONTH
 export default function ChartSection({ chart }: { chart: ChartOption | undefined }) {
   const [chartSetting, setChartSetting] = useState<[PricePoint[] | null, TimePeriod, boolean]>([
     null,
@@ -163,8 +163,9 @@ export default function ChartSection({ chart }: { chart: ChartOption | undefined
     }
   }
   useEffect(() => {
-    setChartSetting([chartSetting[0], isRestricted(chartSetting[1]) ? defaultTimePeriod : chartSetting[1], true])
-    fetchPrice(chart, chartSetting[1])
+    const time: TimePeriod = isRestricted(chartSetting[1]) && chart?.pairID ? defaultTimePeriod : chartSetting[1]
+    setChartSetting([chartSetting[0], time, true])
+    fetchPrice(chart, time)
   }, [chart?.currencies])
 
   if (chartSetting[2]) {

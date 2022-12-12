@@ -153,7 +153,7 @@ export default function LimitOrderHistoryItem({ item, rewardCurrency, lastDispla
   return (
     <ItemContent>
       <ItemCell style={{ width: '175px' }}>
-        <RowCenter style={{ gap: '5px' }}>
+        <RowCenter style={{ gap: '5px', flexWrap: 'nowrap' }}>
           <CurrencyLogo currency={makerToken} size={'30px'} style={{ border: `2px solid ${theme.white}` }} />
           <div>
             <div style={{ fontWeight: 'bold' }}>{makerToken.symbol}</div>
@@ -165,7 +165,7 @@ export default function LimitOrderHistoryItem({ item, rewardCurrency, lastDispla
         <TYPE.body color={theme.text1}>&#10140;</TYPE.body>
       </ItemCell>
       <ItemCell style={{ width: '175px' }}>
-        <RowCenter style={{ gap: '5px' }}>
+        <RowCenter style={{ gap: '5px', flexWrap: 'nowrap' }}>
           <CurrencyLogo currency={takerToken} size={'30px'} style={{ border: `2px solid ${theme.white}` }} />
           <div>
             <div style={{ fontWeight: 'bold' }}>{takerToken.symbol}</div>

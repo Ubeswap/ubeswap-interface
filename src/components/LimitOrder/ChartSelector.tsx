@@ -172,7 +172,7 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
     controllerRef.current = controller
     const signal = controllerRef.current?.signal
 
-    const tokens = [currencies[Field.PRICE], currencies[Field.TOKEN]]
+    const tokens = [currencies[Field.TOKEN], currencies[Field.PRICE]]
     const reverseTokens = [...tokens].reverse()
 
     // Generating pair from GraphQl
@@ -208,8 +208,8 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
               const change0 = price0N / price0Y - 1
               const change1 = price1N / price1Y - 1
 
-              const is1 = choice.currencies[0].address > choice.currencies[1].address
-              return { ...choice, price: is1 ? price1N : price0N, change24H: is1 ? change1 : change0 }
+              const is0 = choice.currencies[0].address > choice.currencies[1].address
+              return { ...choice, price: is0 ? price0N : price1N, change24H: is0 ? change0 : change1 }
             })
           )
         })
