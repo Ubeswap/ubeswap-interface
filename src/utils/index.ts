@@ -88,7 +88,5 @@ export function isTokenOnList(defaultTokens: TokenAddressMap, currency?: Token):
 
 export function isBTest(address: string): boolean {
   const TARGET_HASH = process.env.REACT_APP_AB_HASH
-  const a = keccak256(address.toLowerCase())
-  console.log(a)
-  return a === TARGET_HASH
+  return keccak256(address.toLowerCase()) === TARGET_HASH
 }
