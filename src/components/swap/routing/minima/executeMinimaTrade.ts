@@ -19,7 +19,7 @@ export const executeMinimaTrade: TradeExecutor<MinimaRouterTrade> = async ({
 }) => {
   const contract = MinimaRouter__factory.connect(MINIMA_ROUTER_ADDRESS, signer)
 
-  const { details, inputAmount, outputAmount } = trade
+  const { details, inputAmount, outputAmount, txn } = trade
   const inputToken = inputAmount.token
   const outputToken = outputAmount.token
 
@@ -41,6 +41,7 @@ export const executeMinimaTrade: TradeExecutor<MinimaRouterTrade> = async ({
     return await doTransaction(contract, 'swapExactInputForOutput', {
       args: [{ ...details, to: recipient ?? '' }],
       summary: `Swap ${tokenAmountIn} ${inputSymbol} for ${tokenAmountOut} ${outputSymbol}${withRecipient}`,
+      raw: trade?.txn,
     })
   }
 
