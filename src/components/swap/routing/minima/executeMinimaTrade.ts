@@ -19,7 +19,7 @@ export const executeMinimaTrade: TradeExecutor<MinimaRouterTrade> = async ({
 }) => {
   const contract = MinimaRouter__factory.connect(MINIMA_ROUTER_ADDRESS, signer)
 
-  const { details, inputAmount, outputAmount, txn } = trade
+  const { details, inputAmount, outputAmount } = trade
   const inputToken = inputAmount.token
   const outputToken = outputAmount.token
 
