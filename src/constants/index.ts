@@ -175,7 +175,7 @@ export const PINNED_PAIRS: { [chainId: number]: [Token, Token][] } = {
 export const NetworkContextName = 'NETWORK'
 
 // default allowed slippage, in bips
-export const INITIAL_ALLOWED_SLIPPAGE = 50
+export const INITIAL_ALLOWED_SLIPPAGE = 100
 // 20 minutes, denominated in seconds
 export const DEFAULT_DEADLINE_FROM_NOW = 60 * 20
 
@@ -275,3 +275,9 @@ export const KNOWN_ADDRESSES: Record<
     abi: MultiSig as unknown as Fragment[],
   },
 }
+
+export const DEXES_TO_EXCLUDE = [
+  'sushiswap',
+  'uniswap-v3',
+  ...(process.env.REACT_APP_DEX_EXCLUSION_LIST?.split(',') ?? []),
+]

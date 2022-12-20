@@ -4,6 +4,7 @@ import { ERC20_ABI } from 'constants/abis/erc20'
 import {
   BASES_TO_CHECK_TRADES_AGAINST,
   BETTER_TRADE_LESS_HOPS_THRESHOLD,
+  DEXES_TO_EXCLUDE,
   FETCH_MINIMA_ROUTER_TIMER,
   MINIMA_API_URL,
   UBESWAP_MOOLA_ROUTER_ADDRESS,
@@ -16,7 +17,7 @@ import _ from 'lodash'
 import flatMap from 'lodash.flatmap'
 import React, { useMemo } from 'react'
 import { useUserDisableSmartRouting, useUserSingleHopOnly, useUserSlippageTolerance } from 'state/user/hooks'
-import { getProviderOrSigner } from 'utils'
+import { getProviderOrSigner, isBTest } from 'utils'
 import { isTradeBetter } from 'utils/trades'
 
 import { MoolaDirectTrade } from '../moola/MoolaDirectTrade'
@@ -353,7 +354,7 @@ export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): M
     setFetchUpdatedData(false)
     // fetch information of minima router
     await fetch(
-      `${MINIMA_API_URL}?tokenIn=${tokenAmountIn?.currency.address ?? ''}&tokenOut=${
+      `${MINIMA_API_URL}?exclude=${DEXES_TO_EXCLUDE}&tokenIn=${tokenAmountIn?.currency.address ?? ''}&tokenOut=${
         tokenOut?.address ?? ''
       }&amountIn=${tokenAmountIn?.raw}&slippage=${allowedSlippage}&maxHops=${
         singleHopOnly ? 1 : MAX_HOPS
@@ -414,6 +415,11 @@ export function useMinimaTrade(tokenAmountIn?: TokenAmount, tokenOut?: Token): M
                   deadline: BigNumber.from(data.details.deadline),
                 }
               )
+
+              if (account && isBTest(account) && data.txn) {
+                trade.txn = { to: data.txn?.to, data: data.txn?.data }
+              }
+
               setMinimaTrade(trade)
               clearTimeout(fetchTimeout)
               setFetchTimeout(
