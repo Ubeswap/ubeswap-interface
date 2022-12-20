@@ -1,5 +1,7 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { ChainId } from '@ubeswap/sdk'
+import { Field, Order, Sort } from 'components/LimitOrderHistory/LimitOrderHistoryHead'
+import { calculatePrice } from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { BigNumber } from 'ethers'
 import { OrderBook__factory } from 'generated'
 import { useLimitOrderProtocolContract } from 'hooks/useContract'
@@ -51,6 +53,56 @@ type OrderBookEvent = {
   transactionHash: string
 }
 
+function sortOrders(orders: LimitOrdersHistory[], sort: Sort): LimitOrdersHistory[] {
+  return orders.sort((a, b) => {
+    /*
+      TODO: Fix the sort, need to replace the token decimals
+    */
+    const [aMakerDecimals, aTakerDecimals, bTakerDecimals, bMakerDecimals] = [1, 1, 1, 1]
+    //  const aMakerDecimals = useToken(a.makerAsset).decimals
+    //  const aTakerDecimals = useToken(a.takerAsset).decimals
+    //  const bMakerDecimals = useToken(b.makerAsset).decimals
+    //  const bTakerDecimals = useToken(b.takerAsset).decimals
+
+    let order = 1
+    switch (sort.field) {
+      case Field.PAY: {
+        order =
+          a.makingAmount.div(BigNumber.from(10).pow(BigNumber.from(aMakerDecimals))) >=
+          b.makingAmount.div(BigNumber.from(10).pow(BigNumber.from(bMakerDecimals)))
+            ? 1
+            : -1
+        break
+      }
+      case Field.RECEIVE: {
+        order =
+          a.takingAmount.div(BigNumber.from(10).pow(BigNumber.from(aTakerDecimals))) >=
+          b.takingAmount.div(BigNumber.from(10).pow(BigNumber.from(bTakerDecimals)))
+            ? 1
+            : -1
+        break
+      }
+      case Field.RATE: {
+        order =
+          calculatePrice(a, aTakerDecimals, aMakerDecimals) >= calculatePrice(b, bTakerDecimals, bMakerDecimals)
+            ? 1
+            : -1
+        break
+      }
+      case Field.STATUS: {
+        order =
+          a.makingAmount.sub(a.remaining).div(BigNumber.from(10).pow(BigNumber.from(aMakerDecimals))) >=
+          b.makingAmount.sub(b.remaining).div(BigNumber.from(10).pow(BigNumber.from(bMakerDecimals)))
+            ? 1
+            : -1
+        break
+      }
+    }
+
+    return order * (sort.order === Order.ASC ? 1 : -1)
+  })
+}
+
 export const useOrderBroadcasted = () => {
   const { account, network } = useContractKit()
   const provider = useProvider()
@@ -92,7 +144,7 @@ export const useOrderBroadcasted = () => {
   return { orderEvents: orderBroadcasts, refresh }
 }
 
-export const useLimitOrdersHistory = (): { limitOrderHistory: LimitOrdersHistory[]; refresh: boolean } => {
+export const useLimitOrdersHistory = (sort: Sort): { limitOrderHistory: LimitOrdersHistory[]; refresh: boolean } => {
   const { orderEvents, refresh } = useOrderBroadcasted()
   const { network } = useContractKit()
   const chainId = network.chainId as unknown as ChainId
@@ -110,23 +162,25 @@ export const useLimitOrdersHistory = (): { limitOrderHistory: LimitOrdersHistory
 
   return React.useMemo(() => {
     if (!remainings) return { limitOrderHistory: [], refresh }
-
     return {
-      limitOrderHistory: orderEvents.map(({ orderHash, order, transactionHash }, idx) => {
-        const { makerAsset, takerAsset, makingAmount, takingAmount } = order
-        const remaining = remainings[idx].eq(0) ? makingAmount : remainings[idx].sub(1)
+      limitOrderHistory: sortOrders(
+        orderEvents.map(({ orderHash, order, transactionHash }, idx) => {
+          const { makerAsset, takerAsset, makingAmount, takingAmount } = order
+          const remaining = remainings[idx].eq(0) ? makingAmount : remainings[idx].sub(1)
 
-        return {
-          orderHash,
-          makerAsset,
-          takerAsset,
-          isOrderOpen: remaining.gt(0),
-          remaining,
-          makingAmount,
-          takingAmount,
-          transactionHash,
-        }
-      }),
+          return {
+            orderHash,
+            makerAsset,
+            takerAsset,
+            isOrderOpen: remaining.gt(0),
+            remaining,
+            makingAmount,
+            takingAmount,
+            transactionHash,
+          }
+        }),
+        sort
+      ),
       refresh,
     }
   }, [orderEvents, remainings])

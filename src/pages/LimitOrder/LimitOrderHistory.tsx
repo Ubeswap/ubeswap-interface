@@ -2,7 +2,7 @@ import { useContractKit } from '@celo-tools/use-contractkit'
 import { ButtonLight, TabButton } from 'components/Button'
 import Column, { ColumnCenter } from 'components/Column'
 import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistoryBody'
-import LimitOrderHistoryHead from 'components/LimitOrderHistory/LimitOrderHistoryHead'
+import LimitOrderHistoryHead, { defaultSort, Sort } from 'components/LimitOrderHistory/LimitOrderHistoryHead'
 import { LoadingHead, LoadingItem } from 'components/LimitOrderHistory/loading'
 import React, { useEffect, useState } from 'react'
 import { Archive } from 'react-feather'
@@ -74,7 +74,8 @@ export const LimitOrderHistory: React.FC = () => {
   const { address: account } = useContractKit()
   // toggle wallet when disconnected
   const toggleWalletModal = useWalletModalToggle()
-  const { limitOrderHistory, refresh } = useLimitOrdersHistory()
+  const [sort, setSort] = useState<Sort>(defaultSort)
+  const { limitOrderHistory, refresh } = useLimitOrdersHistory(sort)
   const [openOrdersTabActive, setOpenOrdersTabActive] = useState<boolean>(true)
   const [loading, setLoading] = useState<Loading>(Loading.NOT_LOADED)
 
@@ -123,7 +124,11 @@ export const LimitOrderHistory: React.FC = () => {
           }).length ? ( // WITH ORDERS
             <TableContainer>
               <table>
-                <LimitOrderHistoryHead></LimitOrderHistoryHead>
+                <LimitOrderHistoryHead
+                  onSortChange={(s: Sort) => {
+                    setSort(s)
+                  }}
+                ></LimitOrderHistoryHead>
                 <LimitOrderHistoryBody
                   historyData={limitOrderHistory.filter(
                     (limitOrderHist) => limitOrderHist.isOrderOpen == openOrdersTabActive

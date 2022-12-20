@@ -3,6 +3,7 @@ import Column from 'components/Column'
 import CurrencyLogo from 'components/CurrencyLogo'
 import { BigNumber } from 'ethers'
 import { useToken } from 'hooks/Tokens'
+import { LimitOrdersHistory } from 'pages/LimitOrder/useOrderBroadcasted'
 import React from 'react'
 import styled from 'styled-components'
 import { formatTransactionAmount } from 'utils/formatNumbers'
@@ -74,7 +75,6 @@ const AddressLinkIcon = styled(ExternalLink)`
     width: 12px;
     margin-left: unset;
     stroke: ${({ theme }) => theme.blue1};
-    filter: contrast(125%);
     &:hover {
       opacity: 0.7;
     }
@@ -87,6 +87,7 @@ const AddressLink = styled(ExternalLink)`
   white-space: nowrap;
   padding: 2px 4px;
   border-radius: 6px;
+  transition: all 100ms ease-in-out;
   :hover,
   :focus,
   :active {
@@ -103,7 +104,6 @@ const StyledControlButton = styled.button`
     width: 12px;
     margin-left: unset;
     stroke: ${({ theme }) => theme.red1};
-    filter: contrast(120%);
   }
 `
 
@@ -120,6 +120,13 @@ export type HistoryItem = {
 
 interface LimitOrderHistoryItemProps {
   item: HistoryItem
+}
+
+export const calculatePrice = (order: LimitOrdersHistory, takerDecimals: number, makerDecimals: number) => {
+  return (
+    Number(order.takingAmount.div(BigNumber.from(10).pow(BigNumber.from(takerDecimals)))) /
+    Number(order.makingAmount.div(BigNumber.from(10).pow(BigNumber.from(makerDecimals))))
+  )
 }
 
 export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemProps) {
@@ -142,7 +149,7 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
           <CurrencyLogo currency={makerToken} size={'30px'} style={{ border: `2px solid ${theme.white}` }} />
           <div>
             <div style={{ fontWeight: 'bold' }}>{makerToken.symbol}</div>
-            <div>{formatTransactionAmount(Number(item.makingAmount / 10 ** makerToken.decimals))}</div>
+            <div>{formatTransactionAmount(Number(item.makingAmount) / 10 ** makerToken.decimals)}</div>
           </div>
         </RowCenter>
       </ItemCell>
@@ -154,25 +161,27 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
           <CurrencyLogo currency={takerToken} size={'30px'} style={{ border: `2px solid ${theme.white}` }} />
           <div>
             <div style={{ fontWeight: 'bold' }}>{takerToken.symbol}</div>
-            <div>{formatTransactionAmount(Number(item.takingAmount / 10 ** takerToken.decimals))}</div>
+            <div>{formatTransactionAmount(Number(item.takingAmount) / 10 ** takerToken.decimals)}</div>
           </div>
         </RowCenter>
       </ItemCell>
       <ItemCell>
-        {formatTransactionAmount(
-          Number(item.takingAmount / 10 ** takerToken.decimals) / Number(item.makingAmount / 10 ** makerToken.decimals)
-        )}{' '}
-        {takerToken.symbol}
+        {formatTransactionAmount(calculatePrice(item, takerToken.decimals, makerToken.decimals))} {takerToken.symbol}
       </ItemCell>
       <ItemCell style={{ width: '120px' }}>
         {item.isOrderOpen ? (
           <Row style={{ justifyContent: 'flex-end', gap: '8px' }}>
             <RowFlat style={{ gap: '8px' }}>
               <ProgressBarContainer>
-                <span>{Number(((item.makingAmount - item.remaining) / item.makingAmount) * 100).toFixed(2)}%</span>
+                <span>
+                  {(((Number(item.makingAmount) - Number(item.remaining)) / Number(item.makingAmount)) * 100).toFixed(
+                    2
+                  )}
+                  %
+                </span>
                 <span className="remaining">
-                  <span>{Number((item.makingAmount - item.remaining) / 10 ** makerToken.decimals)}</span> /{' '}
-                  <span>{Number(item.makingAmount / 10 ** makerToken.decimals)}</span>
+                  <span>{(Number(item.makingAmount) - Number(item.remaining)) / 10 ** makerToken.decimals}</span> /{' '}
+                  <span>{Number(item.makingAmount) / 10 ** makerToken.decimals}</span>
                 </span>
                 <div
                   style={{
@@ -189,7 +198,9 @@ export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemPro
                       background: theme.primary1,
                       borderRadius: '2px',
                       height: '100%',
-                      width: `${Number(((item.makingAmount - item.remaining) / item.makingAmount) * 100)}%`,
+                      width: `${
+                        ((Number(item.makingAmount) - Number(item.remaining)) / Number(item.makingAmount)) * 100
+                      }%`,
                       filter: `contrast(200%)`,
                     }}
                   ></div>
