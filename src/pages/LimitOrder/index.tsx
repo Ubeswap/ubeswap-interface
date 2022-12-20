@@ -387,7 +387,7 @@ export default function LimitOrder() {
               <ButtonPrimary onClick={() => setShowMetamaskWarning(false)}>{t('Dismiss')}</ButtonPrimary>
             </NotSupportedContainer>
           )}
-          <SwapHeader title={'Limit'} hideSettings={true} hideChart={false} onChartToggle={() => toggleChart()} />
+          <SwapHeader title={'Limit'} hideSettings={true} hideChart={showChart} onChartToggle={() => toggleChart()} />
           <Wrapper id="swap-page" style={{ padding: '0' }}>
             <ConfirmSwapModal
               isOpen={showConfirm}

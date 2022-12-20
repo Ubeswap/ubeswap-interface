@@ -82,7 +82,7 @@ export default function SwapHeader({
         </Row>
         {hideSettings || <Settings />}
         {hideChart || (
-          <StyledChartButton onClick={() => onChartToggle()}>
+          <StyledChartButton onClick={() => onChartToggle && onChartToggle()}>
             <StyledChartIcon />
           </StyledChartButton>
         )}
