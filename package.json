@@ -155,7 +155,7 @@
     "react-router": "^5.2.0",
     "rebass": "^4.0.7",
     "redux": "^4.2.0",
-    "rlp": "^2.2.6",
+    "rlp": "^3.0.0",
     "theme-ui": "^0.15.4",
     "tiny-invariant": "^1.1.0",
     "use-count-up": "^3.0.1",
