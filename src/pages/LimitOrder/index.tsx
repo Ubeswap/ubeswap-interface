@@ -76,7 +76,7 @@ const ChartContainer = styled.div<{
   padding: 1rem 1rem 0 1rem;
   position: fixed;
   bottom: 72px;
-  max-height: calc(100% - 180px);
+  max-height: calc(100% - 72px - 69px - 1rem - 5px); /* (screen height) - (height of footer) - (height of header) - (padding top) - (little space with the header) */
   left: 0;
   margin: 0 10px;
   width: calc(100% - 20px - 2rem);
@@ -101,7 +101,7 @@ const ChartContainer = styled.div<{
 const StyledCloseButton = styled.button`
   all: unset;
   position: fixed;
-  right: 40px;
+  right: calc(1rem + 10px);
   height: 3rem;
   border-radius: 0.5rem;
   cursor: pointer;
@@ -132,7 +132,7 @@ const NotSupportedContainer = styled.div`
   flex-direction: column;
   text-align: center;
   background: ${({ theme }) => rgba(theme.bg1, 0.9)};
-  padding: 10rem 4rem;
+  padding: 10rem 4rem 6rem;
   border-radius: 30px;
   z-index: 100;
 `
@@ -568,7 +568,10 @@ export default function LimitOrder() {
             </BottomGrouping>
           </Wrapper>
         </AppBody>
-        <Row justify="center" style={{ height: 'fit-content', overflow: 'hidden', padding: '0 16px' }}>
+        <Row
+          justify="center"
+          style={{ height: 'fit-content', overflow: 'hidden', padding: '16px', marginTop: '-16px' }}
+        >
           <AdvancedDetailsFooter show={parsedOutputTotal || parsedInputTotal ? true : false}>
             <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
               <RowBetween align="center">

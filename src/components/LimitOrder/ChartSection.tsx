@@ -8,7 +8,7 @@ import { ChartOption } from './ChartSelector'
 import { PriceChart, PricePoint } from './PriceChart'
 import { getBlocksFromTimestamps, HOURLY_PAIR_RATES, splitQuery } from './queries'
 import { LoadingChart } from './Skeleton'
-import TimePeriodSelector, { isRestricted, TimePeriod } from './TimeSelector'
+import TimePeriodSelector, { defaultTimePeriod, isRestricted, TimePeriod } from './TimeSelector'
 
 const ChartContainer = styled.div`
   position: relative;
@@ -18,7 +18,6 @@ const ChartContainer = styled.div`
   border: 0 solid ${({ theme }) => theme.bg4};
   border-bottom-width: 1px;
   height: 436px;
-  margin-bottom: 16px;
   width: 100%;
   @media screen and (max-width: 1115px) {
     border: 0;
@@ -30,15 +29,10 @@ const ChartContainer = styled.div`
 
 const TimeOptionsContainer = styled.div`
   position: absolute;
-  margin-top: 12px;
+  top: 18px;
   width: 100%;
   @media only screen and (max-width: 1115px) {
-    position: fixed;
-    display: flex;
-    align-items: flex-end;
-    bottom: 80px;
-    left: 1rem;
-    width: calc(100% - 2rem);
+    position: static;
   }
 `
 
@@ -59,7 +53,7 @@ function toCoingeckoHistoryDuration(timePeriod: TimePeriod) {
   }
 }
 
-async function getCoingeckoPrice(id: string, t: TimePeriod, signal: any) {
+async function getCoingeckoPrice(id: string, t: TimePeriod, signal: any): Promise<PricePoint[]> {
   return await fetch(
     `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=USD&days=${toCoingeckoHistoryDuration(t)}`,
     { signal: signal }
@@ -72,30 +66,31 @@ async function getCoingeckoPrice(id: string, t: TimePeriod, signal: any) {
 }
 
 function toHourDuration(timePeriod: TimePeriod) {
+  // Return in Hours: [Period, Interval]
   switch (timePeriod) {
     case TimePeriod.DAY:
-      return [3600 * 24, 1] // 24 Points
+      return [24, 1] // 25 Points
     case TimePeriod.WEEK:
-      return [3600 * 24 * 7, 4] // 42 Points
+      return [168, 4] // 43 Points
     case TimePeriod.MONTH:
-      return [3600 * 24 * 31, 24] // 31 Points
-    case TimePeriod.YEAR:
+      return [720, 24] // 31 Points
     default:
-      return [3600 * 24 * 365, 219] // 73 Points
+      return [8760, 219] // 41 Points
   }
 }
 
-async function getPairPrice(id: string, t: TimePeriod, gqlClient: any, is0: boolean, signal: any) {
+export async function getPairPrice(id: string, t: TimePeriod, gqlClient: any, is0: boolean, signal: any) {
   try {
-    const [seconds, step] = toHourDuration(t)
-    const utcEndTime = Math.round(new Date().getTime() / 1000)
-    let time = utcEndTime - seconds
+    const [hours, interval] = toHourDuration(t)
+    const now = Math.round(new Date().getTime() / 1000)
+
+    let time = now - (hours * 3600 + 3600)
 
     // create an array of hour start times until we reach current hour
     const timestamps = []
-    while (time <= utcEndTime - 3600 * step) {
+    while (time <= now) {
       timestamps.push(time)
-      time += 3600 * step
+      time += 3600 * interval
     }
 
     // once you have all the timestamps, get the blocks for each timestamp in a bulk query
@@ -105,7 +100,7 @@ async function getPairPrice(id: string, t: TimePeriod, gqlClient: any, is0: bool
       return []
     }
 
-    const result = await splitQuery(HOURLY_PAIR_RATES, gqlClient, [id], blocks, 100, {
+    const result: any = await splitQuery(HOURLY_PAIR_RATES, gqlClient, [id], blocks, 100, {
       context: { fetchOptions: { signal } },
     })
 
@@ -115,7 +110,7 @@ async function getPairPrice(id: string, t: TimePeriod, gqlClient: any, is0: bool
       if (timestamp && result[row]) {
         values.push({
           timestamp: Number(timestamp),
-          value: parseFloat(is0 ? result[row].token0Price : result[row].token1Price),
+          value: parseFloat(result[row][`token${is0 ? '0' : '1'}Price`]),
         })
       }
     }
@@ -124,19 +119,23 @@ async function getPairPrice(id: string, t: TimePeriod, gqlClient: any, is0: bool
   } catch (e) {
     console.log('Error:', e)
   }
+  return null
 }
 
-const defaultTimePeriod = TimePeriod.MONTH
 export default function ChartSection({ chart }: { chart: ChartOption | undefined }) {
-  const [chartSetting, setChartSetting] = useState<[PricePoint[] | null, TimePeriod, boolean]>([
-    null,
-    defaultTimePeriod,
-    false,
-  ])
+  const [chartSetting, setChartSetting] = useState<{
+    prices: PricePoint[] | null
+    timePeriod: TimePeriod
+    loading: boolean
+  }>({
+    prices: null,
+    timePeriod: defaultTimePeriod,
+    loading: false,
+  })
   const controllerRef = useRef<AbortController | null>()
 
   const client = useApolloClient()
-  const restrictTimeFrame = !(chart?.currencies instanceof Token)
+  const restrictTimeFrame = chart?.currencies instanceof Array
 
   const fetchPrice = async (ch: ChartOption | undefined, ti: TimePeriod) => {
     if (controllerRef.current) {
@@ -148,64 +147,51 @@ export default function ChartSection({ chart }: { chart: ChartOption | undefined
 
     if (ch?.coingeckoID) {
       return getCoingeckoPrice(ch?.coingeckoID, ti, signal).then((coingeckoPrices) => {
-        setChartSetting([coingeckoPrices, ti, false])
+        setChartSetting({ prices: coingeckoPrices, timePeriod: ti, loading: false })
       })
     } else if (ch?.pairID) {
       return getPairPrice(
-        ch?.pairID,
+        ch.pairID,
         ti,
         client,
         ch.currencies[0].address.toLowerCase() > ch.currencies[1].address.toLowerCase(),
         signal
-      ).then((graphqlPrices) => {
-        setChartSetting([graphqlPrices, ti, false])
-      })
+      ).then((graphqlPrices) => setChartSetting({ prices: graphqlPrices, timePeriod: ti, loading: false }))
+    } else {
+      setChartSetting({ prices: null, timePeriod: ti, loading: false })
     }
   }
   useEffect(() => {
-    const time: TimePeriod = isRestricted(chartSetting[1]) && chart?.pairID ? defaultTimePeriod : chartSetting[1]
-    setChartSetting([chartSetting[0], time, true])
+    const time: TimePeriod =
+      isRestricted(chartSetting.timePeriod) && chart?.pairID ? defaultTimePeriod : chartSetting.timePeriod
+    setChartSetting({ prices: [], timePeriod: time, loading: true })
     fetchPrice(chart, time)
   }, [chart?.currencies])
-
-  if (chartSetting[2]) {
-    return (
-      <ChartContainer>
-        <ParentSize>{(parent) => <LoadingChart width={parent.width} height={parent.height} />}</ParentSize>
-        <TimeOptionsContainer>
-          <TimePeriodSelector
-            currentTimePeriod={chartSetting[1]}
-            onTimeChange={(t: TimePeriod) => {
-              fetchPrice(chart, t)
-            }}
-            restrict={restrictTimeFrame}
-          />
-        </TimeOptionsContainer>
-      </ChartContainer>
-    )
-  }
 
   return (
     <ChartContainer>
       <ParentSize>
-        {(parent) => (
-          <PriceChart
-            prices={chartSetting[0] ?? null}
-            width={parent.width}
-            height={parent.height}
-            isDollar={chart?.currencies instanceof Token}
-            timePeriod={chartSetting[1]}
-          />
-        )}
+        {(parent) =>
+          chartSetting.loading ? (
+            <LoadingChart height={parent.height} />
+          ) : (
+            <PriceChart
+              prices={chartSetting.prices ?? null}
+              width={parent.width}
+              height={parent.height}
+              isDollar={chart?.currencies instanceof Token}
+              timePeriod={chartSetting.timePeriod}
+            />
+          )
+        }
       </ParentSize>
       <TimeOptionsContainer>
         <TimePeriodSelector
-          currentTimePeriod={chartSetting[1]}
+          restrict={restrictTimeFrame}
           onTimeChange={(t: TimePeriod) => {
-            setChartSetting([chartSetting[0], chartSetting[1], true])
+            setChartSetting({ prices: [], timePeriod: t, loading: true })
             fetchPrice(chart, t)
           }}
-          restrict={restrictTimeFrame}
         />
       </TimeOptionsContainer>
     </ChartContainer>

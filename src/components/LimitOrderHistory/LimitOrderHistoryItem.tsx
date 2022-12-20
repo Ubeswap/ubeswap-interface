@@ -1,32 +1,23 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId as UbeswapChainId, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import Column from 'components/Column'
 import CurrencyLogo from 'components/CurrencyLogo'
 import { BigNumber } from 'ethers'
 import { useToken } from 'hooks/Tokens'
-import { useOrderBookContract, useOrderBookRewardDistributorContract } from 'hooks/useContract'
-import { BPS_DENOMINATOR } from 'pages/LimitOrder'
 import React from 'react'
-import { useSingleCallResult } from 'state/multicall/hooks'
 import styled from 'styled-components'
 import { formatTransactionAmount } from 'utils/formatNumbers'
 
-import { ORDER_BOOK_ADDRESS, ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS } from '../../constants'
 import useTheme from '../../hooks/useTheme'
 import { useCancelOrderCallback } from '../../pages/LimitOrder/useCancelOrderCallback'
 import { ExternalLink, LinkIcon, TrashIcon, TYPE } from '../../theme'
 import Row, { RowCenter, RowFlat } from '../Row'
 
-const ItemContent = styled.tr`
-  box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04),
-    0px 24px 32px rgba(0, 0, 0, 0.01);
-`
 const ItemCell = styled.td`
   font-size: 12px;
   padding: 6px;
   border-style: solid;
   border-width: 1px 0px;
-  border-color: ${({ theme }) => theme.bg5};
+  border-color: ${({ theme }) => theme.bg4};
   background: ${({ theme }) => theme.bg1};
   &:first-child {
     padding-left: 12px;
@@ -74,7 +65,8 @@ const ProgressBarContainer = styled.div`
     z-index: 10;
   }
 `
-const AddressLink = styled(ExternalLink)`
+
+const AddressLinkIcon = styled(ExternalLink)`
   all: unset;
   cursor: pointer;
   svg {
@@ -86,6 +78,21 @@ const AddressLink = styled(ExternalLink)`
     &:hover {
       opacity: 0.7;
     }
+  }
+`
+
+const AddressLink = styled(ExternalLink)`
+  border: 1px solid ${({ theme }) => theme.green1};
+  color: ${({ theme }) => theme.green1};
+  white-space: nowrap;
+  padding: 2px 4px;
+  border-radius: 6px;
+  :hover,
+  :focus,
+  :active {
+    text-decoration: none;
+    background: ${({ theme }) => theme.green1};
+    color: ${({ theme }) => theme.white};
   }
 `
 
@@ -113,13 +120,10 @@ export type HistoryItem = {
 
 interface LimitOrderHistoryItemProps {
   item: HistoryItem
-  rewardCurrency: Token | undefined
-  lastDisplayItem: boolean
 }
 
-export default function LimitOrderHistoryItem({ item, rewardCurrency, lastDisplayItem }: LimitOrderHistoryItemProps) {
+export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemProps) {
   const { network } = useContractKit()
-  const chainId = network.chainId as unknown as UbeswapChainId
   const { callback: cancelOrder } = useCancelOrderCallback(item.orderHash)
   const theme = useTheme()
   const makerToken = useToken(item.makerAsset)
@@ -127,31 +131,12 @@ export default function LimitOrderHistoryItem({ item, rewardCurrency, lastDispla
 
   const transactionLink = `${network.explorer}/tx/${item.transactionHash}`
 
-  const orderBookContract = useOrderBookContract(ORDER_BOOK_ADDRESS[chainId as unknown as UbeswapChainId])
-  const orderBookFee = useSingleCallResult(orderBookContract, 'fee', []).result?.[0]
-  const rewardDistributorContract = useOrderBookRewardDistributorContract(
-    ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS[chainId]
-  )
-  // TODO: This should really be based on the latest rewardRate change event from the logs
-  const rewardRate = useSingleCallResult(rewardDistributorContract, 'rewardRate', [makerToken?.address]).result?.[0]
-
   if (!makerToken || !takerToken) {
     return null
   }
 
-  const makingAmount = new TokenAmount(makerToken, item.makingAmount.toString())
-  const reward =
-    rewardCurrency && rewardRate
-      ? new TokenAmount(
-          rewardCurrency,
-          JSBI.divide(JSBI.multiply(makingAmount.raw, JSBI.BigInt(rewardRate.toString())), BPS_DENOMINATOR)
-        )
-      : undefined
-  const takingAmount = new TokenAmount(takerToken, item.takingAmount.toString())
-  const remaining = new TokenAmount(makerToken, item.remaining.toString())
-
   return (
-    <ItemContent>
+    <tr>
       <ItemCell style={{ width: '175px' }}>
         <RowCenter style={{ gap: '5px', flexWrap: 'nowrap' }}>
           <CurrencyLogo currency={makerToken} size={'30px'} style={{ border: `2px solid ${theme.white}` }} />
@@ -175,12 +160,12 @@ export default function LimitOrderHistoryItem({ item, rewardCurrency, lastDispla
       </ItemCell>
       <ItemCell>
         {formatTransactionAmount(
-          Number(item.makingAmount / 10 ** makerToken.decimals) / Number(item.takingAmount / 10 ** takerToken.decimals)
+          Number(item.takingAmount / 10 ** takerToken.decimals) / Number(item.makingAmount / 10 ** makerToken.decimals)
         )}{' '}
         {takerToken.symbol}
       </ItemCell>
-      {item.isOrderOpen && (
-        <ItemCell style={{ width: '120px' }}>
+      <ItemCell style={{ width: '120px' }}>
+        {item.isOrderOpen ? (
           <Row style={{ justifyContent: 'flex-end', gap: '8px' }}>
             <RowFlat style={{ gap: '8px' }}>
               <ProgressBarContainer>
@@ -212,16 +197,18 @@ export default function LimitOrderHistoryItem({ item, rewardCurrency, lastDispla
               </ProgressBarContainer>
             </RowFlat>
             <Column style={{ alignItems: 'flex-end' }}>
-              <AddressLink href={transactionLink}>
+              <AddressLinkIcon href={transactionLink}>
                 <LinkIcon />
-              </AddressLink>
+              </AddressLinkIcon>
               <StyledControlButton onClick={() => cancelOrder && cancelOrder()}>
                 <TrashIcon />
               </StyledControlButton>
             </Column>
           </Row>
-        </ItemCell>
-      )}
-    </ItemContent>
+        ) : (
+          <AddressLink href={transactionLink}>View Tx</AddressLink>
+        )}
+      </ItemCell>
+    </tr>
   )
 }

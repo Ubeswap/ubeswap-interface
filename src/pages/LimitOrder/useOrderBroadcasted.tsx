@@ -3,7 +3,7 @@ import { ChainId } from '@ubeswap/sdk'
 import { BigNumber } from 'ethers'
 import { OrderBook__factory } from 'generated'
 import { useLimitOrderProtocolContract } from 'hooks/useContract'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSingleContractMultipleData } from 'state/multicall/hooks'
 
 import { LIMIT_ORDER_ADDRESS, ORDER_BOOK_ADDRESS } from '../../constants'
@@ -57,11 +57,14 @@ export const useOrderBroadcasted = () => {
   const chainId = network.chainId as unknown as ChainId
   const orderBookAddr = ORDER_BOOK_ADDRESS[chainId]
 
+  const [refresh, setRefresh] = useState(false)
   const [orderBroadcasts, setOrderBroadcasts] = React.useState<OrderBookEvent[]>([])
   const call = React.useCallback(async () => {
     if (!account) {
+      setOrderBroadcasts([])
       return
     }
+    setRefresh(true)
     const orderBook = OrderBook__factory.connect(orderBookAddr, provider)
     const orderBookEvents = await orderBook.queryFilter(
       orderBook.filters['OrderBroadcasted'](account),
@@ -75,20 +78,22 @@ export const useOrderBroadcasted = () => {
       }
     })
     setOrderBroadcasts(orderBroadcasts)
+    setRefresh(false)
   }, [account, orderBookAddr, provider])
 
   useEffect(() => {
+    call()
     const timer = setInterval(call, 5000)
     return () => {
       clearInterval(timer)
     }
   }, [call])
 
-  return orderBroadcasts
+  return { orderEvents: orderBroadcasts, refresh }
 }
 
-export const useLimitOrdersHistory = (): LimitOrdersHistory[] => {
-  const orderEvents = useOrderBroadcasted()
+export const useLimitOrdersHistory = (): { limitOrderHistory: LimitOrdersHistory[]; refresh: boolean } => {
+  const { orderEvents, refresh } = useOrderBroadcasted()
   const { network } = useContractKit()
   const chainId = network.chainId as unknown as ChainId
   const limitOrderAddr = LIMIT_ORDER_ADDRESS[chainId]
@@ -104,22 +109,25 @@ export const useLimitOrdersHistory = (): LimitOrdersHistory[] => {
     : (remainingsRaw.map((r) => r.result?.[0] ?? BigNumber.from(0)) as readonly BigNumber[])
 
   return React.useMemo(() => {
-    if (!remainings) return []
+    if (!remainings) return { limitOrderHistory: [], refresh }
 
-    return orderEvents.map(({ orderHash, order, transactionHash }, idx) => {
-      const { makerAsset, takerAsset, makingAmount, takingAmount } = order
-      const remaining = remainings[idx].eq(0) ? makingAmount : remainings[idx].sub(1)
+    return {
+      limitOrderHistory: orderEvents.map(({ orderHash, order, transactionHash }, idx) => {
+        const { makerAsset, takerAsset, makingAmount, takingAmount } = order
+        const remaining = remainings[idx].eq(0) ? makingAmount : remainings[idx].sub(1)
 
-      return {
-        orderHash,
-        makerAsset,
-        takerAsset,
-        isOrderOpen: remaining.gt(0),
-        remaining,
-        makingAmount,
-        takingAmount,
-        transactionHash,
-      }
-    })
+        return {
+          orderHash,
+          makerAsset,
+          takerAsset,
+          isOrderOpen: remaining.gt(0),
+          remaining,
+          makingAmount,
+          takingAmount,
+          transactionHash,
+        }
+      }),
+      refresh,
+    }
   }, [orderEvents, remainings])
 }

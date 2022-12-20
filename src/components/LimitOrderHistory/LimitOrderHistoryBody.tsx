@@ -6,7 +6,7 @@ export default function LimitOrderHistoryBody({ historyData }: { historyData: Hi
   return (
     <tbody>
       {historyData.map((data) => {
-        return <LimitOrderHistoryItem key={data.orderHash} item={data} rewardCurrency={undefined} />
+        return <LimitOrderHistoryItem key={data.orderHash} item={data} />
       })}
     </tbody>
   )

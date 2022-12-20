@@ -346,7 +346,7 @@ export const TabButton = styled(ButtonLight)<{
   border-radius: 6px;
   font-size: 12px;
   color: ${({ theme }) => theme.text1};
-  transition-duration: 100ms;
+  transition: background-color 100ms;
   padding: 6px 16px;
   &:hover,
   &:focus,

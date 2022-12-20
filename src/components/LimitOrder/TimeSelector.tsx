@@ -1,5 +1,5 @@
 import Row from 'components/Row'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 
 const TimeOptionsContainer = styled.div`
@@ -22,6 +22,7 @@ const TimeButton = styled.button<{ active: boolean }>`
   padding: 2px 12px;
   border-radius: 4px;
   cursor: pointer;
+  min-width: 47px;
   transition: all 200ms ease-in-out;
   ${({ active }) =>
     active &&
@@ -53,6 +54,8 @@ export enum TimePeriod {
   ALL,
 }
 
+export const defaultTimePeriod = TimePeriod.MONTH
+
 const DISPLAYS: Record<TimePeriod, string> = {
   [TimePeriod.HOUR]: '1H',
   [TimePeriod.DAY]: '1D',
@@ -77,17 +80,20 @@ export function isRestricted(timePeriod: TimePeriod): boolean {
 }
 
 export default function TimePeriodSelector({
-  currentTimePeriod,
   onTimeChange,
   restrict,
 }: {
-  currentTimePeriod: TimePeriod
   onTimeChange: (t: TimePeriod) => void
   restrict: boolean
 }) {
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>(currentTimePeriod)
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>(defaultTimePeriod)
+
+  useEffect(() => {
+    setTimePeriod(isRestricted(timePeriod) && restrict ? defaultTimePeriod : timePeriod)
+  }, [restrict])
+
   return (
-    <Row justify="flex-end">
+    <Row justify="flex-end" style={{ overflowX: 'auto' }}>
       <TimeOptionsContainer>
         {ORDERED_TIMES.map(
           (time: TimePeriod) =>

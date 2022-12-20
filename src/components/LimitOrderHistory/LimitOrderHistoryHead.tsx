@@ -8,6 +8,8 @@ const HeaderCell = styled.th`
   span {
     width: 100%;
     display: flex;
+    align-items: center;
+    cursor: default;
   }
   &:first-child {
     padding-left: 12px;
@@ -20,22 +22,27 @@ const HeaderCell = styled.th`
   }
 `
 
-export type HistoryColumn = {
+type HistoryColumn = {
   label: string
   size: number
 }
 
-export default function LimitOrderHistoryHead({ columns }: { columns: HistoryColumn[] }) {
+const columns: HistoryColumn[] = [
+  { label: 'Pay', size: 2 },
+  { label: 'Receive', size: 1 },
+  { label: 'Rate', size: 1 },
+  { label: 'Status', size: 1 },
+]
+
+export default function LimitOrderHistoryHead() {
   return (
     <thead>
       <tr>
-        {columns.map((c: HistoryColumn, index: number) => {
-          return (
-            <HeaderCell colSpan={c.size} key={index}>
-              <span>{c.label}</span>
-            </HeaderCell>
-          )
-        })}
+        {columns.map(({ label, size }) => (
+          <HeaderCell colSpan={size} key={label}>
+            <span>{label}</span>
+          </HeaderCell>
+        ))}
       </tr>
     </thead>
   )

@@ -121,12 +121,11 @@ function getPairID(token0Address: string, token1Address: string) {
 }
 
 async function getPairPrice(id: string, signal: any, gqlClient: any) {
-  const now = Math.round(new Date().getTime() / 1000)
-  const yesterday = now - 86400
-  return await getBlockFromTimestamp(yesterday, { context: { fetchOptions: { signal } } }).then((number) => {
+  const yesterday = Math.round(new Date().getTime() / 1000) - (24 * 3600 + 3600)
+  return await getBlockFromTimestamp(yesterday, { context: { fetchOptions: { undefined } } }).then((number) => {
     return gqlClient
       .query({ query: PRICE_TODAY_YESTERDAY(id, number), context: { fetchOptions: { signal } } })
-      .then((response) => {
+      .then((response: { data: { now: any[]; yesterday: any[] } }) => {
         return { now: response.data.now[0], yesterday: response.data.yesterday[0] }
       })
   })
@@ -192,6 +191,7 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
             pairID: pairID,
           },
         ])
+
         getPairPrice(pairID, signal, client).then((price) => {
           setChoices((choices) =>
             choices.map((choice) => {
@@ -205,9 +205,8 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
               const price1N = price.now.token1Price
               const price0Y = price.yesterday.token0Price
               const price1Y = price.yesterday.token1Price
-              const change0 = price0N / price0Y - 1
-              const change1 = price1N / price1Y - 1
-
+              const change0 = (price0N / price0Y - 1) * 100
+              const change1 = (price1N / price1Y - 1) * 100
               const is0 = choice.currencies[0].address > choice.currencies[1].address
               return { ...choice, price: is0 ? price0N : price1N, change24H: is0 ? change0 : change1 }
             })
@@ -216,7 +215,7 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
       }
     }
 
-    // Generating token chart from Coingecko
+    // Generating token from Coingecko
     tokens.forEach((token) => {
       if (token)
         getCoingeckoID(token.address, signal).then((id) => {
@@ -229,15 +228,15 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
               },
             ])
             getCoingeckoPrice(id, signal).then((price) => {
-              if (price) {
-                setChoices((choices) =>
-                  choices.map((choice) =>
-                    choice.currencies == token
+              setChoices((choices) =>
+                choices.map((choice) =>
+                  choice.currencies == token
+                    ? price
                       ? { ...choice, price: price.usd, change24H: price.usd_24h_change }
-                      : choice
-                  )
+                      : { ...choice, errorNoPrice: true }
+                    : choice
                 )
-              }
+              )
             })
           }
         })
@@ -292,7 +291,7 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
           </>
         ) : (
           <TYPE.largeHeader fontSize={[18, 20]} fontWeight={600}>
-            - / -
+            No Charts Available
           </TYPE.largeHeader>
         )}
       </ChartTitle>

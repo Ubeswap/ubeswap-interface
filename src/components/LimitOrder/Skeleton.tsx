@@ -11,9 +11,12 @@ export const LimitOrderLayout = styled.div`
   justify-content: center;
   width: 100%;
   padding: 0 20px;
-  margin-top: 24px;
+  margin: 24px 0;
   column-gap: 60px;
-  row-gap: 30px;
+  row-gap: 20px;
+  @media (max-width: 1260px) {
+    column-gap: 40px;
+  }
   @media (max-width: 1115px) {
     flex-direction: column-reverse;
     align-items: center;
@@ -22,6 +25,9 @@ export const LimitOrderLayout = styled.div`
 `
 
 export const LeftPanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   max-width: 780px;
   width: 100%;
   @media screen and (max-width: 1115px) {
@@ -34,60 +40,54 @@ export const RightPanel = styled.div`
   width: 100%;
 `
 
-function Wave() {
-  const theme = useTheme()
-  return (
-    <svg width="416" height="160" xmlns="http://www.w3.org/2000/svg">
-      <path d="M 0 80 Q 104 10, 208 80 T 416 80" stroke={theme.bg4} fill="transparent" strokeWidth="2" />
-    </svg>
-  )
-}
-
-const LoadingChartContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-  overflow: hidden;
-`
-
 const ChartAnimation = styled.div`
-  animation: wave 8s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
   display: flex;
-  overflow: hidden;
-  margin-top: 7px;
-  @keyframes wave {
+  flex-direction: column;
+  animation: waves 2s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+  @keyframes waves {
     0% {
       margin-left: 0;
     }
     100% {
-      margin-left: -800px;
+      margin-left: -416px;
     }
   }
 `
 
-export function LoadingChart({ width, height }: { width: number; height: number }) {
-  const graphHeight = height - 64 - 16 > 0 ? height - 64 - 16 : 0
-  const graphInnerHeight = graphHeight - margin.top - 40 > 0 ? graphHeight - margin.top - 40 : 0
+export function Waves({ height }: { height: number }) {
+  const theme = useTheme()
+  const midPoint = height / 2 + 45
 
   return (
-    <Column style={{ gap: '16px' }}>
+    <path
+      d={`M 0    ${midPoint} Q 104  ${midPoint - 70}, 208  ${midPoint} T 416  ${midPoint}
+          M 416  ${midPoint} Q 520  ${midPoint - 70}, 624  ${midPoint} T 832  ${midPoint},
+          M 832  ${midPoint} Q 936  ${midPoint - 70}, 1040 ${midPoint} T 1248 ${midPoint},
+          M 1248 ${midPoint} Q 1352 ${midPoint - 70}, 1456 ${midPoint} T 1664 ${midPoint}`}
+      stroke={theme.bg4}
+      fill="transparent"
+      strokeWidth="2"
+    />
+  )
+}
+
+export function LoadingChart({ height }: { height: number }) {
+  const graphHeight = height - 64 - 16 > 0 ? height - 64 - 16 : 0
+  const graphInnerHeight =
+    graphHeight - margin.top - margin.bottom - 40 > 0 ? graphHeight - margin.top - margin.bottom - 40 : 0
+  return (
+    <Column style={{ gap: '16px', overflow: 'hidden' }}>
       <Column style={{ gap: '4px' }}>
         <TokenPrice>
-          <LoadingBubble height={44} width={100} />
+          <LoadingBubble height={36} width={130} />
         </TokenPrice>
         <LoadingBubble height={16} width={160} />
       </Column>
-      <LoadingChartContainer style={{ width: width, height: graphHeight }}>
-        <div style={{ height: graphInnerHeight }}>
-          <ChartAnimation>
-            <Wave />
-            <Wave />
-            <Wave />
-            <Wave />
-            <Wave />
-          </ChartAnimation>
-        </div>
-      </LoadingChartContainer>
+      <ChartAnimation>
+        <svg height={graphHeight}>
+          <Waves height={graphInnerHeight}></Waves>
+        </svg>
+      </ChartAnimation>
     </Column>
   )
 }

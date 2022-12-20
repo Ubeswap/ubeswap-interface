@@ -11,7 +11,6 @@ const config = {
 }
 
 // code reference: https://airbnb.io/visx/lineradial
-
 function AnimatedInLineChart<T>({
   data,
   getX,
@@ -20,8 +19,6 @@ function AnimatedInLineChart<T>({
   marginTop,
   curve,
   strokeWidth,
-  height,
-  width,
   color,
 }: {
   data: T[]
@@ -38,15 +35,10 @@ function AnimatedInLineChart<T>({
   const lineRef = useRef<SVGPathElement>(null)
   const [lineLength, setLineLength] = useState(0)
   const [shouldAnimate, setShouldAnimate] = useState(false)
-  const [hasAnimatedIn, setHasAnimatedIn] = useState(false)
 
   const { frame } = useSpring({
     frame: shouldAnimate ? 0 : 1,
     config,
-    onRest: () => {
-      setShouldAnimate(false)
-      setHasAnimatedIn(true)
-    },
   })
 
   // We need to check to see after the "invisble" line has been drawn
@@ -59,32 +51,22 @@ function AnimatedInLineChart<T>({
       if (length !== lineLength) {
         setLineLength(length)
       }
-      if (length > 0 && !shouldAnimate && !hasAnimatedIn) {
+      if (length > 0 && !shouldAnimate) {
         setShouldAnimate(true)
       }
     }
   })
 
   return (
-    <Group top={marginTop} style={{ filter: `drop-shadow(0 0 0 ${color}) contrast(120%)` }}>
-      <LinearGradient id="area" from={color} to={color} fromOpacity={0.5} toOpacity={0} />
-
+    <Group top={marginTop} style={{ filter: 'contrast(120%)' }}>
+      <LinearGradient id="area" from={color} to={color} fromOpacity={1} toOpacity={0} />
       <AreaClosed data={data} x={getX} y={getY} yScale={yScale} fill="url(#area)" curve={curve} />
-
       <LinePath curve={curve} x={getX} y={getY}>
         {({ path }) => {
           const d = path(data) || ''
           return (
             <>
-              <animated.path
-                d={d}
-                ref={lineRef}
-                strokeWidth={strokeWidth}
-                strokeOpacity={hasAnimatedIn ? 1 : 0}
-                fill="none"
-                stroke={color}
-              />
-
+              <animated.path d={d} ref={lineRef} fill="none" />
               {shouldAnimate && lineLength !== 0 && (
                 <animated.path
                   d={d}

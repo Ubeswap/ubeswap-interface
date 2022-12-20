@@ -22,11 +22,15 @@ import {
 } from 'utils/formatChartTimes'
 import { formatDelta, formatDollar, formatTransactionAmount } from 'utils/formatNumbers'
 
+import { Waves } from './Skeleton'
 import { TimePeriod } from './TimeSelector'
 
 export const TokenPrice = styled.span`
   font-size: 36px;
-  line-height: 44px;
+  height: 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `
 const ArrowCell = styled.div`
   display: flex;
@@ -36,11 +40,11 @@ const ArrowCell = styled.div`
 `
 
 const DeltaCell = styled.div<{
-  positive: boolean
+  negative: boolean
 }>`
   background-color: ${({ theme }) =>
-    ({ positive }) =>
-      positive ? theme.green1 : theme.red1};
+    ({ negative }) =>
+      negative ? theme.red1 : theme.green1};
   color: ${({ theme }) => theme.white};
   font-size: 12px;
   border-radius: 6px;
@@ -282,7 +286,7 @@ export function PriceChart({ width, height, prices, isDollar, timePeriod }: Pric
             : '-'}
         </TokenPrice>
         <Row>
-          <DeltaCell positive={delta >= 0}>{formattedDelta}</DeltaCell>
+          <DeltaCell negative={delta < 0}>{formattedDelta}</DeltaCell>
           <TimeCell>
             {crosshair != null ? crosshairDateFormatter(displayPrice.timestamp) : formattedTimePeriod}
           </TimeCell>
@@ -326,7 +330,7 @@ export function PriceChart({ width, height, prices, isDollar, timePeriod }: Pric
                     })}
                   />
                 </Axis>
-                <Group style={{ filter: `drop-shadow(0 0 0mm ${theme.red1}) contrast(120%)` }}>
+                <Group style={{ filter: `contrast(120%)` }}>
                   <Line
                     from={{ x: crosshair, y: 0 }}
                     to={{ x: crosshair, y: graphHeight - 24 }}
@@ -384,7 +388,7 @@ export function PriceChart({ width, height, prices, isDollar, timePeriod }: Pric
   )
 }
 
-const StyledMissingChart = styled.svg`
+const StyledMissingChart = styled.g`
   text {
     user-select: none;
     -webkit-user-select: none;
@@ -393,23 +397,13 @@ const StyledMissingChart = styled.svg`
   }
 `
 
-const chartBottomPadding = 40
-
-function MissingPriceChart({ width, height, message }: { width: number; height: number; message: ReactNode }) {
+function MissingPriceChart({ height, width, message }: { height: number; width: number; message: ReactNode }) {
   const theme = useTheme()
-  const midPoint = height / 2 + 45
   return (
-    <StyledMissingChart width={width} height={height} style={{ minWidth: '100%' }}>
-      <path
-        d={`M 0 ${midPoint} Q 104 ${midPoint - 70}, 208 ${midPoint} T 416 ${midPoint}
-        M 416 ${midPoint} Q 520 ${midPoint - 70}, 624 ${midPoint} T 832 ${midPoint},
-        M 832 ${midPoint} Q 936 ${midPoint - 70}, 1040 ${midPoint} T 1248 ${midPoint}`}
-        stroke={theme.bg4}
-        fill="transparent"
-        strokeWidth="2"
-      />
-      <TrendingUp stroke={theme.text1} size={40} y={height - chartBottomPadding - 60} x={width / 2 - 20} />
-      <text y={height - chartBottomPadding} x={width / 2} textAnchor={'middle'} fill={theme.text1}>
+    <StyledMissingChart>
+      <Waves height={height}></Waves>
+      <TrendingUp stroke={theme.text1} size={40} y={height / 2 + 10} x={width / 2 - 20} />
+      <text y={height / 2 + 70} x={width / 2} textAnchor={'middle'} fill={theme.text1}>
         {message}
       </text>
     </StyledMissingChart>
