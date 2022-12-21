@@ -73,7 +73,7 @@ function AnimatedInLineChart<T>({
                   strokeWidth={strokeWidth}
                   fill="none"
                   stroke={color}
-                  strokeDashoffset={frame.interpolate((v) => v * lineLength)}
+                  strokeDashoffset={frame.interpolate((v) => Number(v) * lineLength)}
                   strokeDasharray={lineLength}
                 />
               )}

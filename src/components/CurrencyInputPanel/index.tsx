@@ -212,7 +212,7 @@ export default function CurrencyInputPanel({
                 className="token-amount-input"
                 value={value}
                 onUserInput={(val) => {
-                  onUserInput(val)
+                  onUserInput && onUserInput(val)
                 }}
                 disabled={disabled}
               />

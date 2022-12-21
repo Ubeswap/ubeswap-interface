@@ -100,9 +100,16 @@ export async function getPairPrice(id: string, t: TimePeriod, gqlClient: any, is
       return []
     }
 
-    const result: any = await splitQuery(HOURLY_PAIR_RATES, gqlClient, [id], blocks, 100, {
-      context: { fetchOptions: { signal } },
-    })
+    const result: { [key: string]: { token0Price: string; token1Price: string } } = await splitQuery(
+      HOURLY_PAIR_RATES,
+      gqlClient,
+      [id],
+      blocks,
+      100,
+      {
+        context: { fetchOptions: { signal } },
+      }
+    )
 
     const values = []
     for (const row in result) {
@@ -154,7 +161,8 @@ export default function ChartSection({ chart }: { chart: ChartOption | undefined
         ch.pairID,
         ti,
         client,
-        ch.currencies[0].address.toLowerCase() > ch.currencies[1].address.toLowerCase(),
+        (ch.currencies as [Token, Token])[0].address.toLowerCase() >
+          (ch.currencies as [Token, Token])[1].address.toLowerCase(),
         signal
       ).then((graphqlPrices) => setChartSetting({ prices: graphqlPrices, timePeriod: ti, loading: false }))
     } else {

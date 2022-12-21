@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client'
+import { ApolloClient, gql, NormalizedCacheObject } from '@apollo/client'
 import { blockClient } from 'index'
 
 export const PAIR_PRICE_AT_BLOCK = (block: number | null, pairId: string) => {
@@ -53,7 +53,7 @@ export const PRICE_TODAY_YESTERDAY = (pairId: string, blockYesterday: number) =>
     }
 `
 
-export const HOURLY_PAIR_RATES = (pairId: string, blocks: any) => {
+export const HOURLY_PAIR_RATES = (pairId: string, blocks: { timestamp: number; number: number }[]) => {
   let queryString = 'query blocks {'
   queryString += blocks.map(
     (block) => `
@@ -68,7 +68,14 @@ export const HOURLY_PAIR_RATES = (pairId: string, blocks: any) => {
   return gql(queryString)
 }
 
-export async function splitQuery(query, localClient, vars, list, skipCount = 100, options) {
+export async function splitQuery(
+  query: (...args: any) => any,
+  localClient: ApolloClient<NormalizedCacheObject>,
+  vars: any,
+  list: readonly any[],
+  skipCount = 100,
+  options: any
+) {
   let fetchedData = {}
   let allFound = false
   let skip = 0
@@ -126,15 +133,22 @@ export async function getBlockFromTimestamp(timestamp: number, options: any): Pr
  * @param {Array} timestamps
  */
 export async function getBlocksFromTimestamps(
-  timestamps?: readonly number[],
+  timestamps: readonly number[],
   skipCount = 500,
   options?: any
-): Promise<readonly { timestamp: number; number: number; options?: any }[]> {
+): Promise<readonly { timestamp: number; number: number }[]> {
   if (timestamps?.length === 0) {
     return []
   }
 
-  const fetchedData = await splitQuery(GET_BLOCKS, blockClient, [], timestamps, skipCount, options)
+  const fetchedData: { [key: string]: [{ number: string }] } = await splitQuery(
+    GET_BLOCKS,
+    blockClient,
+    [],
+    timestamps,
+    skipCount,
+    options
+  )
 
   const blocks: { timestamp: number; number: number }[] = []
   if (fetchedData) {
@@ -142,7 +156,7 @@ export async function getBlocksFromTimestamps(
       if (fetchedData[t].length > 0) {
         blocks.push({
           timestamp: parseInt(t.split('t')[1]),
-          number: parseInt(fetchedData[t][0]['number']),
+          number: parseInt(fetchedData[t][0].number),
         })
       }
     }

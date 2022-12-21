@@ -26,7 +26,9 @@ const getLpAddress = memoize(
     return Pair.getAddress(token1AsTokenInstance as Token, token2AsTokenInstance as Token)
   },
   (token1, token2, chainId) => {
-    return `${token1?.address || token1}#${token2?.address || token2}#${chainId}`
+    return `${typeof token1 === 'string' ? token1 : token1?.address}#${
+      typeof token2 === 'string' ? token2 : token2?.address
+    }#${chainId}`
   }
 )
 

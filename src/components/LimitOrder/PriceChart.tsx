@@ -184,31 +184,31 @@ export function PriceChart({ width, height, prices, isDollar, timePeriod }: Pric
           dayHourFormatter(locale),
           (timeMinute.every(5) ?? timeMinute)
             .range(startDateWithOffset, endDateWithOffset, 2)
-            .map((x: number) => x.valueOf() / 1000),
+            .map((x) => x.valueOf() / 1000),
         ]
       case TimePeriod.DAY:
         return [
           hourFormatter(locale),
           dayHourFormatter(locale),
-          timeHour.range(startDateWithOffset, endDateWithOffset, 4).map((x: number) => x.valueOf() / 1000),
+          timeHour.range(startDateWithOffset, endDateWithOffset, 4).map((x) => x.valueOf() / 1000),
         ]
       case TimePeriod.WEEK:
         return [
           weekFormatter(locale),
           dayHourFormatter(locale),
-          timeDay.range(startDateWithOffset, endDateWithOffset, 1).map((x: number) => x.valueOf() / 1000),
+          timeDay.range(startDateWithOffset, endDateWithOffset, 1).map((x) => x.valueOf() / 1000),
         ]
       case TimePeriod.MONTH:
         return [
           monthDayFormatter(locale),
           dayHourFormatter(locale),
-          timeDay.range(startDateWithOffset, endDateWithOffset, 7).map((x: number) => x.valueOf() / 1000),
+          timeDay.range(startDateWithOffset, endDateWithOffset, 7).map((x) => x.valueOf() / 1000),
         ]
       case TimePeriod.YEAR:
         return [
           monthTickFormatter(locale),
           monthYearDayFormatter(locale),
-          timeMonth.range(startDateWithOffset, endDateWithOffset, 2).map((x: number) => x.valueOf() / 1000),
+          timeMonth.range(startDateWithOffset, endDateWithOffset, 2).map((x) => x.valueOf() / 1000),
         ]
       case TimePeriod.ALL:
         return [
@@ -223,7 +223,7 @@ export function PriceChart({ width, height, prices, isDollar, timePeriod }: Pric
                 12 * (endDateWithOffset.getFullYear() - startDateWithOffset.getFullYear())) /
                 4
             )
-            .map((x: number) => x.valueOf() / 1000),
+            .map((x) => x.valueOf() / 1000),
         ]
     }
   }

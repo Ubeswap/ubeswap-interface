@@ -112,9 +112,9 @@ async function getCoingeckoPrice(id: string, signal: any) {
     .catch((e) => console.log('Error:', e))
 }
 
-function getPairID(token0Address: string, token1Address: string) {
+function getPairID(token0: Token, token1: Token) {
   try {
-    return getLpAddress(token0Address, token1Address)?.toLowerCase()
+    return getLpAddress(token0, token1)?.toLowerCase()
   } catch (err) {
     return undefined
   }
@@ -176,10 +176,7 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
 
     // Generating pair from GraphQl
     if (tokens[0] && tokens[1]) {
-      const pairID = getPairID.apply(
-        this,
-        tokens.map((t) => t.address)
-      )
+      const pairID = getPairID(tokens[0], tokens[1])
       if (pairID) {
         setChoices([
           {
