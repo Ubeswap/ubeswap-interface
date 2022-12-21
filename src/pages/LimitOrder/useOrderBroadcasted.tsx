@@ -183,5 +183,5 @@ export const useLimitOrdersHistory = (sort: Sort): { limitOrderHistory: LimitOrd
       ),
       refresh,
     }
-  }, [orderEvents, remainings, sort, refresh])
+  }, [orderEvents, remainings]) // eslint-disable-line react-hooks/exhaustive-deps
 }
