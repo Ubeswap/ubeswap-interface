@@ -238,12 +238,12 @@ export default function ChartSelector({ currencies, onChartChange }: ChartSelect
           }
         })
     })
-  }, [currencies[Field.PRICE], currencies[Field.TOKEN]])
+  }, [currencies[Field.PRICE], currencies[Field.TOKEN]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setChart(choices[0])
     onChartChange(choices[0])
-  }, [choices])
+  }, [choices]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Container ref={node as any}>

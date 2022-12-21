@@ -90,7 +90,7 @@ export default function TimePeriodSelector({
 
   useEffect(() => {
     setTimePeriod(isRestricted(timePeriod) && restrict ? defaultTimePeriod : timePeriod)
-  }, [restrict])
+  }, [restrict, timePeriod])
 
   return (
     <Row justify="flex-end" style={{ overflowX: 'auto' }}>

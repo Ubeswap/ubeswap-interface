@@ -183,5 +183,5 @@ export const useLimitOrdersHistory = (sort: Sort): { limitOrderHistory: LimitOrd
       ),
       refresh,
     }
-  }, [orderEvents, remainings])
+  }, [orderEvents, remainings, sort, refresh])
 }

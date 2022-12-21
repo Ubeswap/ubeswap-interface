@@ -84,10 +84,10 @@ export const LimitOrderHistory: React.FC = () => {
 
     if (refresh && loading == Loading.NOT_LOADED) {
       setLoading(Loading.REFRESHING)
-    } else if (!refresh && loading != Loading.NOT_LOADED) {
+    } else if (!refresh && loading == Loading.REFRESHING) {
       setLoading(Loading.LOADED)
     }
-  }, [refresh])
+  }, [refresh, loading, account])
 
   useEffect(() => {
     setLoading(Loading.NOT_LOADED)

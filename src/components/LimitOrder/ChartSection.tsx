@@ -174,7 +174,7 @@ export default function ChartSection({ chart }: { chart: ChartOption | undefined
       isRestricted(chartSetting.timePeriod) && chart?.pairID ? defaultTimePeriod : chartSetting.timePeriod
     setChartSetting({ prices: [], timePeriod: time, loading: true })
     fetchPrice(chart, time)
-  }, [chart?.currencies])
+  }, [chart?.currencies]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <ChartContainer>
