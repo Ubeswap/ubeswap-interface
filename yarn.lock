@@ -2664,6 +2664,11 @@
     redux-thunk "^2.4.1"
     reselect "^4.1.5"
 
+"@remix-run/router@1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@remix-run/router/-/router-1.2.0.tgz#54eff8306938b64c521f4a9ed313d33a91ef019a"
+  integrity sha512-GO82KYYTWPRCgdNtnheaZG3LcViUlxRFlHM7ykh7N+ufoXi6PVIHoP+9RUG/vuzl2hr9i/h6EA1Eq+2HpqJ0gQ==
+
 "@rollup/plugin-node-resolve@^7.1.1":
   version "7.1.3"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-node-resolve/-/plugin-node-resolve-7.1.3.tgz#80de384edfbd7bfc9101164910f86078151a3eca"
@@ -13825,20 +13830,22 @@ react-remove-scroll@^2.4.3:
     use-callback-ref "^1.3.0"
     use-sidecar "^1.1.2"
 
-react-router-dom@^5.0.0:
-  version "5.3.3"
-  resolved "https://registry.yarnpkg.com/react-router-dom/-/react-router-dom-5.3.3.tgz#8779fc28e6691d07afcaf98406d3812fe6f11199"
-  integrity sha512-Ov0tGPMBgqmbu5CDmN++tv2HQ9HlWDuWIIqn4b88gjlAN5IHI+4ZUZRcpz9Hl0azFIwihbLDYw1OiHGRo7ZIng==
+react-router-dom@^6.6.0:
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/react-router-dom/-/react-router-dom-6.6.0.tgz#ad20b37b69e9fe7c6389663a0767ba40a19f71fe"
+  integrity sha512-qC4jnvpfCPKVle1mKLD75IvZLcbVJyFMlSn16WY9ZiOed3dgSmqhslCf/u3tmSccWOujkdsT/OwGq12bELmvjg==
   dependencies:
-    "@babel/runtime" "^7.12.13"
-    history "^4.9.0"
-    loose-envify "^1.3.1"
-    prop-types "^15.6.2"
-    react-router "5.3.3"
-    tiny-invariant "^1.0.2"
-    tiny-warning "^1.0.0"
+    "@remix-run/router" "1.2.0"
+    react-router "6.6.0"
 
-react-router@5.3.3, react-router@^5.2.0:
+react-router@6.6.0:
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/react-router/-/react-router-6.6.0.tgz#9ae27cfc6bf7f2b28e1f028fe01fdbec96a3a41d"
+  integrity sha512-+VPfCIaFbkW7BAiB/2oeprxKAt1KLbl+zXZ10CXOYezKWgBmTKyh8XjI53eLqY5kd7uY+V4rh3UW44FclwUU+Q==
+  dependencies:
+    "@remix-run/router" "1.2.0"
+
+react-router@^5.2.0:
   version "5.3.3"
   resolved "https://registry.yarnpkg.com/react-router/-/react-router-5.3.3.tgz#8e3841f4089e728cf82a429d92cdcaa5e4a3a288"
   integrity sha512-mzQGUvS3bM84TnbtMYR8ZjKnuPJ71IjSzR+DE6UkUqvN4czWIqEs17yLL8xkAycv4ev0AiN+IGrWu88vJs/p2w==
