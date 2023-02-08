@@ -1,16 +1,20 @@
 import { DappKitResponseStatus } from '@celo/utils'
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { ErrorBoundary } from '@sentry/react'
+import { menuURLs } from 'constants/menuURLs'
 import React, { Suspense } from 'react'
-import { Route, Switch, useLocation } from 'react-router-dom'
+import { Route, Switch, useHistory, useLocation } from 'react-router-dom'
+import { useDarkModeManager } from 'state/user/hooks'
 import styled from 'styled-components'
+import UbeswapHeader from 'ubeswap-header'
 import { isBanned } from 'utils/isBannedUser'
 
 import GoogleAnalyticsReporter from '../components/analytics/GoogleAnalyticsReporter'
-import Header from '../components/Header'
+// import Header from '../components/Header'
 import Polling from '../components/Header/Polling'
 import URLWarning from '../components/Header/URLWarning'
 import Popups from '../components/Popups'
+import { V3Url } from '../constants'
 import DarkModeQueryParamReader from '../theme/DarkModeQueryParamReader'
 import { getMobileOperatingSystem, Mobile } from '../utils/mobile'
 import AddLiquidity from './AddLiquidity'
@@ -41,17 +45,22 @@ const AppWrapper = styled.div`
   min-height: 100vh;
 `
 
-const HeaderWrapper = styled.div`
-  ${({ theme }) => theme.flexRowNoWrap}
+// const HeaderWrapper = styled.div`
+//   ${({ theme }) => theme.flexRowNoWrap}
+//   width: 100%;
+//   justify-content: space-between;
+// `
+
+const UbeswapHeaderWrapper = styled.div`
+  position: absolute;
   width: 100%;
-  justify-content: space-between;
 `
 
 const BodyWrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding-top: 40px;
+  padding-top: 140px;
   align-items: center;
   flex: 1;
   overflow-y: auto;
@@ -72,8 +81,10 @@ const Marginer = styled.div`
 const localStorageKey = 'valoraRedirect'
 
 export default function App() {
-  const location = useLocation()
+  const history = useHistory()
+  const curLocation = useLocation()
   const { address } = useContractKit()
+  const [darkMode, toggleDarkMode] = useDarkModeManager()
 
   React.useEffect(() => {
     // Close window if search params from Valora redirect are present (handles Valora connection issue)
@@ -92,7 +103,27 @@ export default function App() {
         }
       }
     }
-  }, [location])
+  }, [curLocation])
+
+  const handleNavChange = (menu: string) => {
+    const changedMenu = menuURLs.find((menuUrl) => menuUrl.url === menu)
+    console.log('handleNavChange', menu, changedMenu)
+    if (changedMenu) {
+      if (changedMenu.v2) {
+        const url = changedMenu.url === 'logo' ? '' : changedMenu.url
+        history.push(`/${url}`)
+      } else {
+        location.href = `${V3Url}/#/${changedMenu.url}`
+      }
+    }
+  }
+
+  const handleModeChange = () => {
+    // permanent dark mode
+    if (darkMode === false) {
+      toggleDarkMode()
+    }
+  }
 
   if (isBanned(address)) {
     return null
@@ -103,10 +134,23 @@ export default function App() {
       <Route component={GoogleAnalyticsReporter} />
       <Route component={DarkModeQueryParamReader} />
       <AppWrapper>
+        <UbeswapHeaderWrapper>
+          <UbeswapHeader
+            darkMode={true}
+            showToggleDarkMode={false}
+            enableUrlWarning={false}
+            onNavChanged={(menu: string) => {
+              handleNavChange(menu)
+            }}
+            onModeChanged={() => {
+              handleModeChange()
+            }}
+          />
+        </UbeswapHeaderWrapper>
         <URLWarning />
-        <HeaderWrapper>
+        {/* <HeaderWrapper>
           <Header />
-        </HeaderWrapper>
+        </HeaderWrapper> */}
         <BodyWrapper>
           <Popups />
           <Polling />
