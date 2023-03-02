@@ -3861,10 +3861,10 @@
     tiny-warning "^1.0.3"
     toformat "^2.0.0"
 
-"@uniswap/default-token-list@^2.0.0":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@uniswap/default-token-list/-/default-token-list-2.3.0.tgz#e5e522e775791999643aac9b0faf1ccfb4c49bd8"
-  integrity sha512-yfd4snv9K20tEbNwy9Vjym41RU3Yb2lN0seKxsgkr+m3f6oub2lWyXfTiNwgGFbOQPDvX4dxjMhA+M+S7mxqKg==
+"@uniswap/default-token-list@^9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@uniswap/default-token-list/-/default-token-list-9.0.0.tgz#35e070095ac24d24ef03877842c5d46807b59c87"
+  integrity sha512-a62uqv5ApULDVEXCOursXIaEoxP4MtlzdNSiQikYl1x9RfsUAZXl9dBtCo2d1Ne+iS1THic1oCJMshNtT9Z0EQ==
 
 "@uniswap/token-lists@^1.0.0-beta.24":
   version "1.0.0-beta.28"
