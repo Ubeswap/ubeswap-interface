@@ -209,6 +209,18 @@ html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   font-feature-settings: 'ss01' on, 'ss02' on, 'cv01' on, 'cv03' on;
 }
+
+#squid-widget .tw-text-sm {
+  font-size: 0.688rem !important;
+  line-height: 0.756rem !important;
+}
+
+#squid-widget .tw-text-base {
+  font-size: 0.813rem !important;
+  line-height: 0.983rem !important;
+}
+
+
 `
 
 export const ThemedGlobalStyle = createGlobalStyle`

@@ -93,18 +93,11 @@
     "lint:fix": "eslint . --fix",
     "prepare": "husky install"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all"
+  ],
   "license": "GPL-3.0-or-later",
   "resolutions": {
     "@celo/wallet-walletconnect": "1.2.0",
@@ -113,6 +106,7 @@
     "prettier": "^2.3.0"
   },
   "dependencies": {
+    "@0xsquid/widget": "^1.4.49",
     "@apollo/client": "^3.6.5",
     "@celo-tools/use-contractkit": "^3.1.0",
     "@celo/contractkit": "^1.2.0",
