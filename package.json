@@ -106,7 +106,6 @@
     "prettier": "^2.3.0"
   },
   "dependencies": {
-    "@0xsquid/widget": "^1.4.49",
     "@apollo/client": "^3.6.5",
     "@celo-tools/use-contractkit": "^3.1.0",
     "@celo/contractkit": "^1.2.0",

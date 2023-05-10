@@ -1,4 +1,3 @@
-import { SquidWidget } from '@0xsquid/widget'
 import { useContractKit } from '@celo-tools/use-contractkit'
 import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { CELO, ChainId as UbeswapChainId, JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
@@ -329,53 +328,59 @@ export default function Swap() {
 
   const isDarkMode = useIsDarkMode()
 
+  const iframeUrl = useMemo(() => {
+    const config = {
+      companyName: 'Squid',
+      style: isDarkMode
+        ? {
+            neutralContent: '#8579be',
+            baseContent: '#e8e3e4',
+            base100: '#2f3038',
+            base200: '#222429',
+            base300: '#161718',
+            error: '#ED6A5E',
+            warning: '#FFB155',
+            success: '#62C555',
+            primary: '#8579be',
+            secondary: '#F89CC3',
+            secondaryContent: '#222429',
+            neutral: '#1f2023',
+            roundedBtn: '26px',
+            roundedBox: '2rem',
+            roundedDropDown: '20rem',
+            displayDivider: true,
+          }
+        : {
+            neutralContent: '#8579be',
+            baseContent: '#000000',
+            base100: '#f6f6f6',
+            base200: '#ffffff',
+            base300: '#ffffff',
+            error: '#ED6A5E',
+            warning: '#FFB155',
+            success: '#62C555',
+            primary: '#8579be',
+            secondary: '#F89CC3',
+            secondaryContent: '#ffffff',
+            neutral: '#ffffff',
+            roundedBtn: '26px',
+            roundedBox: '2rem',
+            roundedDropDown: '20rem',
+            displayDivider: true,
+          },
+      initialFromChainId: 42220,
+    }
+    const encodedConfig = encodeURIComponent(JSON.stringify(config))
+    return `https://widget.squidrouter.com/iframe?config=${encodedConfig}`
+  }, [isDarkMode])
+
   const swapLayout = () => {
     if (isCrossChainView) {
       return (
         <span style={{ marginTop: '24px', width: '100%', maxWidth: '420px' }}>
-          <SquidWidget
-            config={{
-              companyName: 'Squid',
-              style: isDarkMode
-                ? {
-                    neutralContent: '#8579be',
-                    baseContent: '#e8e3e4',
-                    base100: '#2f3038',
-                    base200: '#222429',
-                    base300: '#161718',
-                    error: '#ED6A5E',
-                    warning: '#FFB155',
-                    success: '#62C555',
-                    primary: '#8579be',
-                    secondary: '#F89CC3',
-                    secondaryContent: '#222429',
-                    neutral: '#1f2023',
-                    roundedBtn: '26px',
-                    roundedBox: '2rem',
-                    roundedDropDown: '20rem',
-                    displayDivider: true,
-                  }
-                : {
-                    neutralContent: '#8579be',
-                    baseContent: '#000000',
-                    base100: '#f6f6f6',
-                    base200: '#ffffff',
-                    base300: '#ffffff',
-                    error: '#ED6A5E',
-                    warning: '#FFB155',
-                    success: '#62C555',
-                    primary: '#8579be',
-                    secondary: '#F89CC3',
-                    secondaryContent: '#ffffff',
-                    neutral: '#ffffff',
-                    roundedBtn: '26px',
-                    roundedBox: '2rem',
-                    roundedDropDown: '20rem',
-                    displayDivider: true,
-                  },
-              initialFromChainId: 42220,
-            }}
-          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <iframe title="Squid widget Iframe" src={iframeUrl} width="420" height="642" frameBorder="0" />
+          </div>
         </span>
       )
     } else {
@@ -625,10 +630,10 @@ export default function Swap() {
     <>
       <Row maxWidth={'420px'}>
         <Option disabled={!isCrossChainView} active={!isCrossChainView} onClick={() => setIsCrossChainView(false)}>
-          Swap
+          Celo
         </Option>
         <Option disabled={isCrossChainView} active={isCrossChainView} onClick={() => setIsCrossChainView(true)}>
-          Cross chain swap
+          Cross-chain
         </Option>
       </Row>
       {swapLayout()}
