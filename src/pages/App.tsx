@@ -36,7 +36,7 @@ import { OpenClaimAddressModalAndRedirectToSwap, RedirectPathToSwapOnly, Redirec
 const AppWrapper = styled.div`
   display: flex;
   flex-flow: column;
-  align-items: flex-start;
+  /* align-items: flex-start; */
   overflow-x: hidden;
   min-height: 100vh;
 `
@@ -50,9 +50,9 @@ const HeaderWrapper = styled.div`
 const BodyWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  width: 100%;
+  /* width: 100%; */
   padding-top: 40px;
-  align-items: center;
+  /* align-items: center; */
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;

@@ -187,10 +187,12 @@ export function useLimitOrderActionHandlers(): {
   const dispatch = useDispatch<AppDispatch>()
   const onCurrencySelection = useCallback(
     (field: Field, currency: Token) => {
+      console.log(field, currency, 'field currency')
       dispatch(
         selectCurrency({
           field,
           currencyId: currency instanceof Token ? currency.address : '',
+          symbol: currency?.symbol ?? '',
         })
       )
     },

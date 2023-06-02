@@ -7,7 +7,7 @@ import styled, { css } from 'styled-components'
 import { AutoColumn } from '../Column'
 
 export const Wrapper = styled.div`
-  position: relative;
+  /* position: relative; */
   padding: 1rem;
 `
 

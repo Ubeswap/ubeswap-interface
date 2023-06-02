@@ -5,7 +5,7 @@ export enum Field {
   PRICE = 'PRICE',
 }
 
-export const selectCurrency = createAction<{ field: Field; currencyId: string }>('limit/selectCurrency')
+export const selectCurrency = createAction<{ field: Field; currencyId: string; symbol: string }>('limit/selectCurrency')
 export const switchCurrencies = createAction<void>('limit/switchCurrencies')
 export const typeInput = createAction<{ field: Field; typedValue: string }>('limit/typeInput')
 export const setBuying = createAction<{ buying: boolean }>('limit/setBuying')
