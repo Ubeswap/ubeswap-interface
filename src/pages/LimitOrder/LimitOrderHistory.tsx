@@ -1,61 +1,169 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId as UbeswapChainId } from '@ubeswap/sdk'
-import { TabButton } from 'components/Button'
+import { ButtonLight, TabButton } from 'components/Button'
+import Column, { ColumnCenter } from 'components/Column'
 import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistoryBody'
-import LimitOrderHistoryItem from 'components/LimitOrderHistory/LimitOrderHistoryItem'
-import { Wrapper } from 'components/swap/styleds'
-import { useToken } from 'hooks/Tokens'
-import { useOrderBookRewardDistributorContract } from 'hooks/useContract'
-import React, { useState } from 'react'
-import { useSingleCallResult } from 'state/multicall/hooks'
+import LimitOrderHistoryHead, { defaultSort, Sort } from 'components/LimitOrderHistory/LimitOrderHistoryHead'
+import { LoadingHead, LoadingItem } from 'components/LimitOrderHistory/loading'
+import React, { useEffect, useState } from 'react'
+import { Archive } from 'react-feather'
+import { useTranslation } from 'react-i18next'
+import { useWalletModalToggle } from 'state/application/hooks'
+import styled from 'styled-components'
+import { TYPE } from 'theme'
 
-import { ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS } from '../../constants'
 import { useLimitOrdersHistory } from './useOrderBroadcasted'
 
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid ${({ theme }) => theme.bg4};
+  @media screen and (max-width: 1115px) {
+    border-bottom: 0;
+  }
+`
+
+const HeaderTitle = styled.div`
+  @media screen and (max-width: 1115px) {
+    div:first-child {
+      display: none;
+    }
+  }
+`
+
+const HeaderTabs = styled.div`
+  display: flex;
+  background: ${({ theme }) => theme.bg1};
+  border-radius: 8px;
+  padding: 4px;
+  height: 35px;
+  gap: 4px;
+  border: 1px solid ${({ theme }) => theme.bg4};
+
+  @media screen and (max-width: 1115px) {
+    width: 100%;
+    padding: 8px;
+    border-radius: 20px;
+    height: fit-content;
+    button {
+      font-size: 14px;
+      padding: 8px;
+      border-radius: 14px;
+    }
+  }
+`
+
+const TableContainer = styled.div`
+  overflow-x: auto;
+  table {
+    width: 100%;
+    border-spacing: 0 12px;
+  }
+`
+
+enum Loading {
+  NOT_LOADED,
+  REFRESHING,
+  LOADED,
+}
+
 export const LimitOrderHistory: React.FC = () => {
-  const { network } = useContractKit()
-  const chainId = network.chainId as unknown as UbeswapChainId
-  const limitOrderHistory = useLimitOrdersHistory()
-
+  const { t } = useTranslation()
+  const { address: account } = useContractKit()
+  // toggle wallet when disconnected
+  const toggleWalletModal = useWalletModalToggle()
+  const [sort, setSort] = useState<Sort>(defaultSort)
+  const { limitOrderHistory, refresh } = useLimitOrdersHistory(sort)
   const [openOrdersTabActive, setOpenOrdersTabActive] = useState<boolean>(true)
+  const [loading, setLoading] = useState<Loading>(Loading.NOT_LOADED)
 
-  const rewardDistributorContract = useOrderBookRewardDistributorContract(
-    ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS[chainId]
-  )
-  const rewardCurrencyAddress = useSingleCallResult(rewardDistributorContract, 'rewardCurrency', []).result?.[0]
-  const rewardCurrency = useToken(rewardCurrencyAddress)
+  useEffect(() => {
+    if (!account) return
+
+    if (refresh && loading == Loading.NOT_LOADED) {
+      setLoading(Loading.REFRESHING)
+    } else if (!refresh && loading == Loading.REFRESHING) {
+      setLoading(Loading.LOADED)
+    }
+  }, [refresh, loading, account])
+
+  useEffect(() => {
+    setLoading(Loading.NOT_LOADED)
+  }, [account])
 
   return (
-    <LimitOrderHistoryBody>
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
-        <TabButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
-          Open ({limitOrderHistory.filter((limitOrderHist) => limitOrderHist.isOrderOpen).length})
-        </TabButton>
-        <TabButton active={!openOrdersTabActive} onClick={() => setOpenOrdersTabActive(false)}>
-          Completed ({limitOrderHistory.filter((limitOrderHist) => !limitOrderHist.isOrderOpen).length})
-        </TabButton>
-      </div>
-
-      <Wrapper id="limit-order-history">
-        {limitOrderHistory
-          .filter((limitOrderHist) => {
+    <Column>
+      <Header>
+        <HeaderTitle>
+          <TYPE.black my={2}>Limit Orders</TYPE.black>
+        </HeaderTitle>
+        <HeaderTabs>
+          <TabButton active={openOrdersTabActive} onClick={() => setOpenOrdersTabActive(true)}>
+            Active Orders{' '}
+            {account &&
+              loading == Loading.LOADED &&
+              `(${limitOrderHistory.filter((limitOrderHist) => limitOrderHist.isOrderOpen).length})`}
+          </TabButton>
+          <TabButton active={!openOrdersTabActive} onClick={() => setOpenOrdersTabActive(false)}>
+            Order History{' '}
+            {account &&
+              loading == Loading.LOADED &&
+              `(${limitOrderHistory.filter((limitOrderHist) => !limitOrderHist.isOrderOpen).length})`}
+          </TabButton>
+        </HeaderTabs>
+      </Header>
+      {account ? (
+        loading == Loading.LOADED ? ( // CONNECTED & LOADED
+          limitOrderHistory.filter((limitOrderHist) => {
             if (openOrdersTabActive) {
               return limitOrderHist.isOrderOpen
             }
             return !limitOrderHist.isOrderOpen
-          })
-          .reverse()
-          .map((limitOrderHist, idx, arr) => {
-            return (
-              <LimitOrderHistoryItem
-                key={limitOrderHist.orderHash}
-                item={limitOrderHist}
-                rewardCurrency={rewardCurrency || undefined}
-                lastDisplayItem={idx === arr.length - 1}
-              />
-            )
-          })}
-      </Wrapper>
-    </LimitOrderHistoryBody>
+          }).length ? ( // WITH ORDERS
+            <TableContainer>
+              <table>
+                <LimitOrderHistoryHead
+                  onSortChange={(s: Sort) => {
+                    setSort(s)
+                  }}
+                ></LimitOrderHistoryHead>
+                <LimitOrderHistoryBody
+                  historyData={limitOrderHistory.filter(
+                    (limitOrderHist) => limitOrderHist.isOrderOpen == openOrdersTabActive
+                  )}
+                ></LimitOrderHistoryBody>
+              </table>
+            </TableContainer>
+          ) : (
+            // WITHOUT ORDERS
+            <ColumnCenter style={{ gap: '16px', marginTop: '12px' }}>
+              <TYPE.black my={2}>{`Can't find any ${openOrdersTabActive ? 'active' : 'filled'} orders`}</TYPE.black>
+              <Archive size={20} />
+            </ColumnCenter>
+          )
+        ) : (
+          // & NOT LOADED
+          <Column style={{ gap: '12px', paddingTop: '12px', opacity: '0.75', overflow: 'hidden' }}>
+            <LoadingHead></LoadingHead>
+            <Column style={{ gap: '12px' }}>
+              <LoadingItem></LoadingItem>
+              <LoadingItem></LoadingItem>
+              <LoadingItem></LoadingItem>
+              <LoadingItem></LoadingItem>
+            </Column>
+          </Column>
+        )
+      ) : (
+        // NOT CONNECTED
+        <ColumnCenter style={{ gap: '16px', marginTop: '12px' }}>
+          <TYPE.black my={2}>{openOrdersTabActive ? 'Active orders are' : 'Order history is'} not available</TYPE.black>
+          <ButtonLight onClick={toggleWalletModal} style={{ maxWidth: '190px', height: '50px' }}>
+            {t('connectWallet')}
+          </ButtonLight>
+        </ColumnCenter>
+      )}
+    </Column>
   )
 }

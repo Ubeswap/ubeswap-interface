@@ -15,6 +15,7 @@ export const CurrencySelect = styled.button<{ selected: boolean }>`
   user-select: none;
   border: none;
   padding: 0 0.5rem;
+  margin-left: -0.5rem;
 
   :focus,
   :hover {

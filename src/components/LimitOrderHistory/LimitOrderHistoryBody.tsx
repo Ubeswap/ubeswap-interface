@@ -1,11 +1,13 @@
-import { BodyWrapper } from 'pages/AppBody'
 import React from 'react'
-import styled from 'styled-components'
 
-const LimitOrderHistoryBodyWrapper = styled(BodyWrapper)`
-  margin-top: 2rem;
-`
+import LimitOrderHistoryItem, { HistoryItem } from './LimitOrderHistoryItem'
 
-export default function LimitOrderHistoryBody({ children }: { children: React.ReactNode }) {
-  return <LimitOrderHistoryBodyWrapper>{children}</LimitOrderHistoryBodyWrapper>
+export default function LimitOrderHistoryBody({ historyData }: { historyData: HistoryItem[] }) {
+  return (
+    <tbody>
+      {historyData.map((data) => {
+        return <LimitOrderHistoryItem key={data.orderHash} item={data} />
+      })}
+    </tbody>
+  )
 }

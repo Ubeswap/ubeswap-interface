@@ -1,122 +1,136 @@
 import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId as UbeswapChainId, JSBI, Token, TokenAmount } from '@ubeswap/sdk'
+import Column from 'components/Column'
+import CurrencyLogo from 'components/CurrencyLogo'
 import { BigNumber } from 'ethers'
 import { useToken } from 'hooks/Tokens'
-import { useOrderBookContract, useOrderBookRewardDistributorContract } from 'hooks/useContract'
-import { BPS_DENOMINATOR } from 'pages/LimitOrder'
+import { LimitOrdersHistory } from 'pages/LimitOrder/useOrderBroadcasted'
 import React from 'react'
-import { useSingleCallResult } from 'state/multicall/hooks'
 import styled from 'styled-components'
+import { formatTransactionAmount } from 'utils/formatNumbers'
 
-import { ORDER_BOOK_ADDRESS, ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS } from '../../constants'
 import useTheme from '../../hooks/useTheme'
 import { useCancelOrderCallback } from '../../pages/LimitOrder/useCancelOrderCallback'
-import { ExternalLink, LinkIcon, TYPE } from '../../theme'
-import { RowFlat } from '../Row'
+import { ExternalLink, LinkIcon, TrashIcon, TYPE } from '../../theme'
+import Row, { RowCenter, RowFlat } from '../Row'
 
-const Container = styled.div<{
-  lastDisplayItem?: boolean
-}>`
-  background-color: ${({ theme }) => theme.bg1};
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  padding-left: 0.5rem;
-  border-bottom: 2px solid ${({ theme }) => theme.primary5};
-  ${({ lastDisplayItem }) =>
-    lastDisplayItem &&
-    `
-border-bottom-style: none;
-`}
+const ItemCell = styled.td`
+  font-size: 12px;
+  padding: 6px;
+  border-style: solid;
+  border-width: 1px 0px;
+  border-color: ${({ theme }) => theme.bg4};
+  background: ${({ theme }) => theme.bg1};
+  &:first-child {
+    padding-left: 12px;
+    border-left-width: 1px;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+  &:last-child {
+    padding-right: 12px;
+    border-right-width: 1px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    text-align: right;
+  }
 `
 
-const SymbolContainer = styled.div`
-  width: 75%;
+const ProgressBarContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  justify-content: flex-end;
+  cursor: default;
+  position: relative;
+  :hover .remaining {
+    opacity: 1;
+  }
+  .remaining {
+    transition: opacity 0.1s ease-in-out;
+    opacity: 0;
+    background: ${({ theme }) => theme.bg1};
+    border: 1px solid ${({ theme }) => theme.bg5};
+    box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04),
+      0px 24px 32px rgba(0, 0, 0, 0.01);
+    border-radius: 4px;
+    white-space: nowrap;
+    font-weight: bold;
+    font-size: 10px;
+    text-align: center;
+    min-width: 60px;
+    padding: 0px 6px;
+    position: absolute;
+    right: 0;
+    bottom: -4px;
+    z-index: 10;
+  }
 `
 
-const AssetSymbol = styled.div`
-  border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.primary5};
-  padding: 0.5rem;
-`
-
-const AssetRow = styled(RowFlat)`
-  margin-bottom: 0.5rem;
-`
-const SellText = styled.div`
-  font-weight: 700;
-  margin-top: 0.25rem;
-`
-
-const OrderToFill = styled.div`
-  font-weight: 300;
-  font-size: 14px;
-  margin-top: 0.25rem;
-`
-
-export const StyledControlButton = styled.button`
-  height: 24px;
-  background-color: ${({ theme }) => theme.red1};
-  border: 1px solid ${({ theme }) => theme.red2};
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+const AddressLinkIcon = styled(ExternalLink)`
+  all: unset;
   cursor: pointer;
-  margin-left: 7rem;
-  margin-right: 2rem;
-  color: white;
-  :hover {
-    border: 1px solid ${({ theme }) => theme.red3};
-    box-shadow: 0px 0px 10px 0px ${({ theme }) => theme.red3};
+  svg {
+    height: 12px;
+    width: 12px;
+    margin-left: unset;
+    stroke: ${({ theme }) => theme.blue1};
+    &:hover {
+      opacity: 0.7;
+    }
   }
-  :focus {
-    border: 1px solid ${({ theme }) => theme.red3};
-    box-shadow: 0px 0px 10px 0px ${({ theme }) => theme.red3};
-    outline: none;
-  }
-
-  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
-    margin-left: 0.4rem;
-    margin-right: 0.1rem;
-  `};
 `
 
 const AddressLink = styled(ExternalLink)`
-  font-size: 0.825rem;
-  color: ${({ theme }) => theme.text3};
-  border-radius: 12px;
-  width: 45%;
-  padding: 0.25rem;
-  margin-top: 0.5rem;
-  border: 1px solid ${({ theme }) => theme.primary5};
-  font-size: 0.825rem;
-  display: flex;
-  :hover {
-    color: ${({ theme }) => theme.text2};
+  border: 1px solid ${({ theme }) => theme.green1};
+  color: ${({ theme }) => theme.green1};
+  white-space: nowrap;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: all 100ms ease-in-out;
+  :hover,
+  :focus,
+  :active {
+    text-decoration: none;
+    background: ${({ theme }) => theme.green1};
+    color: ${({ theme }) => theme.white};
   }
 `
 
-const BaselineRow = styled(AssetRow)`
-  align-items: baseline;
+const StyledControlButton = styled.button`
+  all: unset;
+  svg {
+    height: 12px;
+    width: 12px;
+    margin-left: unset;
+    stroke: ${({ theme }) => theme.red1};
+  }
 `
 
-interface LimitOrderHistoryItemProps {
-  item: {
-    orderHash: string
-    makingAmount: BigNumber
-    takingAmount: BigNumber
-    makerAsset: string
-    takerAsset: string
-    remaining: BigNumber
-    isOrderOpen: boolean
-    transactionHash: string
-  }
-  rewardCurrency: Token | undefined
-  lastDisplayItem: boolean
+export type HistoryItem = {
+  orderHash: string
+  makingAmount: BigNumber
+  takingAmount: BigNumber
+  makerAsset: string
+  takerAsset: string
+  remaining: BigNumber
+  isOrderOpen: boolean
+  transactionHash: string
 }
 
-export default function LimitOrderHistoryItem({ item, rewardCurrency, lastDisplayItem }: LimitOrderHistoryItemProps) {
+interface LimitOrderHistoryItemProps {
+  item: HistoryItem
+}
+
+export const calculatePrice = (order: LimitOrdersHistory, takerDecimals: number, makerDecimals: number) => {
+  return (
+    Number(order.takingAmount.div(BigNumber.from(10).pow(BigNumber.from(takerDecimals)))) /
+    Number(order.makingAmount.div(BigNumber.from(10).pow(BigNumber.from(makerDecimals))))
+  )
+}
+
+export default function LimitOrderHistoryItem({ item }: LimitOrderHistoryItemProps) {
   const { network } = useContractKit()
-  const chainId = network.chainId as unknown as UbeswapChainId
   const { callback: cancelOrder } = useCancelOrderCallback(item.orderHash)
   const theme = useTheme()
   const makerToken = useToken(item.makerAsset)
@@ -124,76 +138,88 @@ export default function LimitOrderHistoryItem({ item, rewardCurrency, lastDispla
 
   const transactionLink = `${network.explorer}/tx/${item.transactionHash}`
 
-  const orderBookContract = useOrderBookContract(ORDER_BOOK_ADDRESS[chainId as unknown as UbeswapChainId])
-  const orderBookFee = useSingleCallResult(orderBookContract, 'fee', []).result?.[0]
-  const rewardDistributorContract = useOrderBookRewardDistributorContract(
-    ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS[chainId]
-  )
-  // TODO: This should really be based on the latest rewardRate change event from the logs
-  const rewardRate = useSingleCallResult(rewardDistributorContract, 'rewardRate', [makerToken?.address]).result?.[0]
-
   if (!makerToken || !takerToken) {
     return null
   }
 
-  const makingAmount = new TokenAmount(makerToken, item.makingAmount.toString())
-  const reward =
-    rewardCurrency && rewardRate
-      ? new TokenAmount(
-          rewardCurrency,
-          JSBI.divide(JSBI.multiply(makingAmount.raw, JSBI.BigInt(rewardRate.toString())), BPS_DENOMINATOR)
-        )
-      : undefined
-  const takingAmount = new TokenAmount(takerToken, item.takingAmount.toString())
-  const remaining = new TokenAmount(makerToken, item.remaining.toString())
-
   return (
-    <Container lastDisplayItem={lastDisplayItem}>
-      <BaselineRow>
-        <SymbolContainer>
-          <AssetRow>
-            <AssetSymbol>{makerToken.symbol}</AssetSymbol>
-            <TYPE.body
-              color={theme.text2}
-              style={{ display: 'inline', marginLeft: '10px', marginRight: '10px', paddingBottom: '0.5rem' }}
-            >
-              &#10140;
-            </TYPE.body>
-            <AssetSymbol>{takerToken.symbol}</AssetSymbol>
-          </AssetRow>
-        </SymbolContainer>
-        {item.isOrderOpen && (
-          <StyledControlButton onClick={() => cancelOrder && cancelOrder()}>Cancel</StyledControlButton>
+    <tr>
+      <ItemCell style={{ width: '175px' }}>
+        <RowCenter style={{ gap: '5px', flexWrap: 'nowrap' }}>
+          <CurrencyLogo currency={makerToken} size={'30px'} style={{ border: `2px solid ${theme.white}` }} />
+          <div>
+            <div style={{ fontWeight: 'bold' }}>{makerToken.symbol}</div>
+            <div>{formatTransactionAmount(Number(item.makingAmount) / 10 ** makerToken.decimals)}</div>
+          </div>
+        </RowCenter>
+      </ItemCell>
+      <ItemCell style={{ width: '45px' }}>
+        <TYPE.body color={theme.text1}>&#10140;</TYPE.body>
+      </ItemCell>
+      <ItemCell style={{ width: '175px' }}>
+        <RowCenter style={{ gap: '5px', flexWrap: 'nowrap' }}>
+          <CurrencyLogo currency={takerToken} size={'30px'} style={{ border: `2px solid ${theme.white}` }} />
+          <div>
+            <div style={{ fontWeight: 'bold' }}>{takerToken.symbol}</div>
+            <div>{formatTransactionAmount(Number(item.takingAmount) / 10 ** takerToken.decimals)}</div>
+          </div>
+        </RowCenter>
+      </ItemCell>
+      <ItemCell>
+        {formatTransactionAmount(calculatePrice(item, takerToken.decimals, makerToken.decimals))} {takerToken.symbol}
+      </ItemCell>
+      <ItemCell style={{ width: '120px' }}>
+        {item.isOrderOpen ? (
+          <Row style={{ justifyContent: 'flex-end', gap: '8px' }}>
+            <RowFlat style={{ gap: '8px' }}>
+              <ProgressBarContainer>
+                <span>
+                  {(((Number(item.makingAmount) - Number(item.remaining)) / Number(item.makingAmount)) * 100).toFixed(
+                    2
+                  )}
+                  %
+                </span>
+                <span className="remaining">
+                  <span>{(Number(item.makingAmount) - Number(item.remaining)) / 10 ** makerToken.decimals}</span> /{' '}
+                  <span>{Number(item.makingAmount) / 10 ** makerToken.decimals}</span>
+                </span>
+                <div
+                  style={{
+                    width: '50px',
+                    background: theme.bg3,
+                    height: '8px',
+                    padding: '2px',
+                    borderRadius: '4px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      background: theme.primary1,
+                      borderRadius: '2px',
+                      height: '100%',
+                      width: `${
+                        ((Number(item.makingAmount) - Number(item.remaining)) / Number(item.makingAmount)) * 100
+                      }%`,
+                      filter: `contrast(200%)`,
+                    }}
+                  ></div>
+                </div>
+              </ProgressBarContainer>
+            </RowFlat>
+            <Column style={{ alignItems: 'flex-end' }}>
+              <AddressLinkIcon href={transactionLink}>
+                <LinkIcon />
+              </AddressLinkIcon>
+              <StyledControlButton onClick={() => cancelOrder && cancelOrder()}>
+                <TrashIcon />
+              </StyledControlButton>
+            </Column>
+          </Row>
+        ) : (
+          <AddressLink href={transactionLink}>View Tx</AddressLink>
         )}
-      </BaselineRow>
-      <SellText>
-        {makingAmount.toSignificant(4)} {makerToken.symbol} for {takingAmount.toSignificant(4)} {takerToken.symbol}
-      </SellText>
-      {item.isOrderOpen && (
-        <OrderToFill>
-          Remaining Order to Fill: {remaining.toSignificant(4)} {makerToken.symbol}
-        </OrderToFill>
-      )}
-      <OrderToFill>
-        Order Placement Fee:{' '}
-        {orderBookFee
-          ? makingAmount.multiply(orderBookFee.toString()).divide(BPS_DENOMINATOR.toString()).toSignificant(4)
-          : '-'}{' '}
-        {makerToken.symbol}
-      </OrderToFill>
-      {reward?.greaterThan('0') ? (
-        <OrderToFill>
-          Order Reward: {reward.toSignificant(4)} {reward.currency.symbol}
-        </OrderToFill>
-      ) : (
-        <OrderToFill>Order Reward: -</OrderToFill>
-      )}
-      {item.isOrderOpen && (
-        <AddressLink href={transactionLink}>
-          <LinkIcon size={16} />
-          <span style={{ marginLeft: '4px' }}>View Transaction</span>
-        </AddressLink>
-      )}
-    </Container>
+      </ItemCell>
+    </tr>
   )
 }

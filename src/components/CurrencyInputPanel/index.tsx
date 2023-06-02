@@ -1,6 +1,5 @@
 import { ChainId, useContractKit } from '@celo-tools/use-contractkit'
 import { Pair, Token, TokenAmount } from '@ubeswap/sdk'
-import { darken } from 'polished'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -25,13 +24,11 @@ const InputRow = styled.div<{ selected: boolean }>`
 const LabelRow = styled.div`
   ${({ theme }) => theme.flexRowNoWrap}
   align-items: center;
-  color: ${({ theme }) => theme.text1};
   font-size: 0.75rem;
   line-height: 1rem;
   padding: 0.75rem 1rem 0 1rem;
   span:hover {
     cursor: pointer;
-    color: ${({ theme }) => darken(0.2, theme.text2)};
   }
 `
 
@@ -99,7 +96,7 @@ const ButtonGroup = styled.div``
 
 interface CurrencyInputPanelProps {
   value: string
-  onUserInput: (value: string) => void
+  onUserInput?: (value: string) => void
   onMax?: () => void
   onHalf?: () => void
   showMaxButton?: boolean
@@ -215,7 +212,7 @@ export default function CurrencyInputPanel({
                 className="token-amount-input"
                 value={value}
                 onUserInput={(val) => {
-                  onUserInput(val)
+                  onUserInput && onUserInput(val)
                 }}
                 disabled={disabled}
               />

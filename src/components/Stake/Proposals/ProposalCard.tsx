@@ -1,7 +1,6 @@
 import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
 import { ExternalProvider, JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
 import { JSBI, TokenAmount } from '@ubeswap/sdk'
-import { StyledControlButton } from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { BigNumber } from 'ethers'
 import { getAddress } from 'ethers/lib/utils'
 import { RomulusDelegate__factory } from 'generated'
@@ -74,6 +73,32 @@ const ClickableCard = styled(Card)<{
   border-radius: 8px;
   &:hover {
     ${({ clickable, theme }) => (clickable ? `box-shadow: 0px 2px 10px 1px ${theme.primary5};` : '')}
+`
+
+const StyledControlButton = styled.button`
+  height: 24px;
+  background-color: ${({ theme }) => theme.red1};
+  border: 1px solid ${({ theme }) => theme.red2};
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 7rem;
+  margin-right: 2rem;
+  color: white;
+  :hover {
+    border: 1px solid ${({ theme }) => theme.red3};
+    box-shadow: 0px 0px 10px 0px ${({ theme }) => theme.red3};
+  }
+  :focus {
+    border: 1px solid ${({ theme }) => theme.red3};
+    box-shadow: 0px 0px 10px 0px ${({ theme }) => theme.red3};
+    outline: none;
+  }
+  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
+    margin-left: 0.4rem;
+    margin-right: 0.1rem;
+  `};
 `
 
 interface Props {

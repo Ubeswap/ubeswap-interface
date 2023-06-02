@@ -23,7 +23,7 @@ import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import Loader from '../../components/Loader'
 import { SwapPoolTabs } from '../../components/NavigationTabs'
 import ProgressSteps from '../../components/ProgressSteps'
-import { AutoRow, RowBetween } from '../../components/Row'
+import Row, { AutoRow, RowBetween } from '../../components/Row'
 import AdvancedSwapDetailsDropdown from '../../components/swap/AdvancedSwapDetailsDropdown'
 import confirmPriceImpactWithoutFee from '../../components/swap/confirmPriceImpactWithoutFee'
 import ConfirmSwapModal from '../../components/swap/ConfirmSwapModal'
@@ -519,7 +519,12 @@ export default function Swap() {
         </Wrapper>
       </AppBody>
       {!swapIsUnsupported ? (
-        <AdvancedSwapDetailsDropdown trade={trade} />
+        <Row
+          justify="center"
+          style={{ height: 'fit-content', overflow: 'hidden', padding: '16px', marginTop: '-16px' }}
+        >
+          <AdvancedSwapDetailsDropdown trade={trade} />
+        </Row>
       ) : (
         <UnsupportedCurrencyFooter show={swapIsUnsupported} currencies={[currencies.INPUT, currencies.OUTPUT]} />
       )}

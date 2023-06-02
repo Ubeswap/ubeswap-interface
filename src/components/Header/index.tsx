@@ -109,6 +109,7 @@ const HeaderRow = styled(RowFixed)`
 `
 
 const HeaderLinks = styled(Row)`
+  white-space: nowrap;
   justify-content: center;
   @media (max-width: 1115px) {
     padding: 1rem 0 1rem 1rem;
@@ -213,7 +214,7 @@ export const StyledNavLink = styled(NavLink).attrs({
 export const StyledNavLinkExtraSmall = styled(StyledNavLink).attrs({
   activeClassName,
 })`
-  @media (max-width: 550px) {
+  @media (max-width: 600px) {
     display: none;
   }
 `
@@ -286,10 +287,10 @@ export const StyledDesktopLogo = styled.img`
   @media (max-width: 1115px) {
     display: inline;
   }
-  @media (max-width: 655px) {
+  @media (max-width: 700px) {
     display: none;
   }
-  @media (max-width: 550px) {
+  @media (max-width: 600px) {
     display: inline;
   }
   @media (max-width: 415px) {
@@ -305,10 +306,10 @@ export const StyledMobileLogo = styled.img`
   @media (max-width: 1115px) {
     display: none;
   }
-  @media (max-width: 655px) {
+  @media (max-width: 700px) {
     display: inline;
   }
-  @media (max-width: 550px) {
+  @media (max-width: 600px) {
     display: none;
   }
   @media (max-width: 415px) {
@@ -318,7 +319,7 @@ export const StyledMobileLogo = styled.img`
 
 export const BurgerElement = styled(HeaderElement)`
   display: none;
-  @media (max-width: 550px) {
+  @media (max-width: 600px) {
     display: flex;
   }
 `

@@ -1,27 +1,33 @@
 import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
 import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount, Trade } from '@ubeswap/sdk'
-import { CardNoise, CardSection, DataCard } from 'components/earn/styled'
+import ChartSection from 'components/LimitOrder/ChartSection'
+import ChartSelector, { ChartOption } from 'components/LimitOrder/ChartSelector'
+import { LeftPanel, LimitOrderLayout, RightPanel } from 'components/LimitOrder/Skeleton'
+import PriceInputPanel from 'components/PriceInputPanel'
+import { AdvancedDetailsFooter } from 'components/swap/AdvancedSwapDetailsDropdown'
 import { useQueueLimitOrderTrade } from 'components/swap/routing/limit/queueLimitOrderTrade'
 import { useTradeCallback } from 'components/swap/routing/useTradeCallback'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
 import { useOrderBookContract, useOrderBookRewardDistributorContract } from 'hooks/useContract'
 import useENS from 'hooks/useENS'
-import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { useOnClickOutside } from 'hooks/useOnClickOutside'
+import { rgba } from 'polished'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { ArrowDown, X } from 'react-feather'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
 import { useDerivedLimitOrderInfo, useLimitOrderActionHandlers, useLimitOrderState } from 'state/limit/hooks'
 import { useSingleCallResult } from 'state/multicall/hooks'
-import { ThemeContext } from 'styled-components'
+import styled, { ThemeContext } from 'styled-components'
 
-import { ButtonConfirmed, ButtonLight, ButtonPrimary, TabButton } from '../../components/Button'
-import Card from '../../components/Card'
-import Column, { AutoColumn, TopSectionLimitOrder } from '../../components/Column'
+import { ButtonConfirmed, ButtonLight, ButtonPrimary } from '../../components/Button'
+import Column, { AutoColumn } from '../../components/Column'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import Loader from '../../components/Loader'
 import ProgressSteps from '../../components/ProgressSteps'
-import { AutoRow, RowBetween } from '../../components/Row'
+import Row, { AutoRow, RowBetween } from '../../components/Row'
 import ConfirmSwapModal from '../../components/swap/ConfirmSwapModal'
 import { BottomGrouping, Wrapper } from '../../components/swap/styleds'
 import SwapHeader from '../../components/swap/SwapHeader'
@@ -36,6 +42,100 @@ import { TYPE } from '../../theme'
 import AppBody from '../AppBody'
 import { LimitOrderHistory } from './LimitOrderHistory'
 
+const ArrowContainer = styled.button`
+  height: 36px;
+  width: 36px;
+  border-radius: 50%;
+  background: ${({ theme }) => theme.bg1};
+  border: 1px solid ${({ theme }) => theme.bg3};
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  svg {
+    stroke-width: 3px;
+    transition: all 0.1s ease-in-out;
+  }
+  :hover svg {
+    transform: rotate(180deg);
+  }
+`
+
+const ChartContainer = styled.div<{
+  show: boolean
+}>`
+@media (max-width: 1115px) {
+  display: ${({ show }) => (show ? 'block' : 'none')};
+  flex-direction: row;
+  justify-content: space-between;
+  justify-self: center;
+  padding: 1rem 1rem 0 1rem;
+  position: fixed;
+  bottom: 72px;
+  max-height: calc(100% - 72px - 69px - 1rem - 5px); /* (screen height) - (height of footer) - (height of header) - (padding top) - (little space with the header) */
+  left: 0;
+  margin: 0 10px;
+  width: calc(100% - 20px - 2rem);
+  z-index: 100;
+  overflow-y: auto;
+  border-radius: 30px 30px 0 0;
+  box-shadow: 0px 0px 1px rgb(0 0 0 / 1%), 0px 4px 8px rgb(0 0 0 / 4%), 0px 16px 24px rgb(0 0 0 / 4%), 0px 24px 32px rgb(0 0 0 / 1%);
+  background-color: ${({ theme }) => theme.bg2};
+  border: 1px solid  ${({ theme }) => theme.bg4};
+  animation: appearChart 200ms ease-in-out;
+  box-sizing: content-box;
+  @keyframes appearChart {
+    0% {
+      bottom: -620px;
+    }
+   100% {
+      bottom: 0;
+    }
+  }
+`
+
+const StyledCloseButton = styled.button`
+  all: unset;
+  position: fixed;
+  right: calc(1rem + 10px);
+  height: 3rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  outline: none;
+  :hover {
+    opacity: 0.7;
+  }
+  display: none;
+  @media (max-width: 1115px) {
+    display: block;
+  }
+`
+const StyledCloseIcon = styled(X)`
+  height: 20px;
+  width: 20px;
+
+  > * {
+    stroke: ${({ theme }) => theme.text1};
+  }
+`
+
+const NotSupportedContainer = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  text-align: center;
+  background: ${({ theme }) => rgba(theme.bg1, 0.9)};
+  padding: 10rem 4rem 6rem;
+  border-radius: 30px;
+  z-index: 100;
+`
 export const BPS_DENOMINATOR = JSBI.BigInt(1_000_000)
 
 export default function LimitOrder() {
@@ -80,10 +180,10 @@ export default function LimitOrder() {
     buying ? currencies?.PRICE?.address : currencies?.TOKEN?.address,
   ]).result?.[0]
 
-  const { onCurrencySelection, onUserInput, setBuying } = useLimitOrderActionHandlers()
-  const defaultPriceCurrency = useCurrency(cUSD[chainId].address)
+  const { onCurrencySelection, onSwitchTokens, onUserInput } = useLimitOrderActionHandlers()
+  const defaultTokenCurrency = useCurrency(cUSD[chainId].address)
   useEffect(() => {
-    defaultPriceCurrency && onCurrencySelection(Field.PRICE, defaultPriceCurrency)
+    defaultTokenCurrency && onCurrencySelection(Field.TOKEN, defaultTokenCurrency)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -202,7 +302,7 @@ export default function LimitOrder() {
   }, [swapCallback, tradeToConfirm, showConfirm, recipient, recipientAddress, account, trade])
 
   // errors
-  const [showInverted, setShowInverted] = useState<boolean>(false)
+  const [showInverted, setShowInverted] = useState<boolean>(true)
 
   // show approve flow when: no error on inputs, not approved or pending, or approved in current session
   // never show if price impact is above threshold in non expert mode
@@ -252,246 +352,278 @@ export default function LimitOrder() {
     walletType === WalletTypes.PrivateKey ||
     walletType === WalletTypes.Injected
 
+  const [showMetamaskWarning, setShowMetamaskWarning] = useState<boolean>(true)
+
+  const [chart, setChart] = useState<ChartOption | undefined>(undefined)
+  const [showChart, setShowChart] = useState<boolean>(false)
+  const toggleChart = () => setShowChart((show) => !show)
+  const node = useRef<HTMLDivElement>()
+  useOnClickOutside(node, showChart ? toggleChart : undefined)
+
   return (
-    <>
-      {!walletIsSupported && (
-        <TopSectionLimitOrder gap="md">
-          <DataCard>
-            <CardNoise />
-            <CardSection>
-              <AutoColumn gap="md">
-                <RowBetween>
-                  <TYPE.white fontWeight={600}>Notice</TYPE.white>
-                </RowBetween>
-                <RowBetween>
-                  <TYPE.white fontSize={14}>
-                    You must be connected to a Metamask wallet to place limit orders
-                  </TYPE.white>
-                </RowBetween>{' '}
-              </AutoColumn>
-            </CardSection>
-            <CardNoise />
-          </DataCard>
-        </TopSectionLimitOrder>
-      )}
-      <AppBody>
-        <SwapHeader title={t('limitOrder')} hideSettings={true} />
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <TabButton active={buying} onClick={() => setBuying(true)}>
-            Buy
-          </TabButton>
-          <TabButton active={!buying} onClick={() => setBuying(false)}>
-            Sell
-          </TabButton>
-        </div>
-        <Wrapper id="swap-page">
-          <ConfirmSwapModal
-            isOpen={showConfirm}
-            trade={tradeToConfirm}
-            originalTrade={tradeToConfirm}
-            onAcceptChanges={handleAcceptChanges}
-            attemptingTxn={attemptingTxn}
-            txHash={txHash}
-            recipient={recipient}
-            allowedSlippage={allowedSlippage}
-            onConfirm={handlePlaceOrder}
-            swapErrorMessage={swapErrorMessage}
-            onDismiss={handleConfirmDismiss}
-          />
-
-          <AutoColumn gap={'md'}>
-            <TYPE.body color={theme.text2} style={{ display: 'inline', marginLeft: 8 }}>
-              {buying ? 'Buy' : 'Sell'} Amount
-            </TYPE.body>
-            <CurrencyInputPanel
-              value={formattedAmounts[Field.TOKEN]}
-              currency={currencies[Field.TOKEN]}
-              onUserInput={handleTypeTokenAmount}
-              onCurrencySelect={handleTokenSelect}
-              otherCurrency={currencies[Field.PRICE]}
-              hideBalance={buying}
-              id="limit-order-token"
-            />
-            <TYPE.body color={theme.text2} style={{ display: 'inline', marginLeft: 8, marginTop: 16 }}>
-              Limit Price
-            </TYPE.body>
-            <CurrencyInputPanel
-              value={formattedAmounts[Field.PRICE]}
-              currency={currencies[Field.PRICE]}
-              onUserInput={handleTypePrice}
-              onCurrencySelect={handlePriceSelect}
-              otherCurrency={currencies[Field.TOKEN]}
-              hideBalance={!buying}
-              id="limit-order-price"
+    <LimitOrderLayout>
+      <LeftPanel>
+        <ChartContainer show={showChart} ref={node as any}>
+          <StyledCloseButton onClick={() => toggleChart()}>
+            <StyledCloseIcon />
+          </StyledCloseButton>
+          <ChartSelector
+            currencies={currencies}
+            onChartChange={(c: ChartOption | undefined) => {
+              setChart(c)
+            }}
+          ></ChartSelector>
+          <ChartSection chart={chart}></ChartSection>
+        </ChartContainer>
+        <LimitOrderHistory />
+      </LeftPanel>
+      <RightPanel>
+        <AppBody>
+          {!walletIsSupported && showMetamaskWarning && (
+            <NotSupportedContainer>
+              <TYPE.main fontSize={18} fontWeight={600}>
+                You must be connected to a Metamask wallet to place limit orders
+              </TYPE.main>
+              <ButtonPrimary onClick={() => setShowMetamaskWarning(false)}>{t('Dismiss')}</ButtonPrimary>
+            </NotSupportedContainer>
+          )}
+          <SwapHeader title={'Limit'} hideSettings={true} hideChart={showChart} onChartToggle={() => toggleChart()} />
+          <Wrapper id="swap-page" style={{ padding: '0' }}>
+            <ConfirmSwapModal
+              isOpen={showConfirm}
+              trade={tradeToConfirm}
+              originalTrade={tradeToConfirm}
+              onAcceptChanges={handleAcceptChanges}
+              attemptingTxn={attemptingTxn}
+              txHash={txHash}
+              recipient={recipient}
+              allowedSlippage={allowedSlippage}
+              onConfirm={handlePlaceOrder}
+              swapErrorMessage={swapErrorMessage}
+              onDismiss={handleConfirmDismiss}
             />
 
-            <Card padding={'0px'} borderRadius={'20px'}>
-              <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
-                <>
-                  <RowBetween align="center" style={{ marginBottom: '0.5rem' }}>
-                    {marketPriceDiffIndicator && (
-                      <div style={{ display: 'flex' }}>
-                        <Text fontWeight={500} fontSize={14} color={getColor()}>
-                          {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'} &nbsp;
-                        </Text>
-                        <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                          market price
-                        </Text>
-                      </div>
-                    )}
-                  </RowBetween>
-                  <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Market Price
-                    </Text>
-                    {trade ? (
-                      <TradePrice
-                        price={trade.executionPrice}
-                        showInverted={buying ? showInverted : !showInverted}
-                        setShowInverted={setShowInverted}
-                      />
-                    ) : (
-                      <Text>-</Text>
-                    )}
-                  </RowBetween>
-                  <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Order Reward
-                    </Text>
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      {reward?.toSignificant(2) ?? '-'} {reward?.currency.symbol}
-                    </Text>
-                  </RowBetween>
-                  <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Order Fee
-                    </Text>
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      {orderFee?.toSignificant(2) ?? '-'} {orderFee?.currency.symbol}
-                    </Text>
-                  </RowBetween>
-                  <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      {buying ? 'Total Buy' : 'Total Sell'}
-                    </Text>
-                    {buying ? (
-                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                        {parsedOutputTotal ? parsedOutputTotal.toSignificant(6) : '-'}{' '}
-                        {parsedOutputTotal?.currency.symbol}
-                      </Text>
-                    ) : (
-                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                        {parsedInputTotal && orderFee ? parsedInputTotal.add(orderFee).toSignificant(6) : '-'}{' '}
-                        {parsedInputTotal?.currency.symbol}
-                      </Text>
-                    )}
-                  </RowBetween>
-                  <RowBetween align="center">
-                    <Text fontWeight={800} fontSize={14} color={theme.text1}>
-                      {buying ? 'Total Cost' : 'Total Received'}
-                    </Text>
-                    {buying ? (
-                      <Text fontWeight={800} fontSize={14} color={theme.text1}>
-                        {parsedInputTotal && orderFee ? parsedInputTotal.add(orderFee).toSignificant(6) : '-'}{' '}
-                        {parsedInputTotal?.currency.symbol}
-                      </Text>
-                    ) : (
-                      <Text fontWeight={800} fontSize={14} color={theme.text1}>
-                        {parsedOutputTotal ? parsedOutputTotal.toSignificant(6) : '-'}{' '}
-                        {parsedOutputTotal?.currency.symbol}
-                      </Text>
-                    )}
-                  </RowBetween>
-                </>
-              </AutoColumn>
-            </Card>
-          </AutoColumn>
-          <BottomGrouping>
-            {swapIsUnsupported ? (
-              <ButtonPrimary disabled={true}>
-                <TYPE.main mb="4px">Unsupported Asset</TYPE.main>
-              </ButtonPrimary>
-            ) : !account ? (
-              <ButtonLight onClick={toggleWalletModal}>{t('connectWallet')}</ButtonLight>
-            ) : showRamp ? (
-              <ButtonLight
-                onClick={() => {
-                  new RampInstantSDK({
-                    hostAppName: 'Ubeswap',
-                    hostLogoUrl: 'https://info.ubeswap.org/favicon.png',
-                    userAddress: account,
-                    swapAsset: `CELO_${parsedInputTotal?.currency.symbol}`,
-                    hostApiKey: process.env.REACT_APP_RAMP_KEY,
-                  }).show()
+            <AutoColumn gap={'md'}>
+              <Column
+                style={{
+                  gap: '8px',
+                  borderBottom: `1px solid ${theme.bg3}`,
+                  position: 'relative',
+                  padding: '22px 1rem 42px',
                 }}
               >
-                Get more {parsedInputTotal?.currency.symbol} via Ramp
-              </ButtonLight>
-            ) : (
-              <RowBetween>
-                <ButtonConfirmed
-                  onClick={approvalCallback}
-                  disabled={
-                    (limitOrderApproval !== ApprovalState.NOT_APPROVED &&
-                      orderBookApproval !== ApprovalState.NOT_APPROVED) ||
-                    approvalSubmitted
-                  }
-                  width="48%"
-                  altDisabledStyle={
-                    limitOrderApproval === ApprovalState.PENDING || orderBookApproval === ApprovalState.PENDING
-                  } // show solid button while waiting
-                  confirmed={
-                    limitOrderApproval === ApprovalState.APPROVED && orderBookApproval === ApprovalState.APPROVED
-                  }
-                >
-                  {limitOrderApproval === ApprovalState.PENDING || orderBookApproval === ApprovalState.PENDING ? (
-                    <AutoRow gap="6px" justify="center">
-                      Approving <Loader stroke="white" />
-                    </AutoRow>
-                  ) : approvalSubmitted && orderBookApproval === ApprovalState.APPROVED ? (
-                    'Approved'
-                  ) : (
-                    'Approve ' + (currencies[buying ? Field.PRICE : Field.TOKEN]?.symbol ?? '')
+                <TYPE.body fontWeight={600} style={{ margin: '0 0.75rem' }}>
+                  You Pay
+                </TYPE.body>
+                <CurrencyInputPanel
+                  value={formattedAmounts[Field.TOKEN]}
+                  currency={currencies[Field.TOKEN]}
+                  onUserInput={handleTypeTokenAmount}
+                  onCurrencySelect={handleTokenSelect}
+                  otherCurrency={currencies[Field.PRICE]}
+                  hideBalance={buying}
+                  id="limit-order-token"
+                />
+                <PriceInputPanel
+                  id="limit-order-price"
+                  value={formattedAmounts[Field.PRICE]}
+                  onUserInput={handleTypePrice}
+                />
+                <Row justify="flex-end" style={{ height: '20px', padding: '0 12px' }}>
+                  {marketPriceDiffIndicator && (
+                    <Row>
+                      <Text fontWeight={500} fontSize={14} color={getColor()}>
+                        {marketPriceDiffIndicator.toSignificant(4)}% {aboveMarketPrice ? 'below' : 'above'}&nbsp;
+                      </Text>
+                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                        market price
+                      </Text>
+                    </Row>
                   )}
-                </ButtonConfirmed>
-                <ButtonPrimary
-                  onClick={async () => {
-                    if (parsedInputTotal && parsedOutputTotal) {
-                      queueLimitOrderCallback({
-                        inputAmount: parsedInputTotal,
-                        outputAmount: parsedOutputTotal,
-                        chainId: chainId,
-                      })
-                    }
+                </Row>
+                <ArrowContainer
+                  onClick={() => {
+                    setApprovalSubmitted(false) // reset 2 step UI for approvals
+                    onSwitchTokens()
                   }}
-                  width="48%"
-                  id="swap-button"
-                  disabled={
-                    !isValid ||
-                    limitOrderApproval !== ApprovalState.APPROVED ||
-                    orderBookApproval !== ApprovalState.APPROVED
-                  }
-                  altDisabledStyle={queueOrderLoading} // show solid button while waiting
-                  paddingY="14px"
                 >
-                  <AutoRow gap="4px" justify="center" wrap="nowrap">
-                    <Text fontSize={16} fontWeight={500}>
-                      {t('placeOrder')}
-                    </Text>
-                    {queueOrderLoading && <Loader stroke="white" />}
-                  </AutoRow>
-                </ButtonPrimary>
-              </RowBetween>
-            )}
-            {showApproveFlow && (
-              <Column style={{ marginTop: '1rem' }}>
-                <ProgressSteps steps={[orderBookApproval === ApprovalState.APPROVED]} />
+                  <ArrowDown size="16" color={theme.primary1} />
+                </ArrowContainer>
               </Column>
-            )}
-          </BottomGrouping>
-        </Wrapper>
-      </AppBody>
-      <LimitOrderHistory />
-    </>
+              <Column
+                style={{
+                  gap: '12px',
+                  padding: '22px 1rem',
+                }}
+              >
+                <TYPE.body fontWeight={600} style={{ margin: '0 0.75rem' }}>
+                  You Receive
+                </TYPE.body>
+                <CurrencyInputPanel
+                  value={parsedOutputTotal ? parsedOutputTotal.toExact() : ''}
+                  currency={currencies[Field.PRICE]}
+                  onCurrencySelect={handlePriceSelect}
+                  otherCurrency={currencies[Field.TOKEN]}
+                  disabled
+                  id="limit-order-token"
+                />
+                <Row justify="flex-end" style={{ height: '20px', padding: '0 12px' }}>
+                  {trade && (
+                    <RowBetween align="center">
+                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                        Market Price
+                      </Text>
+                      <TradePrice
+                        price={trade.executionPrice}
+                        showInverted={showInverted}
+                        setShowInverted={setShowInverted}
+                      />
+                    </RowBetween>
+                  )}
+                </Row>
+              </Column>
+            </AutoColumn>
+            <BottomGrouping style={{ padding: '1rem' }}>
+              {swapIsUnsupported ? (
+                <ButtonPrimary disabled={true}>
+                  <TYPE.main mb="4px">Unsupported Asset</TYPE.main>
+                </ButtonPrimary>
+              ) : !account ? (
+                <ButtonLight onClick={toggleWalletModal}>{t('connectWallet')}</ButtonLight>
+              ) : showRamp ? (
+                <ButtonLight
+                  onClick={() => {
+                    new RampInstantSDK({
+                      hostAppName: 'Ubeswap',
+                      hostLogoUrl: 'https://info.ubeswap.org/favicon.png',
+                      userAddress: account,
+                      swapAsset: `CELO_${parsedInputTotal?.currency.symbol}`,
+                      hostApiKey: process.env.REACT_APP_RAMP_KEY,
+                    }).show()
+                  }}
+                >
+                  Get more {parsedInputTotal?.currency.symbol} via Ramp
+                </ButtonLight>
+              ) : (
+                <RowBetween>
+                  <ButtonConfirmed
+                    onClick={approvalCallback}
+                    disabled={
+                      (limitOrderApproval !== ApprovalState.NOT_APPROVED &&
+                        orderBookApproval !== ApprovalState.NOT_APPROVED) ||
+                      approvalSubmitted
+                    }
+                    width="48%"
+                    altDisabledStyle={
+                      limitOrderApproval === ApprovalState.PENDING || orderBookApproval === ApprovalState.PENDING
+                    } // show solid button while waiting
+                    confirmed={
+                      limitOrderApproval === ApprovalState.APPROVED && orderBookApproval === ApprovalState.APPROVED
+                    }
+                  >
+                    {limitOrderApproval === ApprovalState.PENDING || orderBookApproval === ApprovalState.PENDING ? (
+                      <AutoRow gap="6px" justify="center">
+                        Approving <Loader stroke="white" />
+                      </AutoRow>
+                    ) : approvalSubmitted && orderBookApproval === ApprovalState.APPROVED ? (
+                      'Approved'
+                    ) : (
+                      'Approve ' + (currencies[buying ? Field.PRICE : Field.TOKEN]?.symbol ?? '')
+                    )}
+                  </ButtonConfirmed>
+                  <ButtonPrimary
+                    onClick={async () => {
+                      if (parsedInputTotal && parsedOutputTotal) {
+                        queueLimitOrderCallback({
+                          inputAmount: parsedInputTotal,
+                          outputAmount: parsedOutputTotal,
+                          chainId: chainId,
+                        })
+                      }
+                    }}
+                    width="48%"
+                    id="swap-button"
+                    disabled={
+                      !isValid ||
+                      limitOrderApproval !== ApprovalState.APPROVED ||
+                      orderBookApproval !== ApprovalState.APPROVED
+                    }
+                    altDisabledStyle={queueOrderLoading} // show solid button while waiting
+                    paddingY="14px"
+                  >
+                    <AutoRow gap="4px" justify="center" wrap="nowrap">
+                      <Text fontSize={16} fontWeight={500}>
+                        {t('placeOrder')}
+                      </Text>
+                      {queueOrderLoading && <Loader stroke="white" />}
+                    </AutoRow>
+                  </ButtonPrimary>
+                </RowBetween>
+              )}
+              {showApproveFlow && (
+                <Column style={{ marginTop: '1rem' }}>
+                  <ProgressSteps steps={[orderBookApproval === ApprovalState.APPROVED]} />
+                </Column>
+              )}
+            </BottomGrouping>
+          </Wrapper>
+        </AppBody>
+        <Row
+          justify="center"
+          style={{ height: 'fit-content', overflow: 'hidden', padding: '16px', marginTop: '-16px' }}
+        >
+          <AdvancedDetailsFooter show={parsedOutputTotal || parsedInputTotal ? true : false}>
+            <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
+              <RowBetween align="center">
+                <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                  Order Reward
+                </Text>
+                <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                  {reward?.toSignificant(2) ?? '-'} {reward?.currency.symbol}
+                </Text>
+              </RowBetween>
+              <RowBetween align="center">
+                <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                  Order Fee
+                </Text>
+                <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                  {orderFee?.toSignificant(2) ?? '-'} {orderFee?.currency.symbol}
+                </Text>
+              </RowBetween>
+              <RowBetween align="center">
+                <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                  {buying ? 'Total Buy' : 'Total Sell'}
+                </Text>
+                {buying ? (
+                  <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                    {parsedOutputTotal ? parsedOutputTotal.toSignificant(6) : '-'} {parsedOutputTotal?.currency.symbol}
+                  </Text>
+                ) : (
+                  <Text fontWeight={500} fontSize={14} color={theme.text2}>
+                    {parsedInputTotal && orderFee ? parsedInputTotal.add(orderFee).toSignificant(6) : '-'}{' '}
+                    {parsedInputTotal?.currency.symbol}
+                  </Text>
+                )}
+              </RowBetween>
+              <RowBetween align="center">
+                <Text fontWeight={800} fontSize={14} color={theme.text1}>
+                  {buying ? 'Total Cost' : 'Total Received'}
+                </Text>
+                {buying ? (
+                  <Text fontWeight={800} fontSize={14} color={theme.text1}>
+                    {parsedInputTotal && orderFee ? parsedInputTotal.add(orderFee).toSignificant(6) : '-'}{' '}
+                    {parsedInputTotal?.currency.symbol}
+                  </Text>
+                ) : (
+                  <Text fontWeight={800} fontSize={14} color={theme.text1}>
+                    {parsedOutputTotal ? parsedOutputTotal.toSignificant(6) : '-'} {parsedOutputTotal?.currency.symbol}
+                  </Text>
+                )}
+              </RowBetween>
+            </AutoColumn>
+          </AdvancedDetailsFooter>
+        </Row>
+      </RightPanel>
+    </LimitOrderLayout>
   )
 }

@@ -34,6 +34,11 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 })
 
+export const blockClient = new ApolloClient({
+  uri: 'https://api.thegraph.com/subgraphs/name/ubeswap/celo-blocks',
+  cache: new InMemoryCache(),
+})
+
 const GOOGLE_ANALYTICS_IDS = {
   production: {
     [ChainId.MAINNET]: 'UA-189817928-4',
