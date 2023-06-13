@@ -1,4 +1,4 @@
-import { useContractKit, useGetConnectedSigner } from '@celo-tools/use-contractkit'
+import { useContractKit, useGetConnectedSigner } from '@celo/react-celo'
 import { JsonRpcSigner, TransactionRequest } from '@ethersproject/providers'
 import { ChainId, Trade } from '@ubeswap/sdk'
 import { BigNumber, BigNumberish, CallOverrides, Contract, ContractTransaction, PayableOverrides } from 'ethers'

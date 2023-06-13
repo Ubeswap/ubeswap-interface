@@ -1,4 +1,4 @@
-import { ChainId, useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, useContractKit } from '@celo/react-celo'
 
 export const useIsSupportedNetwork = () => {
   const { network } = useContractKit()

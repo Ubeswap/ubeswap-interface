@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { JSBI } from '@ubeswap/sdk'
 import CurrencyLogo from 'components/CurrencyLogo'
 import React, { useCallback, useState } from 'react'

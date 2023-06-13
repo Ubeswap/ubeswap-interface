@@ -1,4 +1,4 @@
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { useContractKit, useProvider } from '@celo/react-celo'
 import { Contract } from '@ethersproject/contracts'
 import { Percent, Token } from '@ubeswap/sdk'
 import { useDoTransaction } from 'components/swap/routing'

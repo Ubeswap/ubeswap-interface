@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { Pair } from '@ubeswap/sdk'
 import React, { useContext, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'

@@ -1,5 +1,5 @@
-import { useContractKit, useGetConnectedSigner, useProvider } from '@celo-tools/use-contractkit'
-import { TokenAmount } from '@ubeswap/sdk'
+import { useContractKit, useGetConnectedSigner, useProvider } from '@celo/react-celo'
+import { ChainId, TokenAmount } from '@ubeswap/sdk'
 import { ButtonEmpty, ButtonLight, ButtonPrimary, ButtonRadio } from 'components/Button'
 import { AutoColumn } from 'components/Column'
 import CurrencyLogo from 'components/CurrencyLogo'
@@ -117,7 +117,7 @@ export const Stake: React.FC = () => {
   const apy = totalSupply.greaterThan('0') ? rewardRate.multiply(BIG_INT_SECONDS_IN_YEAR).divide(totalSupply) : null
   const userRewardRate = totalSupply.greaterThan('0') ? stakeBalance.multiply(rewardRate).divide(totalSupply) : null
 
-  const romulusAddress = ubeGovernanceAddresses[network.chainId]
+  const romulusAddress = ubeGovernanceAddresses[network.chainId as ChainId]
 
   const { tokenDelegate, quorumVotes, proposalThreshold } = useRomulus((romulusAddress as string) || '')
   const [latestBlockNumber] = useLatestBlockNumber()

@@ -1,4 +1,4 @@
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { useContractKit, useProvider } from '@celo/react-celo'
 import { ChainId, currencyEquals, JSBI, Pair, Route, Token, TokenAmount } from '@ubeswap/sdk'
 import { useMemo } from 'react'
 import { useUserAllowMoolaWithdrawal } from 'state/user/hooks'

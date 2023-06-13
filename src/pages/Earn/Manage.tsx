@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { ChainId as UbeswapChainId, cUSD, JSBI } from '@ubeswap/sdk'
 import StakedAmountsHelper from 'components/earn/StakedAmountsHelper'
 import React, { useCallback, useState } from 'react'

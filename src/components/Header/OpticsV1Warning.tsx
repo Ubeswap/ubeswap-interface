@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { JSBI, Token } from '@ubeswap/sdk'
 import { AutoColumn, TopSection } from 'components/Column'
 import { CardSection } from 'components/earn/styled'

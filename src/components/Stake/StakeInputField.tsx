@@ -1,4 +1,4 @@
-import { ChainId, useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, useContractKit } from '@celo/react-celo'
 import { Token, TokenAmount } from '@ubeswap/sdk'
 import { darken } from 'polished'
 import React from 'react'

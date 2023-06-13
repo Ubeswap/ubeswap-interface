@@ -1,6 +1,6 @@
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { useContractKit, useProvider } from '@celo/react-celo'
 import { ExternalProvider, JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
-import { JSBI, TokenAmount } from '@ubeswap/sdk'
+import { ChainId, JSBI, TokenAmount } from '@ubeswap/sdk'
 import { StyledControlButton } from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { BigNumber } from 'ethers'
 import { getAddress } from 'ethers/lib/utils'
@@ -114,13 +114,13 @@ export const useGetConnectedSigner = (): (() => Promise<JsonRpcSigner>) => {
   const library = useProvider()
   const signer = getProviderOrSigner(library, address || undefined)
   return useCallback(async () => {
-    if (kit.defaultAccount) {
+    if (kit.connection.web3.defaultAccount) {
       return signer as JsonRpcSigner
     }
     const connector = await connect()
     const nextKit = await connector.initialise()
-    const nextProvider = nextKit.kit.web3.currentProvider as unknown as ExternalProvider
-    return new Web3Provider(nextProvider).getSigner(nextKit.kit.defaultAccount)
+    const nextProvider = nextKit.kit.connection.web3.currentProvider as unknown as ExternalProvider
+    return new Web3Provider(nextProvider).getSigner(nextKit.kit.connection.web3.defaultAccount!)
   }, [signer, kit, connect])
 }
 
@@ -175,7 +175,7 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
     timeText: undefined,
   })
   const getConnectedSigner = useGetConnectedSigner()
-  const romulusAddress = ubeGovernanceAddresses[network.chainId]
+  const romulusAddress = ubeGovernanceAddresses[network.chainId as ChainId]
   const [latestBlockNumber] = useLatestBlockNumber()
   const { proposal, proposalState } = useProposal((romulusAddress as string) || '', proposalEvent.args.id)
   const { votingPower, releaseVotingPower } = useVotingTokens(proposalEvent.args.startBlock)

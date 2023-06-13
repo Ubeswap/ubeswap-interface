@@ -1,4 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
+import { ChainId } from '@ubeswap/sdk'
 import { ButtonError } from 'components/Button'
 import { AutoColumn } from 'components/Column'
 import { ProposalTabs } from 'components/NavigationTabs'
@@ -77,7 +78,7 @@ export default function AddProposal() {
   const [error, setError] = useState<string | undefined>('Create')
   const [currentId, setCurrentId] = useState<number>(-1)
 
-  const romulusAddress = ubeGovernanceAddresses[network.chainId]
+  const romulusAddress = ubeGovernanceAddresses[network.chainId as ChainId]
   const c = useRomulusDelegateContract(romulusAddress)
   const doTransaction = useDoTransaction()
 

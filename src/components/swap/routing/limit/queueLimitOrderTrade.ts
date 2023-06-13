@@ -1,4 +1,4 @@
-import { useGetConnectedSigner } from '@celo-tools/use-contractkit'
+import { useGetConnectedSigner } from '@celo/react-celo'
 import { ChainId, TokenAmount } from '@ubeswap/sdk'
 import { LimitOrderProtocol__factory } from 'generated/factories/LimitOrderProtocol__factory'
 import { OrderBook__factory } from 'generated/factories/OrderBook__factory'

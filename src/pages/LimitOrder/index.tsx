@@ -1,4 +1,4 @@
-import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
+import { useContractKit, WalletTypes } from '@celo/react-celo'
 import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount, Trade } from '@ubeswap/sdk'
 import { CardNoise, CardSection, DataCard } from 'components/earn/styled'

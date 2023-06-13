@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { JSBI, Pair, Percent, TokenAmount } from '@ubeswap/sdk'
 import { darken, transparentize } from 'polished'
 import React, { useState } from 'react'

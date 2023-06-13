@@ -1,5 +1,5 @@
 import { Address } from '@celo/contractkit'
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { BigNumber } from 'ethers'
 import { TypedEvent } from 'generated/common'
 import { useRomulusDelegateContract } from 'hooks/useContract'

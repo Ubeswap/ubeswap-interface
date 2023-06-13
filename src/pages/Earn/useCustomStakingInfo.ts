@@ -1,4 +1,4 @@
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { useContractKit, useProvider } from '@celo/react-celo'
 import IUniswapV2PairABI from '@ubeswap/core/build/abi/IUniswapV2Pair.json'
 import { JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import ERC20_ABI from 'constants/abis/erc20'

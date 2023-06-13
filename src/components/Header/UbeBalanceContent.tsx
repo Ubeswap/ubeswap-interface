@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { ChainId as UbeswapChainId, TokenAmount } from '@ubeswap/sdk'
 import Loader from 'components/Loader'
 import React from 'react'

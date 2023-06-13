@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { Pair, Token, TokenAmount, Trade } from '@ubeswap/sdk'
 import flatMap from 'lodash.flatmap'
 import { useMemo } from 'react'

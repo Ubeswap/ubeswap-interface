@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import React, { useContext, useMemo } from 'react'
 import { AlertTriangle } from 'react-feather'
 import { Trans, useTranslation } from 'react-i18next'

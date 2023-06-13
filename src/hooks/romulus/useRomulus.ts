@@ -1,5 +1,5 @@
 import { Address } from '@celo/contractkit'
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { ChainId as UbeswapChainId, JSBI, TokenAmount } from '@ubeswap/sdk'
 import { usePoofTokenContract } from 'hooks/useContract'
 import { useMemo } from 'react'

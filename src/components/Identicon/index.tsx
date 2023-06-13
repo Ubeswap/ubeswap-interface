@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import Jazzicon from 'jazzicon'
 import React, { useEffect, useRef } from 'react'
 import styled from 'styled-components'

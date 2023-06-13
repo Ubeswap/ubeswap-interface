@@ -1,4 +1,4 @@
-import { ChainId } from '@celo-tools/use-contractkit'
+import { ChainId } from '@celo/react-celo'
 
 import MULTICALL_ABI from './abi.json'
 

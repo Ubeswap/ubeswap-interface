@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { ChainId as UbeswapChainId } from '@ubeswap/sdk'
 import { TabButton } from 'components/Button'
 import LimitOrderHistoryBody from 'components/LimitOrderHistory/LimitOrderHistoryBody'

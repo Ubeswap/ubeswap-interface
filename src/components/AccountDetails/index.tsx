@@ -1,4 +1,4 @@
-import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
+import { useContractKit, WalletTypes } from '@celo/react-celo'
 import { ChainId } from '@ubeswap/sdk'
 import React, { useCallback, useContext } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'

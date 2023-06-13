@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { ChainId } from '@ubeswap/sdk'
 import React from 'react'
 import { isMobile } from 'react-device-detect'

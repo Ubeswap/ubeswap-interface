@@ -1,4 +1,4 @@
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { useContractKit, useProvider } from '@celo/react-celo'
 import { ChainId } from '@ubeswap/sdk'
 import { useDoTransaction } from 'components/swap/routing'
 import { useMemo } from 'react'

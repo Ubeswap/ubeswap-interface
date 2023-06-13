@@ -1,5 +1,5 @@
+import { useContractKit } from '@celo/react-celo'
 import { DappKitResponseStatus } from '@celo/utils'
-import { useContractKit } from '@celo-tools/use-contractkit'
 import { ErrorBoundary } from '@sentry/react'
 import React, { Suspense } from 'react'
 import { Route, Switch, useLocation } from 'react-router-dom'

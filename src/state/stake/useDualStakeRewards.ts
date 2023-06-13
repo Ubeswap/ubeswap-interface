@@ -1,5 +1,5 @@
 import { Address } from '@celo/contractkit'
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useContractKit } from '@celo/react-celo'
 import { BigNumber } from '@ethersproject/bignumber'
 import { JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import { useToken } from 'hooks/Tokens'
