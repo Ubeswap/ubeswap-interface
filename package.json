@@ -31,8 +31,6 @@
     "@typescript-eslint/parser": "^4.28.0",
     "@ubeswap/injected-connector": "^6.1.0",
     "@uniswap/token-lists": "^1.0.0-beta.24",
-    "@web3-react/core": "^6.1.9",
-    "@web3-react/types": "^6.0.7",
     "ajv": "^8.8.2",
     "awesome-typescript-loader": "^5.2.1",
     "cids": "^1.1.6",
@@ -109,7 +107,8 @@
   "resolutions": {
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.3",
-    "prettier": "^2.3.0"
+    "prettier": "^2.3.0",
+    "react-error-overlay": "6.0.9"
   },
   "dependencies": {
     "@apollo/client": "^3.6.5",
