@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo/react-celo'
+import { useCelo } from '@celo/react-celo'
 import { DappKitResponseStatus } from '@celo/utils'
 import { ErrorBoundary } from '@sentry/react'
 import React, { Suspense } from 'react'
@@ -73,7 +73,7 @@ const localStorageKey = 'valoraRedirect'
 
 export default function App() {
   const location = useLocation()
-  const { address } = useContractKit()
+  const { address } = useCelo()
 
   React.useEffect(() => {
     // Close window if search params from Valora redirect are present (handles Valora connection issue)

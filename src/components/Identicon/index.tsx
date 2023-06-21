@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo/react-celo'
+import { useCelo } from '@celo/react-celo'
 import Jazzicon from 'jazzicon'
 import React, { useEffect, useRef } from 'react'
 import styled from 'styled-components'
@@ -13,7 +13,7 @@ const StyledIdenticonContainer = styled.div`
 export default function Identicon() {
   const ref = useRef<HTMLDivElement>()
 
-  const { address: account } = useContractKit()
+  const { address: account } = useCelo()
 
   useEffect(() => {
     if (account && ref.current) {

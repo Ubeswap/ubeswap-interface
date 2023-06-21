@@ -1,4 +1,4 @@
-import { useContractKit, useProvider } from '@celo/react-celo'
+import { useCelo, useProvider } from '@celo/react-celo'
 import { ExternalProvider, JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
 import { ChainId, JSBI, TokenAmount } from '@ubeswap/sdk'
 import { StyledControlButton } from 'components/LimitOrderHistory/LimitOrderHistoryItem'
@@ -110,7 +110,7 @@ export const Address: React.FC<Props> = ({ value, truncate, label, link = true }
 }
 
 export const useGetConnectedSigner = (): (() => Promise<JsonRpcSigner>) => {
-  const { address, kit, connect } = useContractKit()
+  const { address, kit, connect } = useCelo()
   const library = useProvider()
   const signer = getProviderOrSigner(library, address || undefined)
   return useCallback(async () => {
@@ -166,7 +166,7 @@ const ube = new WrappedTokenInfo(
 )
 
 export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showId, showAuthor, outline = true }) => {
-  const { network } = useContractKit()
+  const { network } = useCelo()
   const mountedRef = useRef(true)
   const [proposalContent, setProposalContent] = useState<ProposalContent>({
     stateStr: '',

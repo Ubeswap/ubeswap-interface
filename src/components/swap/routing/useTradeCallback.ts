@@ -1,4 +1,4 @@
-import { useContractKit, useProvider } from '@celo/react-celo'
+import { useCelo, useProvider } from '@celo/react-celo'
 import { ChainId, Trade } from '@ubeswap/sdk'
 import useENS from 'hooks/useENS'
 import { SwapCallbackState, useSwapCallback } from 'hooks/useSwapCallback'
@@ -23,7 +23,7 @@ export const useTradeCallback = (
   allowedSlippage: number = INITIAL_ALLOWED_SLIPPAGE, // in bips
   recipientAddressOrName: string | null // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
 ): { state: SwapCallbackState; callback: null | (() => Promise<string>); error: string | null } => {
-  const { address: account, network } = useContractKit()
+  const { address: account, network } = useCelo()
   const library = useProvider()
   const chainId = network.chainId as unknown as ChainId
   const doTransaction = useDoTransaction()

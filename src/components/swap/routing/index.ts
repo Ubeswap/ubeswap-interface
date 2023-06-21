@@ -1,4 +1,4 @@
-import { useContractKit, useGetConnectedSigner } from '@celo/react-celo'
+import { useCelo, useGetConnectedSigner } from '@celo/react-celo'
 import { JsonRpcSigner, TransactionRequest } from '@ethersproject/providers'
 import { ChainId, Trade } from '@ubeswap/sdk'
 import { BigNumber, BigNumberish, CallOverrides, Contract, ContractTransaction, PayableOverrides } from 'ethers'
@@ -92,7 +92,7 @@ const estimateGas = async (call: ContractCall): Promise<BigNumber> => {
  */
 export const useDoTransaction = (): DoTransactionFn => {
   const addTransaction = useTransactionAdder()
-  const { network } = useContractKit()
+  const { network } = useCelo()
   const getConnectedSigner = useGetConnectedSigner()
   const chainId = network.chainId as unknown as ChainId
   return useCallback(

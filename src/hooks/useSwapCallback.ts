@@ -1,4 +1,4 @@
-import { useContractKit, useGetConnectedSigner, useProvider } from '@celo/react-celo'
+import { useCelo, useGetConnectedSigner, useProvider } from '@celo/react-celo'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
 import { JSBI, Percent, Router, SwapParameters, Trade } from '@ubeswap/sdk'
@@ -48,7 +48,7 @@ function useSwapCallArguments(
   allowedSlippage: number = INITIAL_ALLOWED_SLIPPAGE, // in bips
   recipientAddressOrName: string | null // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
 ): SwapCall[] {
-  const { address: account, network } = useContractKit()
+  const { address: account, network } = useCelo()
   const library = useProvider()
   const chainId = network.chainId
 
@@ -100,7 +100,7 @@ export function useSwapCallback(
   allowedSlippage: number = INITIAL_ALLOWED_SLIPPAGE, // in bips
   recipientAddressOrName: string | null // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
 ): { state: SwapCallbackState; callback: null | (() => Promise<string>); error: string | null } {
-  const { network, address: account } = useContractKit()
+  const { network, address: account } = useCelo()
   const chainId = network.chainId
   const library = useProvider()
 

@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo/react-celo'
+import { useCelo } from '@celo/react-celo'
 import { ChainId } from '@ubeswap/sdk'
 import { ButtonError } from 'components/Button'
 import { SearchInput } from 'components/SearchModal/styleds'
@@ -32,7 +32,7 @@ interface ChangeDelegateModalProps {
 export default function ChangeDelegateModal({ isOpen, onDismiss }: ChangeDelegateModalProps) {
   const { t } = useTranslation()
 
-  const { network } = useContractKit()
+  const { network } = useCelo()
   const inputRef = useRef<HTMLInputElement>()
   const [delegateAddress, setDelegateAddress] = useState<string>('')
   const [error, setError] = useState<string | undefined>('ChangeDelegate')

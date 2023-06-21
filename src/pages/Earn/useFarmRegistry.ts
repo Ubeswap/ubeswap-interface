@@ -1,5 +1,5 @@
 import { ApolloQueryResult, gql, useApolloClient, useQuery } from '@apollo/client'
-import { useContractKit } from '@celo/react-celo'
+import { useCelo } from '@celo/react-celo'
 import { BigNumber } from '@ethersproject/bignumber'
 import { formatEther, parseEther } from '@ethersproject/units'
 import { Percent, TokenAmount } from '@ubeswap/sdk'
@@ -65,7 +65,7 @@ export interface WarningInfo {
 }
 
 export const useFarmRegistry = () => {
-  const { kit } = useContractKit()
+  const { kit } = useCelo()
   const client = useApolloClient()
   const [farmSummaries, setFarmSummaries] = React.useState<FarmSummary[]>([])
   const call = React.useCallback(async () => {

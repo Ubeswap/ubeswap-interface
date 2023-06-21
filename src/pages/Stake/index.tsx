@@ -1,4 +1,4 @@
-import { useContractKit, useGetConnectedSigner, useProvider } from '@celo/react-celo'
+import { useCelo, useGetConnectedSigner, useProvider } from '@celo/react-celo'
 import { ChainId, TokenAmount } from '@ubeswap/sdk'
 import { ButtonEmpty, ButtonLight, ButtonPrimary, ButtonRadio } from 'components/Button'
 import { AutoColumn } from 'components/Column'
@@ -73,7 +73,7 @@ export const Stake: React.FC = () => {
   const { t } = useTranslation()
 
   const history = useHistory()
-  const { address, connect, network } = useContractKit()
+  const { address, connect, network } = useCelo()
   const provider = useProvider()
   const getConnectedSigner = useGetConnectedSigner()
   const [amount, setAmount] = useState('')

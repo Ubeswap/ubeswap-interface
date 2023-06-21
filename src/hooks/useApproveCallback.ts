@@ -1,4 +1,4 @@
-import { useContractKit, useGetConnectedSigner } from '@celo/react-celo'
+import { useCelo, useGetConnectedSigner } from '@celo/react-celo'
 import { MaxUint256 } from '@ethersproject/constants'
 import { TokenAmount, Trade } from '@ubeswap/sdk'
 import { useDoTransaction } from 'components/swap/routing'
@@ -28,7 +28,7 @@ export function useApproveCallback(
   amountToApprove?: TokenAmount,
   spender?: string
 ): [ApprovalState, () => Promise<void>] {
-  const { address: account } = useContractKit()
+  const { address: account } = useCelo()
   const getConnectedSigner = useGetConnectedSigner()
 
   const token = amountToApprove instanceof TokenAmount ? amountToApprove.token : undefined

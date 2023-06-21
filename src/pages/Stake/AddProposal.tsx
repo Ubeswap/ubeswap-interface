@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo/react-celo'
+import { useCelo } from '@celo/react-celo'
 import { ChainId } from '@ubeswap/sdk'
 import { ButtonError } from 'components/Button'
 import { AutoColumn } from 'components/Column'
@@ -70,7 +70,7 @@ export interface Command {
 export default function AddProposal() {
   const { t } = useTranslation()
 
-  const { network } = useContractKit()
+  const { network } = useCelo()
   const [commands, setCommands] = useState<Command[]>([])
   const [calldatas, setCalldatas] = useState<BytesLike[]>([])
   const [description, setDescription] = useState<string>('')

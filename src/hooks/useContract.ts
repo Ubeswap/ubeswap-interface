@@ -1,4 +1,4 @@
-import { useContractKit, useProvider } from '@celo/react-celo'
+import { useCelo, useProvider } from '@celo/react-celo'
 import { Contract } from '@ethersproject/contracts'
 import IUniswapV2PairABI from '@ubeswap/core/build/abi/IUniswapV2Pair.json'
 import { ChainId } from '@ubeswap/sdk'
@@ -34,7 +34,7 @@ import { getContract } from '../utils'
 
 // returns null on errors
 function useContract(address: string | undefined, ABI: any, withSignerIfPossible = true): Contract | null {
-  const { address: account } = useContractKit()
+  const { address: account } = useCelo()
   const library = useProvider()
 
   return useMemo(() => {
@@ -53,7 +53,7 @@ function useContracts(
   ABI: any,
   withSignerIfPossible = true
 ): (Contract | null)[] | null {
-  const { address: account } = useContractKit()
+  const { address: account } = useCelo()
   const library = useProvider()
 
   return useMemo(() => {
@@ -88,7 +88,7 @@ export function usePairContract(pairAddress?: string, withSignerIfPossible?: boo
 }
 
 export function useMulticallContract(): Contract | null {
-  const { network } = useContractKit()
+  const { network } = useCelo()
   const chainId = network.chainId as ChainId
   return useContract(chainId ? MULTICALL_NETWORKS[chainId] : undefined, MULTICALL_ABI, false)
 }
