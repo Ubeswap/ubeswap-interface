@@ -44,4 +44,10 @@ module.exports = {
   babel: {
     plugins: ['@babel/plugin-proposal-nullish-coalescing-operator', '@babel/plugin-proposal-optional-chaining'],
   },
+  jest: {
+    configure: (jestConfig, { env, paths, resolve, rootDir }) => {
+      // See https://github.com/WalletConnect/walletconnect-monorepo/issues/1749
+      return { ...jestConfig, setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'], resolver: 'jest-resolver-enhanced' }
+    },
+  },
 }
