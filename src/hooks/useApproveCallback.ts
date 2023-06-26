@@ -1,4 +1,4 @@
-import { useCelo, useGetConnectedSigner } from '@celo/react-celo'
+import { useCelo, useConnectedSigner } from '@celo/react-celo'
 import { MaxUint256 } from '@ethersproject/constants'
 import { TokenAmount, Trade } from '@ubeswap/sdk'
 import { useDoTransaction } from 'components/swap/routing'
@@ -29,7 +29,7 @@ export function useApproveCallback(
   spender?: string
 ): [ApprovalState, () => Promise<void>] {
   const { address: account } = useCelo()
-  const getConnectedSigner = useGetConnectedSigner()
+  const signer = useConnectedSigner()
 
   const token = amountToApprove instanceof TokenAmount ? amountToApprove.token : undefined
   const [minApprove] = useUserMinApprove()
@@ -79,7 +79,7 @@ export function useApproveCallback(
     }
 
     // connect
-    const tokenContract = tokenContractDisconnected.connect(await getConnectedSigner())
+    const tokenContract = tokenContractDisconnected.connect(signer!)
 
     if (minApprove) {
       await doTransaction(tokenContract, 'approve', {
@@ -94,16 +94,7 @@ export function useApproveCallback(
         approval: { tokenAddress: token.address, spender: spender },
       })
     }
-  }, [
-    approvalState,
-    token,
-    tokenContractDisconnected,
-    amountToApprove,
-    spender,
-    getConnectedSigner,
-    minApprove,
-    doTransaction,
-  ])
+  }, [approvalState, token, tokenContractDisconnected, amountToApprove, spender, signer, minApprove, doTransaction])
 
   return [approvalState, approve]
 }

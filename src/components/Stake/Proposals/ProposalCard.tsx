@@ -1,5 +1,4 @@
-import { useCelo, useProvider } from '@celo/react-celo'
-import { ExternalProvider, JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
+import { useCelo, useConnectedSigner } from '@celo/react-celo'
 import { ChainId, JSBI, TokenAmount } from '@ubeswap/sdk'
 import { StyledControlButton } from 'components/LimitOrderHistory/LimitOrderHistoryItem'
 import { BigNumber } from 'ethers'
@@ -11,12 +10,11 @@ import { useVoteCasts } from 'hooks/romulus/useVoteCasts'
 import { useVotingTokens } from 'hooks/romulus/useVotingTokens'
 import { useLatestBlockNumber } from 'hooks/useLatestBlockNumber'
 import moment from 'moment'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { CheckCircle, Loader, PlayCircle, XCircle } from 'react-feather'
 import { Box, Button, Card, Link, Text } from 'rebass'
 import { WrappedTokenInfo } from 'state/lists/hooks'
 import styled from 'styled-components'
-import { getProviderOrSigner } from 'utils'
 import { humanFriendlyWei } from 'utils/number'
 
 import { BIG_INT_ZERO, KNOWN_ADDRESSES, ubeGovernanceAddresses } from '../../../constants'
@@ -109,21 +107,6 @@ export const Address: React.FC<Props> = ({ value, truncate, label, link = true }
   )
 }
 
-export const useGetConnectedSigner = (): (() => Promise<JsonRpcSigner>) => {
-  const { address, kit, connect } = useCelo()
-  const library = useProvider()
-  const signer = getProviderOrSigner(library, address || undefined)
-  return useCallback(async () => {
-    if (kit.connection.web3.defaultAccount) {
-      return signer as JsonRpcSigner
-    }
-    const connector = await connect()
-    const nextKit = await connector.initialise()
-    const nextProvider = nextKit.kit.connection.web3.currentProvider as unknown as ExternalProvider
-    return new Web3Provider(nextProvider).getSigner(nextKit.kit.connection.web3.defaultAccount!)
-  }, [signer, kit, connect])
-}
-
 interface IProps {
   proposalEvent: TypedEvent<
     [BigNumber, string, string[], BigNumber[], string[], string[], BigNumber, BigNumber, string] & {
@@ -174,7 +157,7 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
     votingTimeColor: '#909090',
     timeText: undefined,
   })
-  const getConnectedSigner = useGetConnectedSigner()
+  const signer = useConnectedSigner()
   const romulusAddress = ubeGovernanceAddresses[network.chainId as ChainId]
   const [latestBlockNumber] = useLatestBlockNumber()
   const { proposal, proposalState } = useProposal((romulusAddress as string) || '', proposalEvent.args.id)
@@ -187,7 +170,6 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
     if (!romulusAddress || !mountedRef.current) {
       return
     }
-    const signer = await getConnectedSigner()
     if (!signer) {
       throw new Error('no signer')
     }
@@ -198,21 +180,20 @@ export const ProposalCard: React.FC<IProps> = ({ proposalEvent, clickable, showI
       console.warn(e)
       alert(e)
     }
-  }, [getConnectedSigner, proposalEvent.args.id, romulusAddress, mountedRef])
+  }, [signer, proposalEvent.args.id, romulusAddress, mountedRef])
 
   const castVote = React.useCallback(
     async (support: Support) => {
       if (!romulusAddress || !mountedRef.current) {
         return
       }
-      const signer = await getConnectedSigner()
       if (!signer) {
         throw new Error('no signer')
       }
       const romulus = RomulusDelegate__factory.connect(romulusAddress, signer)
       await romulus.castVote(proposalEvent.args.id, support)
     },
-    [getConnectedSigner, proposalEvent.args.id, romulusAddress, mountedRef]
+    [signer, proposalEvent.args.id, romulusAddress, mountedRef]
   )
 
   useEffect(() => {

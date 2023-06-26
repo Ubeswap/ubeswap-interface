@@ -1,4 +1,4 @@
-import { useCelo, useGetConnectedSigner, useProvider } from '@celo/react-celo'
+import { useCelo, useConnectedSigner, useProvider } from '@celo/react-celo'
 import { ChainId, TokenAmount } from '@ubeswap/sdk'
 import { ButtonEmpty, ButtonLight, ButtonPrimary, ButtonRadio } from 'components/Button'
 import { AutoColumn } from 'components/Column'
@@ -75,7 +75,7 @@ export const Stake: React.FC = () => {
   const history = useHistory()
   const { address, connect, network } = useCelo()
   const provider = useProvider()
-  const getConnectedSigner = useGetConnectedSigner()
+  const signer = useConnectedSigner()
   const [amount, setAmount] = useState('')
   const [showChangeDelegateModal, setShowChangeDelegateModal] = useState(false)
   const [showViewProposalModal, setShowViewProposalModal] = useState(false)
@@ -99,7 +99,7 @@ export const Stake: React.FC = () => {
         summary: `Cranking the ${supportName} vote`,
       })
     },
-    [getConnectedSigner, network]
+    [provider, network]
   )
   const stakeBalance = new TokenAmount(
     ube,
@@ -129,7 +129,7 @@ export const Stake: React.FC = () => {
 
   const doTransaction = useDoTransaction()
   const onStakeClick = useCallback(async () => {
-    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, await getConnectedSigner())
+    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer!)
     if (!tokenAmount) {
       return
     }
@@ -137,9 +137,9 @@ export const Stake: React.FC = () => {
       args: [tokenAmount.raw.toString()],
       summary: `Stake ${amount} UBE`,
     })
-  }, [doTransaction, amount, getConnectedSigner, tokenAmount])
+  }, [doTransaction, amount, signer, tokenAmount])
   const onUnstakeClick = useCallback(async () => {
-    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, await getConnectedSigner())
+    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer!)
     if (!tokenAmount) {
       return
     }
@@ -147,26 +147,26 @@ export const Stake: React.FC = () => {
       args: [tokenAmount.raw.toString()],
       summary: `Unstake ${amount} UBE`,
     })
-  }, [doTransaction, amount, getConnectedSigner, tokenAmount])
+  }, [doTransaction, amount, signer, tokenAmount])
   const onClaimClick = useCallback(async () => {
-    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, await getConnectedSigner())
+    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer!)
     return await doTransaction(c, 'getReward', {
       args: [],
       summary: `Claim UBE rewards`,
     })
-  }, [doTransaction, getConnectedSigner])
+  }, [doTransaction, signer])
   const changeDelegateIdx = useCallback(
     async (delegateIdx: number) => {
       if (delegateIdx === userDelegateIdx) {
         return
       }
-      const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, await getConnectedSigner())
+      const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer!)
       return await doTransaction(c, 'changeDelegateIdx', {
         args: [delegateIdx],
         summary: `Change auto-governance selection to ${DelegateIdx[delegateIdx]}`,
       })
     },
-    [doTransaction, getConnectedSigner, userDelegateIdx]
+    [doTransaction, signer, userDelegateIdx]
   )
 
   let button = <ButtonLight onClick={() => connect().catch(console.warn)}>{t('connectWallet')}</ButtonLight>

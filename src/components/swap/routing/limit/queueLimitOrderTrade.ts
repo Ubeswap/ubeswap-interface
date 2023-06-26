@@ -1,4 +1,4 @@
-import { useGetConnectedSigner } from '@celo/react-celo'
+import { useConnectedSigner } from '@celo/react-celo'
 import { ChainId, TokenAmount } from '@ubeswap/sdk'
 import { LimitOrderProtocol__factory } from 'generated/factories/LimitOrderProtocol__factory'
 import { OrderBook__factory } from 'generated/factories/OrderBook__factory'
@@ -22,7 +22,7 @@ function cutLastArg(data: string, padding = 0) {
  * @returns
  */
 export const useQueueLimitOrderTrade = () => {
-  const getConnectedSigner = useGetConnectedSigner()
+  const signer = useConnectedSigner()
   const doTransaction = useDoTransaction()
   const [loading, setLoading] = useState(false)
   const queueLimitOrderCallback = useCallback(
@@ -35,13 +35,12 @@ export const useQueueLimitOrderTrade = () => {
       outputAmount: TokenAmount
       chainId: ChainId
     }) => {
-      const signer = await getConnectedSigner()
       const limitOrderAddr = LIMIT_ORDER_ADDRESS[chainId]
       const orderBookAddr = ORDER_BOOK_ADDRESS[chainId]
       const rewardDistributorAddr = ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS[chainId]
 
       const limitOrderProtocolIface = LimitOrderProtocol__factory.createInterface()
-      const orderBook = OrderBook__factory.connect(orderBookAddr, signer)
+      const orderBook = OrderBook__factory.connect(orderBookAddr, signer!)
 
       const makingAmount = inputAmount.raw.toString()
       const takingAmount = outputAmount.raw.toString()
@@ -85,7 +84,7 @@ export const useQueueLimitOrderTrade = () => {
         setLoading(false)
       }
     },
-    [doTransaction, getConnectedSigner]
+    [doTransaction, signer]
   )
   return { queueLimitOrderCallback, loading }
 }
