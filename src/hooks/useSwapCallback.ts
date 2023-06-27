@@ -1,6 +1,7 @@
 import { useCelo, useConnectedSigner, useProvider } from '@celo/react-celo'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
+import { JsonRpcSigner } from '@ethersproject/providers'
 import { JSBI, Percent, Router, SwapParameters, Trade } from '@ubeswap/sdk'
 import { MoolaRouterTrade } from 'components/swap/routing/hooks/useTrade'
 import { ContractTransaction } from 'ethers'
@@ -110,7 +111,7 @@ export function useSwapCallback(
   const { address: recipientAddress } = useENS(recipientAddressOrName)
   const recipient = recipientAddressOrName === null ? account : recipientAddress
 
-  const signer = useConnectedSigner()
+  const signer = useConnectedSigner() as JsonRpcSigner
 
   return useMemo(() => {
     if (!trade || !account || !chainId) {
@@ -188,7 +189,7 @@ export function useSwapCallback(
           gasEstimate,
         } = successfulEstimation
 
-        const contract = disconnectedContract.connect(signer!)
+        const contract = disconnectedContract.connect(signer)
         return contract[methodName](...args, {
           gasLimit: calculateGasMargin(gasEstimate),
         })

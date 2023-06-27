@@ -1,4 +1,5 @@
 import { useConnectedSigner } from '@celo/react-celo'
+import { JsonRpcSigner } from '@ethersproject/providers'
 import { ChainId, TokenAmount } from '@ubeswap/sdk'
 import { LimitOrderProtocol__factory } from 'generated/factories/LimitOrderProtocol__factory'
 import { OrderBook__factory } from 'generated/factories/OrderBook__factory'
@@ -22,7 +23,7 @@ function cutLastArg(data: string, padding = 0) {
  * @returns
  */
 export const useQueueLimitOrderTrade = () => {
-  const signer = useConnectedSigner()
+  const signer = useConnectedSigner() as JsonRpcSigner
   const doTransaction = useDoTransaction()
   const [loading, setLoading] = useState(false)
   const queueLimitOrderCallback = useCallback(
@@ -40,7 +41,7 @@ export const useQueueLimitOrderTrade = () => {
       const rewardDistributorAddr = ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS[chainId]
 
       const limitOrderProtocolIface = LimitOrderProtocol__factory.createInterface()
-      const orderBook = OrderBook__factory.connect(orderBookAddr, signer!)
+      const orderBook = OrderBook__factory.connect(orderBookAddr, signer)
 
       const makingAmount = inputAmount.raw.toString()
       const takingAmount = outputAmount.raw.toString()
@@ -49,7 +50,7 @@ export const useQueueLimitOrderTrade = () => {
         salt: Math.floor(Math.random() * 1_000_000_000), // Reasonably random
         makerAsset: inputAmount.currency.address,
         takerAsset: outputAmount.currency.address,
-        maker: await signer!.getAddress(),
+        maker: await signer.getAddress(),
         receiver: ZERO_ADDRESS,
         allowedSender: ZERO_ADDRESS,
         makingAmount,
@@ -69,7 +70,7 @@ export const useQueueLimitOrderTrade = () => {
       try {
         setLoading(true)
         const limitOrderTypedData = buildOrderData(chainId.toString(), limitOrderAddr, limitOrder)
-        const limitOrderSignature = await signer!._signTypedData(
+        const limitOrderSignature = await signer._signTypedData(
           limitOrderTypedData.domain,
           limitOrderTypedData.types,
           limitOrder

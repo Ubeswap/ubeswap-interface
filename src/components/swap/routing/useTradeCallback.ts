@@ -1,4 +1,5 @@
 import { useCelo, useConnectedSigner } from '@celo/react-celo'
+import { JsonRpcSigner } from '@ethersproject/providers'
 import { ChainId, Trade } from '@ubeswap/sdk'
 import useENS from 'hooks/useENS'
 import { SwapCallbackState, useSwapCallback } from 'hooks/useSwapCallback'
@@ -24,7 +25,7 @@ export const useTradeCallback = (
   recipientAddressOrName: string | null // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
 ): { state: SwapCallbackState; callback: null | (() => Promise<string>); error: string | null } => {
   const { address: account, network } = useCelo()
-  const signer = useConnectedSigner()
+  const signer = useConnectedSigner() as JsonRpcSigner
   const chainId = network.chainId as unknown as ChainId
   const doTransaction = useDoTransaction()
   const { address: recipientAddress } = useENS(recipientAddressOrName)
@@ -57,7 +58,7 @@ export const useTradeCallback = (
       return { state: SwapCallbackState.INVALID, callback: null, error: 'Baklava is not supported' }
     }
 
-    const env = { signer: signer!, chainId, doTransaction }
+    const env = { signer, chainId, doTransaction }
     if (trade instanceof MinimaRouterTrade) {
       return {
         state: SwapCallbackState.VALID,

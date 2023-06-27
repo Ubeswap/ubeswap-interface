@@ -1,4 +1,5 @@
 import { useCelo, useConnectedSigner, useProvider } from '@celo/react-celo'
+import { JsonRpcSigner } from '@ethersproject/providers'
 import { ChainId, TokenAmount } from '@ubeswap/sdk'
 import { ButtonEmpty, ButtonLight, ButtonPrimary, ButtonRadio } from 'components/Button'
 import { AutoColumn } from 'components/Column'
@@ -75,7 +76,7 @@ export const Stake: React.FC = () => {
   const history = useHistory()
   const { address, connect, network } = useCelo()
   const provider = useProvider()
-  const signer = useConnectedSigner()
+  const signer = useConnectedSigner() as JsonRpcSigner
   const [amount, setAmount] = useState('')
   const [showChangeDelegateModal, setShowChangeDelegateModal] = useState(false)
   const [showViewProposalModal, setShowViewProposalModal] = useState(false)
@@ -85,6 +86,8 @@ export const Stake: React.FC = () => {
   const [staking, setStaking] = useState(true)
   const ubeBalance = useCurrencyBalance(address ?? undefined, ube)
   const contract = useVotableStakingContract(VOTABLE_STAKING_REWARDS_ADDRESS)
+  const doTransaction = useDoTransaction()
+
   const crank = useCallback(
     async (delegateIdx: DelegateIdx) => {
       const staking = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, provider)
@@ -99,7 +102,7 @@ export const Stake: React.FC = () => {
         summary: `Cranking the ${supportName} vote`,
       })
     },
-    [provider, network]
+    [provider, doTransaction]
   )
   const stakeBalance = new TokenAmount(
     ube,
@@ -127,9 +130,8 @@ export const Stake: React.FC = () => {
   // const disablePropose = !totalVotingPower || !proposalThreshold || totalVotingPower?.lessThan(proposalThreshold?.raw)
   const disablePropose = false
 
-  const doTransaction = useDoTransaction()
   const onStakeClick = useCallback(async () => {
-    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer!)
+    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer)
     if (!tokenAmount) {
       return
     }
@@ -139,7 +141,7 @@ export const Stake: React.FC = () => {
     })
   }, [doTransaction, amount, signer, tokenAmount])
   const onUnstakeClick = useCallback(async () => {
-    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer!)
+    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer)
     if (!tokenAmount) {
       return
     }
@@ -149,7 +151,7 @@ export const Stake: React.FC = () => {
     })
   }, [doTransaction, amount, signer, tokenAmount])
   const onClaimClick = useCallback(async () => {
-    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer!)
+    const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer)
     return await doTransaction(c, 'getReward', {
       args: [],
       summary: `Claim UBE rewards`,
@@ -160,7 +162,7 @@ export const Stake: React.FC = () => {
       if (delegateIdx === userDelegateIdx) {
         return
       }
-      const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer!)
+      const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer)
       return await doTransaction(c, 'changeDelegateIdx', {
         args: [delegateIdx],
         summary: `Change auto-governance selection to ${DelegateIdx[delegateIdx]}`,
