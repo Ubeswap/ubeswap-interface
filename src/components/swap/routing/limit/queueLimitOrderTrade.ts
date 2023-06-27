@@ -49,7 +49,7 @@ export const useQueueLimitOrderTrade = () => {
         salt: Math.floor(Math.random() * 1_000_000_000), // Reasonably random
         makerAsset: inputAmount.currency.address,
         takerAsset: outputAmount.currency.address,
-        maker: await signer.getAddress(),
+        maker: await signer!.getAddress(),
         receiver: ZERO_ADDRESS,
         allowedSender: ZERO_ADDRESS,
         makingAmount,
@@ -69,7 +69,7 @@ export const useQueueLimitOrderTrade = () => {
       try {
         setLoading(true)
         const limitOrderTypedData = buildOrderData(chainId.toString(), limitOrderAddr, limitOrder)
-        const limitOrderSignature = await signer._signTypedData(
+        const limitOrderSignature = await signer!._signTypedData(
           limitOrderTypedData.domain,
           limitOrderTypedData.types,
           limitOrder
