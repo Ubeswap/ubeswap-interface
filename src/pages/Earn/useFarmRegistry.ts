@@ -59,7 +59,6 @@ const pairDataGql = gql`
   }
 `
 const COMPOUNDS_PER_YEAR = 2
-const CREATION_BLOCK = 9840049
 const LAST_N_BLOCKS = 5760 // Last 8 hours
 
 export interface WarningInfo {
@@ -146,7 +145,7 @@ export const useFarmRegistry = () => {
         ...farmInfos[index],
       }))
     )
-  }, [farmRegistryAddress, farmRegistryContract, client])
+  }, [farmRegistryAddress, farmRegistryContract, client, olderFarmInfoEvents, olderLpInfoEvents])
 
   useEffect(() => {
     call()

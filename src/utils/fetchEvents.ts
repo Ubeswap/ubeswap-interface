@@ -22,5 +22,5 @@ export default async function fetchEvents<T>(
   }
 
   const result = await Promise.any<Event[]>(promises)
-  return result as T[]
+  return result as unknown as T[]
 }
