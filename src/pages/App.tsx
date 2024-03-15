@@ -17,6 +17,7 @@ import {
   RedirectOldAddLiquidityPathStructure,
   RedirectToAddLiquidity,
 } from './AddLiquidity/redirects'
+import ClaimNewUbeToken from './ClaimNewUbeToken'
 import Earn from './Earn'
 import Manage from './Earn/Manage'
 import ManageSingle from './Earn/ManageSingle'
@@ -26,7 +27,7 @@ import PoolFinder from './PoolFinder'
 import RemoveLiquidity from './RemoveLiquidity'
 import { RedirectOldRemoveLiquidityPathStructure } from './RemoveLiquidity/redirects'
 import Send from './Send'
-import { Stake } from './Stake'
+import { StakePage } from './Stake'
 import AddProposal from './Stake/AddProposal'
 import Swap from './Swap'
 import { OpenClaimAddressModalAndRedirectToSwap, RedirectPathToSwapOnly, RedirectToSwap } from './Swap/redirects'
@@ -108,8 +109,9 @@ export default function App() {
               <Route exact strict path="/farm/:currencyIdA/:currencyIdB/:stakingAddress" component={Manage} />
               <Route exact strict path="/farm/:currencyId/:stakingAddress" component={ManageSingle} />
               <Route exact strict path="/dualfarm/:currencyIdA/:currencyIdB/:stakingAddress" component={Manage} />
-              <Route exact strict path="/stake" component={Stake} />
+              <Route exact strict path="/stake" component={StakePage} />
               <Route exact strict path="/add-proposal" component={AddProposal} />
+              <Route exact strict path="/claim-new-ube" component={ClaimNewUbeToken} />
               <Route component={RedirectPathToSwapOnly} />
             </Switch>
           </ErrorBoundary>
