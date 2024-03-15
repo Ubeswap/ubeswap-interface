@@ -27,7 +27,7 @@ import { useToken } from '../../hooks/Tokens'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { tryParseAmount, useDerivedSwapInfo } from '../../state/swap/hooks'
-import { ExternalLink, TYPE } from '../../theme'
+import { TYPE } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import AppBody from '../AppBody'
 
@@ -281,13 +281,6 @@ export default function ClaimNewUbeToken() {
             <RowBetween>
               <TYPE.white fontSize={14}>Ubeswap has migrated to new token economics.</TYPE.white>
             </RowBetween>
-            <ExternalLink
-              style={{ color: 'white', textDecoration: 'underline' }}
-              target="_blank"
-              href="https://docs.ubeswap.org/tutorial/providing-liquidity"
-            >
-              <TYPE.white fontSize={14}>Click to read more on the new tokenomics</TYPE.white>
-            </ExternalLink>
             <RowBetween>
               <TYPE.white fontSize={14}>
                 All token swaps made until April 15th 2024 will be made on a 1:1,5 basis. After this period, it will
