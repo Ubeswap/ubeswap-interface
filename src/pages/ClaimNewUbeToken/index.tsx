@@ -225,21 +225,31 @@ export default function ClaimNewUbeToken() {
   const swapErrorMessage = ''
 
   const handleSwap = useCallback(() => {
+    console.log('000')
     if (!convertCallback || !whitelist || !parsedAmount) {
+      console.log('111')
+      console.log(convertCallback)
+      console.log(whitelist)
+      console.log(parsedAmount)
       return
     }
     const data = whitelist[account?.toLocaleLowerCase() || '']
     if (!data) {
+      console.log('222')
+      console.log(account)
       return
     }
+    console.log('333')
     convertCallback(parsedAmount, data.amount, data.signature)
       .then(() => {
+        console.log('444')
         //
       })
       .catch((error) => {
+        console.log('xxx')
         console.log(error)
       })
-  }, [convertCallback])
+  }, [convertCallback, account, parsedAmount, whitelist])
 
   // errors
   const [showInverted, setShowInverted] = useState<boolean>(false)
