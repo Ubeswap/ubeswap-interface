@@ -139,7 +139,7 @@ export default function ClaimNewUbeToken() {
   } | null>(null)
   const [whitelistLoading, setWhitelistLoading] = useState(true)
   useEffect(() => {
-    fetch('/data/whitelist.json')
+    fetch('https://raw.githubusercontent.com/Ubeswap/static/main/whitelist.json')
       .then((response) => response.json())
       .then((data) => {
         setWhitelistLoading(false)
