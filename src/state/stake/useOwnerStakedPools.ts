@@ -15,7 +15,8 @@ export const useOwnerStakedPools = (farmSummaries: FarmSummary[]) => {
     farmSummaries.map((farmSummaries) => farmSummaries.stakingAddress),
     new Interface(DUAL_REWARDS_ABI),
     'balanceOf',
-    [owner || undefined]
+    [owner || undefined],
+    { blocksPerFetch: 100 }
   )
 
   const isStaked: Record<string, boolean> = data.reduce<Record<string, boolean>>((acc, curr, idx) => {

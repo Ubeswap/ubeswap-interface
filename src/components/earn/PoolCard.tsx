@@ -138,13 +138,13 @@ export const PoolCard: React.FC<Props> = ({ farmSummary, onRemoveImportedFarm }:
     if (onRemoveImportedFarm) onRemoveImportedFarm(farmSummary.stakingAddress)
   }
 
-  if (
+  /*if (
     !farmSummary.isImported &&
     Number(formatEther(farmSummary.rewardsUSDPerYear)) < 100 &&
     !userValueCUSD?.greaterThan('0')
   ) {
     return null
-  }
+  }*/
 
   const isSingleToken = !!token0 && !!token1 && token0.address === token1.address
 
