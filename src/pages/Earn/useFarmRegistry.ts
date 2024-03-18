@@ -150,7 +150,6 @@ export const useFarmRegistry = () => {
         if (!farmData[e.stakingAddress.toLowerCase()] && !farmWhitelist[e.stakingAddress.toLowerCase()]) {
           return
         }
-        console.log('---')
         const fData = farmData[e.stakingAddress] || {
           tvlUSD: '0',
           rewardsUSDPerYear: '0',

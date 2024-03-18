@@ -1922,6 +1922,7 @@ export const cachedFarmInfoEvents = [
     ],
   },
   {
+    id: 'log_11111',
     address: '0xa2bf67e12EeEDA23C7cA1e5a34ae2441a17789Ec',
     blockNumber: 0,
     transactionHash: '0x',
@@ -1929,21 +1930,16 @@ export const cachedFarmInfoEvents = [
     blockHash: '0x',
     logIndex: 0,
     removed: false,
-    id: 'log_11111',
-    returnValues: {
-      0: '0x534408e91d755a0d898e1c508e987e8d0615b52c',
-      1: '0x5542452d43454c4f000000000000000000000000000000000000000000000000',
-      2: '0x29cB4536Ee663aCe6f7A5Ca1c3b8Ad68Be398cc0',
+    eventSignature: '',
+    args: {
       stakingAddress: '0x534408e91d755a0d898e1c508e987e8d0615b52c',
       farmName: '0x5542452d43454c4f000000000000000000000000000000000000000000000000',
-      lpAddress: '0x29cB4536Ee663aCe6f7A5Ca1c3b8Ad68Be398cc0',
+      lpAddress: '0x29cb4536ee663ace6f7a5ca1c3b8ad68be398cc0',
     },
     event: 'FarmInfo',
     signature: '0x',
-    raw: {
-      data: '0x',
-      topics: [],
-    },
+    data: '0x',
+    topics: [],
   },
 ]
 
