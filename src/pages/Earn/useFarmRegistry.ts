@@ -50,6 +50,7 @@ const featuredPoolWhitelist: Record<string, boolean> = {
 }
 
 const farmWhitelist: Record<string, boolean> = {
+  '0x534408e91d755a0d898e1c508e987e8d0615b52c': true,
   '0x9584870281dd0d764748a2a234e2218ae544c614': true,
   '0xd94e14358f66a3c0d13ae76ec45fe1c92dd7fb23': true,
   '0xfaa5aff67582db0e9e581f52007c428ba71db405': true,

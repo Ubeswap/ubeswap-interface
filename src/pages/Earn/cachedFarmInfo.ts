@@ -1921,6 +1921,30 @@ export const cachedFarmInfoEvents = [
       '0x00000000000000000000000070b24fe068e60e431792ea177ccf087bed2ef5f7',
     ],
   },
+  {
+    address: '0xa2bf67e12EeEDA23C7cA1e5a34ae2441a17789Ec',
+    blockNumber: 0,
+    transactionHash: '0x',
+    transactionIndex: 1,
+    blockHash: '0x',
+    logIndex: 0,
+    removed: false,
+    id: 'log_11111',
+    returnValues: {
+      0: '0x534408e91d755a0d898e1c508e987e8d0615b52c',
+      1: '0x5542452d43454c4f000000000000000000000000000000000000000000000000',
+      2: '0x29cB4536Ee663aCe6f7A5Ca1c3b8Ad68Be398cc0',
+      stakingAddress: '0x534408e91d755a0d898e1c508e987e8d0615b52c',
+      farmName: '0x5542452d43454c4f000000000000000000000000000000000000000000000000',
+      lpAddress: '0x29cB4536Ee663aCe6f7A5Ca1c3b8Ad68Be398cc0',
+    },
+    event: 'FarmInfo',
+    signature: '0x',
+    raw: {
+      data: '0x',
+      topics: [],
+    },
+  },
 ]
 
 export const cachedLpInfoEvents = [
@@ -3843,5 +3867,24 @@ export const cachedLpInfoEvents = [
       '0x000000000000000000000000471ece3750da237f93b8e339c536989b8978a438',
       '0x000000000000000000000000d71ffd0940c920786ec4dbb5a12306669b5b81ef',
     ],
+  },
+  {
+    id: '0x111-1',
+    address: '0xa2bf67e12eeeda23c7ca1e5a34ae2441a17789ec',
+    blockNumber: 0,
+    transactionHash: '0x',
+    transactionIndex: 0,
+    blockHash: '0x',
+    logIndex: 0,
+    removed: false,
+    eventSignature: '',
+    args: {
+      lpAddress: '0x29cb4536ee663ace6f7a5ca1c3b8ad68be398cc0',
+      token0Address: '0x471ece3750da237f93b8e339c536989b8978a438',
+      token1Address: '0x71e26d0e519d14591b9de9a0fe9513a398101490',
+    },
+    event: 'LPInfo',
+    data: '0x',
+    topics: [],
   },
 ]
