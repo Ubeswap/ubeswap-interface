@@ -294,7 +294,7 @@ export default function ClaimNewUbeToken() {
             <RowBetween>
               <TYPE.white fontSize={14}>
                 All token swaps made until April 15th 2024 will be made on a 1:1,5 basis. After this period, it will
-                switch to 1:1. After 75% of the total tokens are swapped, 1 month will be provided for the remainder of
+                switch to 1:1. After 75% of the liquid tokens are swapped, 1 month will be provided for the remainder of
                 the community to swap. Any tokens not swapped after this period will be burned.
               </TYPE.white>
             </RowBetween>
