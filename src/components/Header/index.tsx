@@ -526,20 +526,22 @@ export default function Header() {
                 UBE
               </UBEAmount>
               <CardNoise />
-              <HideSmall>
-                <UBEAmount active={!!account} style={{ pointerEvents: 'auto' }}>
-                  {account && (
-                    <TYPE.white
-                      style={{
-                        paddingRight: '.4rem',
-                      }}
-                    >
-                      {oldUbeBalanceFormatted}
-                    </TYPE.white>
-                  )}
-                  old-UBE
-                </UBEAmount>
-              </HideSmall>
+              {oldUbeBalance?.greaterThan('0') && (
+                <HideSmall>
+                  <UBEAmount active={!!account} style={{ pointerEvents: 'auto' }}>
+                    {account && (
+                      <TYPE.white
+                        style={{
+                          paddingRight: '.4rem',
+                        }}
+                      >
+                        {oldUbeBalanceFormatted}
+                      </TYPE.white>
+                    )}
+                    old-UBE
+                  </UBEAmount>
+                </HideSmall>
+              )}
             </UBEWrapper>
           )}
 
