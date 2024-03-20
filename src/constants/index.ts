@@ -293,7 +293,10 @@ export const DEXES_TO_EXCLUDE = [
 ]
 
 export const EVENT_FETCH_RPC_URLS = {
-  [ChainId.MAINNET]: 'https://celo-mainnet.infura.io/v3/801f4c55ea6b48b4b629c9645964eaa9',
-  [ChainId.ALFAJORES]: '',
-  [ChainId.BAKLAVA]: '',
+  [ChainId.MAINNET]: [
+    'https://celo-mainnet.infura.io/v3/801f4c55ea6b48b4b629c9645964eaa9',
+    'https://rpc.ankr.com/celo',
+  ],
+  [ChainId.ALFAJORES]: [''],
+  [ChainId.BAKLAVA]: [''],
 }

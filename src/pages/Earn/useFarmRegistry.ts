@@ -84,7 +84,7 @@ const pairDataGql = gql`
   }
 `
 const COMPOUNDS_PER_YEAR = 2
-const LAST_N_BLOCKS = 5760 // Last 8 hours
+const LAST_N_BLOCKS = 1440 // Last 8 hours
 
 export interface WarningInfo {
   poolName: string

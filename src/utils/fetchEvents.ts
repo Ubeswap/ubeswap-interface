@@ -26,10 +26,14 @@ async function eventFetcher<T>(
 
   const promises = [contract.queryFilter(filter, fromBlockOrBlockhash, toBlock)]
 
-  const alternativeRpc = EVENT_FETCH_RPC_URLS[chainId as ChainId]
-  if (alternativeRpc) {
-    const alternativeProvider = new JsonRpcProvider(alternativeRpc)
-    promises.push(contract.connect(alternativeProvider).queryFilter(filter, fromBlockOrBlockhash, toBlock))
+  const alternativeRpcs = EVENT_FETCH_RPC_URLS[chainId as ChainId]
+  if (alternativeRpcs.length > 0) {
+    for (const rpcUrl of alternativeRpcs) {
+      if (rpcUrl) {
+        const alternativeProvider = new JsonRpcProvider(rpcUrl)
+        promises.push(contract.connect(alternativeProvider).queryFilter(filter, fromBlockOrBlockhash, toBlock))
+      }
+    }
   }
   const result = await Promise.any<Event[]>(promises)
   return result as unknown as T[]
