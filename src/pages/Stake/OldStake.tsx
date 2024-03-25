@@ -55,7 +55,7 @@ const Wrapper = styled.div({
 
 const ube = new WrappedTokenInfo(
   {
-    address: '0x71e26d0E519D14591b9dE9a0fE9513A398101490',
+    address: '0x00Be915B9dCf56a3CBE739D9B9c202ca692409EC',
     name: 'Ubeswap Governance Token',
     symbol: 'UBE',
     chainId: 42220,
