@@ -94,7 +94,7 @@ export function useConvertCallback(): [
           summary: `Convert to new UBE`,
         })
       } catch (e) {
-        console.log(e)
+        console.error(e)
       } finally {
         setIsPending(false)
       }
@@ -146,7 +146,7 @@ export default function ClaimNewUbeToken() {
         setWhitelist(data)
       })
       .catch((error) => {
-        console.log(error)
+        console.error(error)
         setWhitelistLoading(false)
       })
   }, [])
@@ -191,7 +191,7 @@ export default function ClaimNewUbeToken() {
     setTypedValue(value)
   }, [])
   const handleTypeOutput = useCallback((value: string) => {
-    console.log('This should not happen')
+    console.error('handleTypeOutput can not change')
   }, [])
 
   // Approval process
@@ -211,7 +211,7 @@ export default function ClaimNewUbeToken() {
         //
       })
       .catch((error) => {
-        console.log(error)
+        console.error(error)
       })
   }, [approveCallback])
 
@@ -247,7 +247,7 @@ export default function ClaimNewUbeToken() {
       })
       .catch((error) => {
         console.log('xxx')
-        console.log(error)
+        console.error(error)
       })
   }, [convertCallback, account, parsedAmount, whitelist])
 
