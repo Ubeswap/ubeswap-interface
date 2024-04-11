@@ -82,9 +82,9 @@
     "wcag-contrast": "^3.0.0"
   },
   "scripts": {
-    "build": "REACT_APP_SENTRY_DSN=$SENTRY_DSN npm run build:local",
-    "build:local": "npm run typechain && craco build",
-    "start": "craco start",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider REACT_APP_SENTRY_DSN=$SENTRY_DSN npm run build:local",
+    "build:local": "npm run typechain && node --max_old_space_size=1024 node_modules/.bin/craco build",
+    "start": "NODE_OPTIONS=--openssl-legacy-provider craco start",
     "clean": "rm -fr src/generated/",
     "start:alfajores": "REACT_APP_CHAIN_ID=44787 craco start",
     "typechain": "typechain --target=ethers-v5 'src/**/abis/**/*.json' --out-dir src/generated/",
@@ -114,7 +114,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.4.16",
-    "@celo-tools/use-contractkit": "npm:@poofcash/use-contractkit@^1.0.9",
+    "@celo-tools/use-contractkit": "^3.1.0",
     "@celo/base": "^1.2.1",
     "@celo/connect": "^1.2.0",
     "@celo/contractkit": "^1.2.0",
