@@ -1,6 +1,6 @@
 import { useCelo, useConnectedSigner } from '@celo/react-celo'
 import { JsonRpcSigner } from '@ethersproject/providers'
-import { CELO, ChainId as UbeswapChainId, Fraction, Token, TokenAmount } from '@ubeswap/sdk'
+import { CELO, ChainId as UbeswapChainId, Token, TokenAmount } from '@ubeswap/sdk'
 import { useDoTransaction } from 'components/swap/routing'
 import { useUbeConvertContract } from 'hooks/useContract'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -115,7 +115,6 @@ export default function ClaimNewUbeToken() {
 
   // toggle wallet when disconnected
   const toggleWalletModal = useWalletModalToggle()
-  const allowedSlippage = 0
 
   // swap state
   const { v2Trade } = useDerivedSwapInfo()
@@ -154,7 +153,7 @@ export default function ClaimNewUbeToken() {
   const parsedAmount = useMemo(() => {
     return tryParseAmount(typedValue, inputCurrency ?? undefined)
   }, [typedValue, inputCurrency])
-  const outputAmount = parsedAmount?.multiply(new Fraction('3', '2'))
+  const outputAmount = parsedAmount
   const outputAmountText = outputAmount?.toSignificant(6) ?? ''
 
   // the callback to execute the swap
@@ -293,9 +292,8 @@ export default function ClaimNewUbeToken() {
             </RowBetween>
             <RowBetween>
               <TYPE.white fontSize={14}>
-                All token swaps made until April 15th 2024 will be made on a 1:1,5 basis. After this period, it will
-                switch to 1:1. After 75% of the liquid tokens are swapped, 1 month will be provided for the remainder of
-                the community to swap. Any tokens not swapped after this period will be burned.
+                After 75% of the liquid tokens are swapped, 1 month will be provided for the remainder of the community
+                to swap. Any tokens not swapped after this period will be burned.
               </TYPE.white>
             </RowBetween>
           </AutoColumn>
