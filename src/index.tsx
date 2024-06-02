@@ -24,13 +24,12 @@ import MulticallUpdater from './state/multicall/updater'
 import TransactionUpdater from './state/transactions/updater'
 import UserUpdater from './state/user/updater'
 import ThemeProvider, { FixedGlobalStyle, ThemedGlobalStyle } from './theme'
-
 if (window.celo) {
   window.celo.autoRefreshOnNetworkChange = false
 }
-
+  
 const client = new ApolloClient({
-  uri: 'https://api.thegraph.com/subgraphs/name/ubeswap/ubeswap',
+  uri:     'https://api.thegraph.com/subgraphs/name/ubeswap/ubeswap',
   cache: new InMemoryCache(),
 })
 
@@ -92,7 +91,7 @@ if (process.env.REACT_APP_SENTRY_DSN) {
 }
 
 // react GA error tracking
-window.addEventListener('error', (error) => {
+      window.addEventListener('error', (error) => {
   ReactGA.exception({
     description: `${error.message} @ ${error.filename}:${error.lineno}:${error.colno}`,
     fatal: true,
