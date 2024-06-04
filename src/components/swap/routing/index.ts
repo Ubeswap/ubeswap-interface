@@ -94,8 +94,6 @@ export const useDoTransaction = (): DoTransactionFn => {
   const addTransaction = useTransactionAdder()
   const { network } = useCelo()
   const connectedSigner = useConnectedSigner()
-  console.log({ network })
-  console.log(connectedSigner)
   const chainId = network.chainId as unknown as ChainId
   return useCallback(
     async (contractDisconnected, methodName, args): Promise<ContractTransaction> => {

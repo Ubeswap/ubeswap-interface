@@ -1,13 +1,16 @@
-import { useCelo, useConnectedSigner } from '@celo/react-celo'
+import { useCelo, useConnectedSigner, useProvider } from '@celo/react-celo'
 import { JsonRpcSigner } from '@ethersproject/providers'
+import { formatEther } from '@ethersproject/units'
 import { CELO, ChainId as UbeswapChainId, Token, TokenAmount } from '@ubeswap/sdk'
 import { useDoTransaction } from 'components/swap/routing'
+import { BigNumber } from 'ethers'
 import { useUbeConvertContract } from 'hooks/useContract'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ArrowDown } from 'react-feather'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
-import { useHasPendingTransaction } from 'state/transactions/hooks'
+import { useSingleCallResult } from 'state/multicall/hooks'
+import { useHasPendingTransaction, useIsTransactionPending } from 'state/transactions/hooks'
 import { useCurrencyBalance } from 'state/wallet/hooks'
 import styled, { ThemeContext } from 'styled-components'
 
@@ -22,11 +25,10 @@ import ProgressSteps from '../../components/ProgressSteps'
 import { AutoRow, RowBetween } from '../../components/Row'
 import { ArrowWrapper, BottomGrouping, SwapCallbackError, Wrapper } from '../../components/swap/styleds'
 import SwapHeader from '../../components/swap/SwapHeader'
-import TradePrice from '../../components/swap/TradePrice'
 import { useToken } from '../../hooks/Tokens'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { useWalletModalToggle } from '../../state/application/hooks'
-import { tryParseAmount, useDerivedSwapInfo } from '../../state/swap/hooks'
+import { tryParseAmount } from '../../state/swap/hooks'
 import { TYPE } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import AppBody from '../AppBody'
@@ -52,17 +54,20 @@ export function useConvertCallback(): [
 ] {
   const { address: account } = useCelo()
   const signer = useConnectedSigner() as JsonRpcSigner
+  const provider = useProvider()
 
   const hasPendingTx = useHasPendingTransaction()
   const [isPending, setIsPending] = useState(false)
+  const [hash, setHash] = useState<string | undefined>()
+  const isTxPending = useIsTransactionPending(hash)
 
   const contractDisconnected = useUbeConvertContract(CONVERT_CONTRACT_ADDRESS)
   const doTransaction = useDoTransaction()
 
   const approve = useCallback(
     async (amountToConvert: TokenAmount, maxOldUbeAmount: string, signature: string): Promise<void> => {
-      if (!account) {
-        console.error('no account')
+      if (!account || !provider) {
+        console.error('no account or provider')
         return
       }
       if (hasPendingTx) {
@@ -89,20 +94,23 @@ export function useConvertCallback(): [
 
       setIsPending(true)
       try {
-        await doTransaction(convertContract, 'convert', {
+        const response = await doTransaction(convertContract, 'convert', {
           args: [amountToConvert.raw.toString(), maxOldUbeAmount, signature],
           summary: `Convert to new PACT`,
         })
+        setHash(response.hash)
+        await provider.waitForTransaction(response.hash, 2)
       } catch (e) {
         console.error(e)
+        setHash(undefined)
       } finally {
         setIsPending(false)
       }
     },
-    [isPending, contractDisconnected, signer, doTransaction, hasPendingTx, account]
+    [isPending, contractDisconnected, signer, doTransaction, hasPendingTx, account, provider]
   )
 
-  return [isPending, approve]
+  return [isPending || isTxPending, approve]
 }
 
 export default function ClaimNewPactToken() {
@@ -115,10 +123,6 @@ export default function ClaimNewPactToken() {
 
   // toggle wallet when disconnected
   const toggleWalletModal = useWalletModalToggle()
-
-  // swap state
-  const { v2Trade } = useDerivedSwapInfo()
-  const trade = v2Trade
 
   const [typedValue, setTypedValue] = useState('')
 
@@ -149,12 +153,29 @@ export default function ClaimNewPactToken() {
         setWhitelistLoading(false)
       })
   }, [])
+  const maxAllowed = useMemo(() => {
+    if (!whitelistLoading && whitelist && account) {
+      const data = whitelist[account?.toLocaleLowerCase() || '']
+      if (data) {
+        return BigNumber.from(data.amount)
+      }
+    }
+    return BigNumber.from(0)
+  }, [whitelistLoading, whitelist, account])
+  const maxAllowedText = Number(formatEther(maxAllowed)).toFixed(1).replace(/\.0+$/, '')
 
   const parsedAmount = useMemo(() => {
     return tryParseAmount(typedValue, inputCurrency ?? undefined)
   }, [typedValue, inputCurrency])
   const outputAmount = parsedAmount
   const outputAmountText = outputAmount?.toSignificant(6) ?? ''
+
+  const convertContract = useUbeConvertContract(CONVERT_CONTRACT_ADDRESS)
+  const convertedAmount = useSingleCallResult(convertContract, 'accountToConvertedAmount', [account ?? 0])
+  console.log('convertedAmount', convertedAmount)
+  const convertedAmountText = convertedAmount.result?.length
+    ? Number(formatEther(convertedAmount.result?.[0])).toFixed(1).replace(/\.0+$/, '')
+    : 'loading...'
 
   // the callback to execute the swap
   const [isConvertPending, convertCallback] = useConvertCallback()
@@ -181,8 +202,18 @@ export default function ClaimNewPactToken() {
     if (inputBalance && parsedAmount && inputBalance.lessThan(parsedAmount)) {
       return 'Insufficient old-PACT balance'
     }
+
+    if (whitelist) {
+      const data = whitelist[account?.toLocaleLowerCase() || '']
+      if (data && convertedAmount.loading == false && convertedAmount.result?.length) {
+        if (BigNumber.from(data.amount).sub(convertedAmount.result[0]).lt(parsedAmount.raw.toString())) {
+          return 'Exceeds allowed amount'
+        }
+      }
+    }
+
     return undefined
-  }, [account, parsedAmount, currencies, inputBalance, whitelistLoading, whitelist, isConvertPending])
+  }, [account, parsedAmount, currencies, inputBalance, whitelistLoading, whitelist, isConvertPending, convertedAmount])
 
   const isValid = !swapInputError
 
@@ -242,16 +273,14 @@ export default function ClaimNewPactToken() {
     convertCallback(parsedAmount, data.amount, data.signature)
       .then(() => {
         console.log('444')
-        //
+        setTypedValue('')
+        setApprovalSubmitted(false)
       })
       .catch((error) => {
         console.log('xxx')
         console.error(error)
       })
   }, [convertCallback, account, parsedAmount, whitelist])
-
-  // errors
-  const [showInverted, setShowInverted] = useState<boolean>(false)
 
   // show approve flow when: no error on inputs, not approved or pending, or approved in current session
   // never show if price impact is above threshold in non expert mode
@@ -337,18 +366,14 @@ export default function ClaimNewPactToken() {
 
             <Card padding={'0px'} borderRadius={'20px'}>
               <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
-                {Boolean(trade) && (
-                  <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Price
-                    </Text>
-                    <TradePrice
-                      price={trade?.executionPrice}
-                      showInverted={showInverted}
-                      setShowInverted={setShowInverted}
-                    />
-                  </RowBetween>
-                )}
+                <RowBetween align="center">
+                  <Text fontWeight={800} fontSize={14} color={theme.text1}>
+                    Converted / Max:
+                  </Text>
+                  <Text fontWeight={800} fontSize={14} color={theme.text1}>
+                    {convertedAmountText} / {maxAllowedText}
+                  </Text>
+                </RowBetween>
               </AutoColumn>
             </Card>
           </AutoColumn>
@@ -379,10 +404,10 @@ export default function ClaimNewPactToken() {
                   width="48%"
                   id="swap-button"
                   disabled={!isValid || approval !== ApprovalState.APPROVED}
-                  error={false}
+                  error={isValid && !!swapCallbackError}
                 >
                   <Text fontSize={16} fontWeight={500}>
-                    Convert
+                    {swapInputError ? swapInputError : 'Convert'}
                   </Text>
                 </ButtonError>
               </RowBetween>
