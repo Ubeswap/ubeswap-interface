@@ -1,4 +1,5 @@
 import { useCelo, useConnectedSigner, useProvider } from '@celo/react-celo'
+import { AddressZero } from '@ethersproject/constants'
 import { JsonRpcSigner } from '@ethersproject/providers'
 import { formatEther } from '@ethersproject/units'
 import { CELO, ChainId as UbeswapChainId, Token, TokenAmount } from '@ubeswap/sdk'
@@ -171,7 +172,7 @@ export default function ClaimNewPactToken() {
   const outputAmountText = outputAmount?.toSignificant(6) ?? ''
 
   const convertContract = useUbeConvertContract(CONVERT_CONTRACT_ADDRESS)
-  const convertedAmount = useSingleCallResult(convertContract, 'accountToConvertedAmount', [account ?? 0])
+  const convertedAmount = useSingleCallResult(convertContract, 'accountToConvertedAmount', [account ?? AddressZero])
   console.log('convertedAmount', convertedAmount)
   const convertedAmountText = convertedAmount.result?.length
     ? Number(formatEther(convertedAmount.result?.[0])).toFixed(1).replace(/\.0+$/, '')
