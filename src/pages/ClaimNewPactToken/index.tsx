@@ -1,17 +1,21 @@
-import { useCelo, useConnectedSigner } from '@celo/react-celo'
+import { useCelo, useConnectedSigner, useProvider } from '@celo/react-celo'
+import { AddressZero } from '@ethersproject/constants'
 import { JsonRpcSigner } from '@ethersproject/providers'
+import { formatEther } from '@ethersproject/units'
 import { CELO, ChainId as UbeswapChainId, Token, TokenAmount } from '@ubeswap/sdk'
 import { useDoTransaction } from 'components/swap/routing'
+import { BigNumber } from 'ethers'
 import { useUbeConvertContract } from 'hooks/useContract'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ArrowDown } from 'react-feather'
 import { useTranslation } from 'react-i18next'
 import { Text } from 'rebass'
-import { useHasPendingTransaction } from 'state/transactions/hooks'
+import { useSingleCallResult } from 'state/multicall/hooks'
+import { useHasPendingTransaction, useIsTransactionPending } from 'state/transactions/hooks'
 import { useCurrencyBalance } from 'state/wallet/hooks'
 import styled, { ThemeContext } from 'styled-components'
 
-import { ButtonConfirmed, ButtonError, ButtonLight, ButtonSecondary } from '../../components/Button'
+import { ButtonConfirmed, ButtonError, ButtonLight } from '../../components/Button'
 import Card from '../../components/Card'
 import Column, { AutoColumn } from '../../components/Column'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
@@ -22,12 +26,11 @@ import ProgressSteps from '../../components/ProgressSteps'
 import { AutoRow, RowBetween } from '../../components/Row'
 import { ArrowWrapper, BottomGrouping, SwapCallbackError, Wrapper } from '../../components/swap/styleds'
 import SwapHeader from '../../components/swap/SwapHeader'
-import TradePrice from '../../components/swap/TradePrice'
 import { useToken } from '../../hooks/Tokens'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { useWalletModalToggle } from '../../state/application/hooks'
-import { tryParseAmount, useDerivedSwapInfo } from '../../state/swap/hooks'
-import { StyledInternalLink, TYPE } from '../../theme'
+import { tryParseAmount } from '../../state/swap/hooks'
+import { TYPE } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import AppBody from '../AppBody'
 
@@ -44,7 +47,7 @@ const VoteCard = styled(DataCard)`
   margin-bottom: 20px;
 `
 
-const CONVERT_CONTRACT_ADDRESS = '0x9DFc135e0984Fe88aCd45d68e62a73E98Dbb7A36'
+const CONVERT_CONTRACT_ADDRESS = '0x1854c78e5401A501A8F32f3a9DFae3d356Fb9A9E'
 
 export function useConvertCallback(): [
   boolean,
@@ -52,17 +55,20 @@ export function useConvertCallback(): [
 ] {
   const { address: account } = useCelo()
   const signer = useConnectedSigner() as JsonRpcSigner
+  const provider = useProvider()
 
   const hasPendingTx = useHasPendingTransaction()
   const [isPending, setIsPending] = useState(false)
+  const [hash, setHash] = useState<string | undefined>()
+  const isTxPending = useIsTransactionPending(hash)
 
   const contractDisconnected = useUbeConvertContract(CONVERT_CONTRACT_ADDRESS)
   const doTransaction = useDoTransaction()
 
   const approve = useCallback(
     async (amountToConvert: TokenAmount, maxOldUbeAmount: string, signature: string): Promise<void> => {
-      if (!account) {
-        console.error('no account')
+      if (!account || !provider) {
+        console.error('no account or provider')
         return
       }
       if (hasPendingTx) {
@@ -89,23 +95,26 @@ export function useConvertCallback(): [
 
       setIsPending(true)
       try {
-        await doTransaction(convertContract, 'convert', {
+        const response = await doTransaction(convertContract, 'convert', {
           args: [amountToConvert.raw.toString(), maxOldUbeAmount, signature],
-          summary: `Convert to new UBE`,
+          summary: `Convert to new PACT`,
         })
+        setHash(response.hash)
+        await provider.waitForTransaction(response.hash, 2)
       } catch (e) {
         console.error(e)
+        setHash(undefined)
       } finally {
         setIsPending(false)
       }
     },
-    [isPending, contractDisconnected, signer, doTransaction, hasPendingTx, account]
+    [isPending, contractDisconnected, signer, doTransaction, hasPendingTx, account, provider]
   )
 
-  return [isPending, approve]
+  return [isPending || isTxPending, approve]
 }
 
-export default function ClaimNewUbeToken() {
+export default function ClaimNewPactToken() {
   const { t } = useTranslation()
 
   const { address: account, network } = useCelo()
@@ -116,14 +125,10 @@ export default function ClaimNewUbeToken() {
   // toggle wallet when disconnected
   const toggleWalletModal = useWalletModalToggle()
 
-  // swap state
-  const { v2Trade } = useDerivedSwapInfo()
-  const trade = v2Trade
-
   const [typedValue, setTypedValue] = useState('')
 
-  const inputCurrency = useToken('0x00Be915B9dCf56a3CBE739D9B9c202ca692409EC')
-  const outputCurrency = useToken('0x71e26d0E519D14591b9dE9a0fE9513A398101490')
+  const inputCurrency = useToken('0x46c9757C5497c5B1f2eb73aE79b6B67D119B0B58')
+  const outputCurrency = useToken('0x2b9018CeB303D540BbF08De8e7De64fDDD63396C')
   const currencies: { [field in Field]: Token | null | undefined } = useMemo(() => {
     return {
       [Field.INPUT]: inputCurrency,
@@ -138,7 +143,7 @@ export default function ClaimNewUbeToken() {
   } | null>(null)
   const [whitelistLoading, setWhitelistLoading] = useState(true)
   useEffect(() => {
-    fetch('https://raw.githubusercontent.com/Ubeswap/static/main/whitelist.json')
+    fetch('https://raw.githubusercontent.com/Ubeswap/static/main/pact-whitelist.json')
       .then((response) => response.json())
       .then((data) => {
         setWhitelistLoading(false)
@@ -149,12 +154,29 @@ export default function ClaimNewUbeToken() {
         setWhitelistLoading(false)
       })
   }, [])
+  const maxAllowed = useMemo(() => {
+    if (!whitelistLoading && whitelist && account) {
+      const data = whitelist[account?.toLocaleLowerCase() || '']
+      if (data) {
+        return BigNumber.from(data.amount)
+      }
+    }
+    return BigNumber.from(0)
+  }, [whitelistLoading, whitelist, account])
+  const maxAllowedText = Number(formatEther(maxAllowed)).toFixed(1).replace(/\.0+$/, '')
 
   const parsedAmount = useMemo(() => {
     return tryParseAmount(typedValue, inputCurrency ?? undefined)
   }, [typedValue, inputCurrency])
   const outputAmount = parsedAmount
   const outputAmountText = outputAmount?.toSignificant(6) ?? ''
+
+  const convertContract = useUbeConvertContract(CONVERT_CONTRACT_ADDRESS)
+  const convertedAmount = useSingleCallResult(convertContract, 'accountToConvertedAmount', [account ?? AddressZero])
+  console.log('convertedAmount', convertedAmount)
+  const convertedAmountText = convertedAmount.result?.length
+    ? Number(formatEther(convertedAmount.result?.[0])).toFixed(1).replace(/\.0+$/, '')
+    : 'loading...'
 
   // the callback to execute the swap
   const [isConvertPending, convertCallback] = useConvertCallback()
@@ -179,10 +201,20 @@ export default function ClaimNewUbeToken() {
       return 'Select a token'
     }
     if (inputBalance && parsedAmount && inputBalance.lessThan(parsedAmount)) {
-      return 'Insufficient old-UBE balance'
+      return 'Insufficient old-PACT balance'
     }
+
+    if (whitelist) {
+      const data = whitelist[account?.toLocaleLowerCase() || '']
+      if (data && convertedAmount.loading == false && convertedAmount.result?.length) {
+        if (BigNumber.from(data.amount).sub(convertedAmount.result[0]).lt(parsedAmount.raw.toString())) {
+          return 'Exceeds allowed amount'
+        }
+      }
+    }
+
     return undefined
-  }, [account, parsedAmount, currencies, inputBalance, whitelistLoading, whitelist, isConvertPending])
+  }, [account, parsedAmount, currencies, inputBalance, whitelistLoading, whitelist, isConvertPending, convertedAmount])
 
   const isValid = !swapInputError
 
@@ -242,16 +274,14 @@ export default function ClaimNewUbeToken() {
     convertCallback(parsedAmount, data.amount, data.signature)
       .then(() => {
         console.log('444')
-        //
+        setTypedValue('')
+        setApprovalSubmitted(false)
       })
       .catch((error) => {
         console.log('xxx')
         console.error(error)
       })
   }, [convertCallback, account, parsedAmount, whitelist])
-
-  // errors
-  const [showInverted, setShowInverted] = useState<boolean>(false)
 
   // show approve flow when: no error on inputs, not approved or pending, or approved in current session
   // never show if price impact is above threshold in non expert mode
@@ -285,23 +315,20 @@ export default function ClaimNewUbeToken() {
         <CardSection>
           <AutoColumn gap="md">
             <RowBetween>
-              <TYPE.white fontWeight={600}>New Tokenomics</TYPE.white>
+              <TYPE.white fontWeight={600}>PACT New Tokenomics</TYPE.white>
             </RowBetween>
             <RowBetween>
-              <TYPE.white fontSize={14}>Ubeswap has migrated to new token economics.</TYPE.white>
+              <TYPE.white fontSize={14}>ImpactMarket has migrated to new token economics.</TYPE.white>
             </RowBetween>
             <RowBetween>
-              <TYPE.white fontSize={14}>
-                After 75% of the liquid tokens are swapped, 1 month will be provided for the remainder of the community
-                to swap. Any tokens not swapped after this period will be burned.
-              </TYPE.white>
+              <TYPE.white fontSize={14}>Tokens will be swapped, 1:1 ratio.</TYPE.white>
             </RowBetween>
           </AutoColumn>
         </CardSection>
         <CardNoise />
       </VoteCard>
       <AppBody>
-        <SwapHeader title={'Convert to new UBE'} hideSettings={true} />
+        <SwapHeader title={'Convert to new PACT'} hideSettings={true} />
         <Wrapper id="swap-page">
           <AutoColumn gap={'md'}>
             <CurrencyInputPanel
@@ -340,18 +367,14 @@ export default function ClaimNewUbeToken() {
 
             <Card padding={'0px'} borderRadius={'20px'}>
               <AutoColumn gap="8px" style={{ padding: '0 16px' }}>
-                {Boolean(trade) && (
-                  <RowBetween align="center">
-                    <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                      Price
-                    </Text>
-                    <TradePrice
-                      price={trade?.executionPrice}
-                      showInverted={showInverted}
-                      setShowInverted={setShowInverted}
-                    />
-                  </RowBetween>
-                )}
+                <RowBetween align="center">
+                  <Text fontWeight={800} fontSize={14} color={theme.text1}>
+                    Converted / Max:
+                  </Text>
+                  <Text fontWeight={800} fontSize={14} color={theme.text1}>
+                    {convertedAmountText} / {maxAllowedText}
+                  </Text>
+                </RowBetween>
               </AutoColumn>
             </Card>
           </AutoColumn>
@@ -382,10 +405,10 @@ export default function ClaimNewUbeToken() {
                   width="48%"
                   id="swap-button"
                   disabled={!isValid || approval !== ApprovalState.APPROVED}
-                  error={false}
+                  error={isValid && !!swapCallbackError}
                 >
                   <Text fontSize={16} fontWeight={500}>
-                    Convert
+                    {swapInputError ? swapInputError : 'Convert'}
                   </Text>
                 </ButtonError>
               </RowBetween>
@@ -410,17 +433,6 @@ export default function ClaimNewUbeToken() {
           </BottomGrouping>
         </Wrapper>
       </AppBody>
-
-      <AutoColumn gap="lg" justify="center" style={{ width: '100%', maxWidth: '420px', marginTop: '30px' }}>
-        <AutoColumn gap="lg" style={{ width: '100%' }}>
-          <ButtonSecondary>
-            <RowBetween>
-              <StyledInternalLink to="/claim-new-pact">Go to PACT Convert Page</StyledInternalLink>
-              <span> ↗</span>
-            </RowBetween>
-          </ButtonSecondary>
-        </AutoColumn>
-      </AutoColumn>
     </>
   )
 }
