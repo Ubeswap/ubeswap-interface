@@ -113,7 +113,7 @@ export default function App() {
               <Route exact strict path="/stake" component={StakePage} />
               <Route exact strict path="/add-proposal" component={AddProposal} />
               <Route exact strict path="/claim-new-ube" component={ClaimNewUbeToken} />
-              <Route exact strict path="/claim-new-pact-test-page_" component={ClaimNewPactToken} />
+              <Route exact strict path="/claim-new-pact" component={ClaimNewPactToken} />
               <Route component={RedirectPathToSwapOnly} />
             </Switch>
           </ErrorBoundary>

@@ -11,7 +11,7 @@ import { useHasPendingTransaction } from 'state/transactions/hooks'
 import { useCurrencyBalance } from 'state/wallet/hooks'
 import styled, { ThemeContext } from 'styled-components'
 
-import { ButtonConfirmed, ButtonError, ButtonLight } from '../../components/Button'
+import { ButtonConfirmed, ButtonError, ButtonLight, ButtonSecondary } from '../../components/Button'
 import Card from '../../components/Card'
 import Column, { AutoColumn } from '../../components/Column'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
@@ -27,7 +27,7 @@ import { useToken } from '../../hooks/Tokens'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { tryParseAmount, useDerivedSwapInfo } from '../../state/swap/hooks'
-import { TYPE } from '../../theme'
+import { StyledInternalLink, TYPE } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import AppBody from '../AppBody'
 
@@ -410,6 +410,17 @@ export default function ClaimNewUbeToken() {
           </BottomGrouping>
         </Wrapper>
       </AppBody>
+
+      <AutoColumn gap="lg" justify="center" style={{ width: '100%', maxWidth: '420px', marginTop: '30px' }}>
+        <AutoColumn gap="lg" style={{ width: '100%' }}>
+          <ButtonSecondary>
+            <RowBetween>
+              <StyledInternalLink to="/claim-new-pact">Go to PACT Convert Page</StyledInternalLink>
+              <span> ↗</span>
+            </RowBetween>
+          </ButtonSecondary>
+        </AutoColumn>
+      </AutoColumn>
     </>
   )
 }
