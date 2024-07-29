@@ -30,7 +30,7 @@ if (window.celo) {
 }
 
 const client = new ApolloClient({
-  uri: 'https://api.thegraph.com/subgraphs/name/ubeswap/ubeswap',
+  uri: 'https://gateway-arbitrum.network.thegraph.com/api/ce0f9485ff589b0b8c8320333f8081c3/subgraphs/id/JWDRLCwj4H945xEkbB6eocBSZcYnibqcJPJ8h9davFi',
   cache: new InMemoryCache(),
 })
 
