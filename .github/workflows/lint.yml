@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: '14'
       - name: Cache node_modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: .yarn/
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
