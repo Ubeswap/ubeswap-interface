@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, useCelo } from '@celo/react-celo'
 import { parseBytes32String } from '@ethersproject/strings'
 import { currencyEquals, Token } from '@ubeswap/sdk'
 import { arrayify } from 'ethers/lib/utils'
@@ -13,13 +13,17 @@ import { TokenAddressMap, useDefaultTokenList, useUnsupportedTokenList } from '.
 import { useBytes32TokenContract, useTokenContract } from './useContract'
 
 // reduce token map into standard address <-> Token mapping, optionally include user added tokens
-function useTokensFromMap(tokenMap: TokenAddressMap, includeUserAdded: boolean): { [address: string]: Token } {
-  const { network } = useContractKit()
-  const chainId = network.chainId
+function useTokensFromMap(
+  tokenMap: TokenAddressMap,
+  includeUserAdded: boolean,
+  chainIdOpt?: ChainId
+): { [address: string]: Token } {
+  const { network } = useCelo()
+  const chainId = chainIdOpt || network.chainId
   const userAddedTokens = useUserAddedTokens()
 
   return useMemo(() => {
-    if (!chainId) return {}
+    if (!chainId || !tokenMap[chainId]) return {}
 
     // reduce to just tokens
     const mapWithoutUrls = Object.keys(tokenMap[chainId]).reduce<{ [address: string]: Token }>((newMap, address) => {
@@ -52,9 +56,9 @@ export function useDefaultTokens(): { [address: string]: Token } {
   return useTokensFromMap(defaultList, false)
 }
 
-export function useAllTokens(): { [address: string]: Token } {
+export function useAllTokens(chainId?: ChainId): { [address: string]: Token } {
   const allTokens = useCombinedActiveList()
-  return useTokensFromMap(allTokens, true)
+  return useTokensFromMap(allTokens, true, chainId)
 }
 
 export function useAllInactiveTokens(): { [address: string]: Token } {
@@ -93,7 +97,7 @@ export function useIsTokenActive(token: Token | undefined | null): boolean {
 
 // used to detect extra search results
 export function useFoundOnInactiveList(searchQuery: string): Token[] | undefined {
-  const { network } = useContractKit()
+  const { network } = useCelo()
   const chainId = network.chainId
   const inactiveTokens = useAllInactiveTokens()
 
@@ -121,7 +125,11 @@ export function useIsUserAddedToken(currency: Token | undefined | null): boolean
 // parse a name or symbol from a token response
 const BYTES32_REGEX = /^0x[a-fA-F0-9]{64}$/
 
-function parseStringOrBytes32(str: string | undefined, bytes32: string | undefined, defaultValue: string): string {
+export function parseStringOrBytes32(
+  str: string | undefined,
+  bytes32: string | undefined,
+  defaultValue: string
+): string {
   return str && str.length > 0
     ? str
     : // need to check for proper bytes string and valid terminator
@@ -134,7 +142,7 @@ function parseStringOrBytes32(str: string | undefined, bytes32: string | undefin
 // null if loading
 // otherwise returns the token
 export function useToken(tokenAddress?: string): Token | undefined | null {
-  const { network } = useContractKit()
+  const { network } = useCelo()
   const chainId = network.chainId
   const tokens = useAllTokens()
 

@@ -1,6 +1,6 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useCelo } from '@celo/react-celo'
 import { ChainId as UbeswapChainId, cUSD, JSBI } from '@ubeswap/sdk'
-import QuestionHelper from 'components/QuestionHelper'
+import StakedAmountsHelper from 'components/earn/StakedAmountsHelper'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, RouteComponentProps } from 'react-router-dom'
@@ -22,10 +22,11 @@ import { useCurrency } from '../../hooks/Tokens'
 import { useColor } from '../../hooks/useColor'
 import usePrevious from '../../hooks/usePrevious'
 import { useWalletModalToggle } from '../../state/application/hooks'
-import { usePairDualStakingInfo, usePairTripleStakingInfo } from '../../state/stake/hooks'
+import { usePairMultiStakingInfo } from '../../state/stake/hooks'
 import { useTokenBalance } from '../../state/wallet/hooks'
 import { ExternalLinkIcon, TYPE } from '../../theme'
 import { currencyId } from '../../utils/currencyId'
+import { useCustomStakingInfo } from './useCustomStakingInfo'
 import { useStakingPoolValue } from './useStakingPoolValue'
 
 const PageWrapper = styled(AutoColumn)`
@@ -94,7 +95,7 @@ export default function Manage({
   },
 }: RouteComponentProps<{ currencyIdA: string; currencyIdB: string; stakingAddress: string }>) {
   const { t } = useTranslation()
-  const { address: account, network } = useContractKit()
+  const { address: account, network } = useCelo()
   const { chainId } = network
 
   // get currencies and pair
@@ -102,12 +103,11 @@ export default function Manage({
 
   const [, stakingTokenPair] = usePair(tokenA, tokenB)
   const singleStakingInfo = usePairStakingInfo(stakingTokenPair)
-  const dualStakingInfo = usePairDualStakingInfo(singleStakingInfo, stakingAddress)
-  const tripleStakingInfo = usePairTripleStakingInfo(singleStakingInfo, stakingAddress)
+  const multiStakingInfo = usePairMultiStakingInfo(singleStakingInfo, stakingAddress)
   const externalSingleStakingInfo = usePairStakingInfo(stakingTokenPair, stakingAddress)
-
+  const customStakingInfo = useCustomStakingInfo(stakingAddress)
   // Check external before we check single staking
-  const stakingInfo = tripleStakingInfo || dualStakingInfo || externalSingleStakingInfo || singleStakingInfo
+  const stakingInfo = (multiStakingInfo || externalSingleStakingInfo || singleStakingInfo) ?? customStakingInfo
 
   // detect existing unstaked LP position to show add button if none found
   const userLiquidityUnstaked = useTokenBalance(account ?? undefined, stakingInfo?.stakedAmount?.token)
@@ -130,9 +130,16 @@ export default function Manage({
     userValueCUSD,
     userAmountTokenA,
     userAmountTokenB,
-  } = useStakingPoolValue(stakingInfo)
+  } = useStakingPoolValue(stakingInfo, stakingTokenPair)
 
-  const countUpAmounts = stakingInfo?.earnedAmounts?.map((earnedAmount) => earnedAmount.toFixed(6) ?? '0') || []
+  stakingInfo?.rewardRates?.sort((a, b) =>
+    a.multiply(BIG_INT_SECONDS_IN_WEEK).lessThan(b.multiply(BIG_INT_SECONDS_IN_WEEK)) ? 1 : -1
+  )
+  const countUpAmounts =
+    stakingInfo?.earnedAmounts
+      ?.sort((a, b) => (a.lessThan(b) ? 1 : -1))
+      .map((earnedAmount) => earnedAmount.toFixed(6) ?? '0') || []
+
   const countUpAmountsPrevious = usePrevious(countUpAmounts) ?? countUpAmounts
 
   const toggleWalletModal = useWalletModalToggle()
@@ -178,14 +185,16 @@ export default function Manage({
             {stakingInfo?.active && (
               <>
                 <TYPE.body style={{ margin: 0 }}>{t('poolRate')}</TYPE.body>
-                {stakingInfo?.totalRewardRates?.map((rewardRate, idx) => {
-                  return (
-                    <TYPE.body fontSize={24} fontWeight={500} key={idx}>
-                      {rewardRate?.multiply(BIG_INT_SECONDS_IN_WEEK)?.toFixed(0, { groupSeparator: ',' }) ?? '-'}
-                      {` ${rewardRate.token.symbol} / week`}
-                    </TYPE.body>
-                  )
-                })}
+                {stakingInfo?.totalRewardRates
+                  ?.filter((rewardRate) => !rewardRate.equalTo('0'))
+                  ?.map((rewardRate) => {
+                    return (
+                      <TYPE.body fontSize={24} fontWeight={500} key={rewardRate.token.symbol}>
+                        {rewardRate?.multiply(BIG_INT_SECONDS_IN_WEEK)?.toFixed(0, { groupSeparator: ',' }) ?? '-'}
+                        {` ${rewardRate.token.symbol} / week`}
+                      </TYPE.body>
+                    )
+                  })}
               </>
             )}
           </AutoColumn>
@@ -228,6 +237,7 @@ export default function Manage({
             isOpen={showStakingModal}
             onDismiss={() => setShowStakingModal(false)}
             stakingInfo={stakingInfo}
+            dummyPair={stakingTokenPair}
             userLiquidityUnstaked={userLiquidityUnstaked}
           />
           <UnstakingModal
@@ -260,7 +270,7 @@ export default function Manage({
                     <TYPE.white>
                       UBE-LP {tokenA?.symbol}-{tokenB?.symbol}
                     </TYPE.white>
-                    {stakingInfo && (
+                    {stakingInfo && stakingInfo.stakingToken && (
                       <PairLinkIcon
                         href={`https://info.ubeswap.org/pair/${stakingInfo.stakingToken.address.toLowerCase()}`}
                       />
@@ -278,11 +288,7 @@ export default function Manage({
                             })}`
                           : '--'}
                       </TYPE.white>
-                      <QuestionHelper
-                        text={`${userAmountTokenA?.toFixed(0, { groupSeparator: ',' })} ${
-                          userAmountTokenA?.token.symbol
-                        }, ${userAmountTokenB?.toFixed(0, { groupSeparator: ',' })} ${userAmountTokenB?.token.symbol}`}
-                      />
+                      <StakedAmountsHelper userAmountTokenA={userAmountTokenA} userAmountTokenB={userAmountTokenB} />
                     </RowFixed>
                   </RowBetween>
                 )}
@@ -307,34 +313,37 @@ export default function Manage({
                   </ButtonEmpty>
                 )}
               </RowBetween>
-              {stakingInfo?.rewardRates?.map((rewardRate, idx) => (
-                <RowBetween style={{ alignItems: 'baseline' }} key={idx}>
-                  <TYPE.largeHeader fontSize={36} fontWeight={600}>
-                    {countUpAmounts[idx] ? (
-                      <CountUp
-                        key={countUpAmounts[idx]}
-                        isCounting
-                        decimalPlaces={4}
-                        start={parseFloat(countUpAmountsPrevious[idx] || countUpAmounts[idx])}
-                        end={parseFloat(countUpAmounts[idx])}
-                        thousandsSeparator={','}
-                        duration={1}
-                      />
-                    ) : (
-                      '0'
-                    )}
-                  </TYPE.largeHeader>
-                  <TYPE.black fontSize={16} fontWeight={500}>
-                    <span role="img" aria-label="wizard-icon" style={{ marginRight: '8px ' }}>
-                      ⚡
-                    </span>
-                    {stakingInfo?.active
-                      ? rewardRate.multiply(BIG_INT_SECONDS_IN_WEEK)?.toSignificant(4, { groupSeparator: ',' }) ?? '-'
-                      : '0'}
-                    {` ${rewardRate.token.symbol} / ${t('week')}`}
-                  </TYPE.black>
-                </RowBetween>
-              ))}
+              {stakingInfo?.rewardRates
+                // show if rewards are more than zero or unclaimed are greater than zero
+                ?.filter((rewardRate, idx) => rewardRate.greaterThan('0') || countUpAmounts[idx])
+                ?.map((rewardRate, idx) => (
+                  <RowBetween style={{ alignItems: 'baseline' }} key={rewardRate.token.symbol}>
+                    <TYPE.largeHeader fontSize={36} fontWeight={600}>
+                      {countUpAmounts[idx] ? (
+                        <CountUp
+                          key={countUpAmounts[idx]}
+                          isCounting
+                          decimalPlaces={parseFloat(countUpAmounts[idx]) < 0.0001 ? 6 : 4}
+                          start={parseFloat(countUpAmountsPrevious[idx] || countUpAmounts[idx])}
+                          end={parseFloat(countUpAmounts[idx])}
+                          thousandsSeparator={','}
+                          duration={1}
+                        />
+                      ) : (
+                        '0'
+                      )}
+                    </TYPE.largeHeader>
+                    <TYPE.black fontSize={16} fontWeight={500}>
+                      <span role="img" aria-label="wizard-icon" style={{ marginRight: '8px ' }}>
+                        ⚡
+                      </span>
+                      {stakingInfo?.active
+                        ? rewardRate.multiply(BIG_INT_SECONDS_IN_WEEK)?.toSignificant(4, { groupSeparator: ',' }) ?? '-'
+                        : '0'}
+                      {` ${rewardRate.token.symbol} / ${t('week')}`}
+                    </TYPE.black>
+                  </RowBetween>
+                ))}
             </AutoColumn>
           </StyledBottomCard>
         </BottomSection>

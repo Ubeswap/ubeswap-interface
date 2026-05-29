@@ -1,4 +1,4 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useCelo } from '@celo/react-celo'
 import { Pair } from '@ubeswap/sdk'
 import React, { useContext, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -18,6 +18,7 @@ import { usePairs } from '../../data/Reserves'
 import { toV2LiquidityToken, useTrackedTokenPairs } from '../../state/user/hooks'
 import { useTokenBalancesWithLoadingIndicator } from '../../state/wallet/hooks'
 import { ExternalLink, HideSmall, StyledInternalLink, TYPE } from '../../theme'
+import LiquidityWarning from './LiquidityWarning'
 
 const PageWrapper = styled(AutoColumn)`
   max-width: 640px;
@@ -74,7 +75,7 @@ const EmptyProposals = styled.div`
 export default function Pool() {
   const { t } = useTranslation()
   const theme = useContext(ThemeContext)
-  const { address: account } = useContractKit()
+  const { address: account } = useCelo()
 
   // fetch the user's balances of all tracked V2 LP tokens
   const trackedTokenPairs = useTrackedTokenPairs()
@@ -94,13 +95,13 @@ export default function Pool() {
   // fetch the reserves for all V2 pools in which the user has a balance
   const liquidityTokensWithBalances = useMemo(
     () =>
-      tokenPairsWithLiquidityTokens.filter(({ liquidityToken }) =>
-        v2PairsBalances[liquidityToken.address]?.greaterThan('0')
-      ),
+      tokenPairsWithLiquidityTokens
+        .filter(({ liquidityToken }) => v2PairsBalances[liquidityToken.address]?.greaterThan('0'))
+        .map(({ tokens }) => tokens),
     [tokenPairsWithLiquidityTokens, v2PairsBalances]
   )
 
-  const v2Pairs = usePairs(liquidityTokensWithBalances.map(({ tokens }) => tokens))
+  const v2Pairs = usePairs(liquidityTokensWithBalances)
   const v2IsLoading =
     fetchingV2PairBalances || v2Pairs?.length < liquidityTokensWithBalances.length || v2Pairs?.some((V2Pair) => !V2Pair)
 
@@ -109,6 +110,7 @@ export default function Pool() {
   return (
     <>
       <PageWrapper>
+        <LiquidityWarning />
         <SwapPoolTabs active={'pool'} />
         <VoteCard>
           <CardNoise />

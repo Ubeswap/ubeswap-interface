@@ -1,42 +1,41 @@
+import { useCelo } from '@celo/react-celo'
+import { formatEther } from '@ethersproject/units'
+import { faArrowDownWideShort } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { ErrorBoundary } from '@sentry/react'
-import { JSBI } from '@ubeswap/sdk'
-import ChangeNetworkModal from 'components/ChangeNetworkModal'
-import { useIsSupportedNetwork } from 'hooks/useIsSupportedNetwork'
-import { partition } from 'lodash'
-import React, { useMemo } from 'react'
+import { Token } from '@ubeswap/sdk'
+import { ButtonPrimary } from 'components/Button'
+import TokenSelect from 'components/CurrencyInputPanel/TokenSelect'
+import ClaimAllRewardPanel from 'components/earn/ClaimAllRewardPanel'
+import { ImportedPoolCard } from 'components/earn/ImportedPoolCard'
+import ImportFarmModal from 'components/earn/ImportFarmModal'
+import Loader from 'components/Loader'
+import { isEqual } from 'lodash'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import useStakingInfo from 'state/stake/useStakingInfo'
+import { Text } from 'rebass'
+import { useImportedFarmActionHandlers, useImportedFarmState } from 'state/importfarm/hooks'
+import { useOwnerStakedPools } from 'state/stake/useOwnerStakedPools'
 import styled from 'styled-components'
 
-import { AutoColumn } from '../../components/Column'
+import { AutoColumn, ColumnCenter, TopSection } from '../../components/Column'
 import { PoolCard } from '../../components/earn/PoolCard'
 import { CardNoise, CardSection, DataCard } from '../../components/earn/styled'
-import Loader from '../../components/Loader'
-import { RowBetween } from '../../components/Row'
-import { BIG_INT_ZERO } from '../../constants'
-import { MultiRewardPool, multiRewardPools, StakingInfo } from '../../state/stake/hooks'
+import { RowBetween, RowStart } from '../../components/Row'
+import { IMPORTED_FARMS } from '../../constants'
 import { ExternalLink, TYPE } from '../../theme'
-import { DualPoolCard } from './DualPoolCard'
-import { COUNTDOWN_END, LaunchCountdown } from './LaunchCountdown'
-import { TriplePoolCard } from './TriplePoolCard'
+import LiquidityWarning from '../Pool/LiquidityWarning'
+import { FarmSummary, useFarmRegistry } from './useFarmRegistry'
 
-const PageWrapper = styled(AutoColumn)`
+enum FarmSort {
+  UNKNOWN,
+  DEPOSIT,
+  YIELD,
+}
+
+const PageWrapper = styled.div`
+  width: 100%;
   max-width: 640px;
-  width: 100%;
-`
-
-const TopSection = styled(AutoColumn)`
-  max-width: 720px;
-  width: 100%;
-`
-
-const PoolSection = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  column-gap: 10px;
-  row-gap: 15px;
-  width: 100%;
-  justify-self: center;
 `
 
 const DataRow = styled(RowBetween)`
@@ -45,52 +44,175 @@ flex-direction: column;
 `};
 `
 
+const PoolWrapper = styled.div`
+  margin-bottom: 12px;
+`
+
+const FancyButton = styled.button`
+  color: ${({ theme }) => theme.text1};
+  align-items: center;
+  height: 2.2rem;
+  padding: 0 0.7rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  width: auto;
+  min-width: 3.5rem;
+  border: 1px solid ${({ theme }) => theme.bg3};
+  outline: none;
+  background: ${({ theme }) => theme.bg1};
+  :hover {
+    border: 1px solid ${({ theme }) => theme.bg4};
+  }
+  :focus {
+    border: 1px solid ${({ theme }) => theme.primary1};
+  }
+`
+
+const Option = styled(FancyButton)<{ active: boolean }>`
+  margin-right: 8px;
+  :hover {
+    cursor: pointer;
+  }
+  background-color: ${({ active, theme }) => active && theme.primary1};
+  color: ${({ active, theme }) => (active ? theme.white : theme.text1)};
+  font-weight: 500;
+`
+
+const Header: React.FC = ({ children }) => {
+  return (
+    <DataRow style={{ alignItems: 'baseline', marginBottom: '12px' }}>
+      <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{children}</TYPE.mediumHeader>
+    </DataRow>
+  )
+}
+
+export const MobileContainer = styled.div`
+  display: none;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    display: block;
+  `}
+`
+
+export const DesktopContainer = styled.div`
+  display: block;
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    display: none;
+  `}
+`
+
+export const StyledButton = styled.div`
+  text-decoration: none;
+  cursor: pointer;
+  color: ${({ theme }) => theme.primary1};
+  font-weight: 500;
+
+  :hover {
+    text-decoration: underline;
+  }
+
+  :focus {
+    outline: none;
+    text-decoration: underline;
+  }
+
+  :active {
+    text-decoration: none;
+  }
+`
+
+const ClaimAllRewardPanelComponent = React.memo(ClaimAllRewardPanel)
+const ImportedPoolCardComponent = React.memo(ImportedPoolCard)
+const ImportFarmModalComponent = React.memo(ImportFarmModal)
+const PoolCardComponent = React.memo(PoolCard)
+
+interface PoolCardProps {
+  poolLabel: string
+  farmSummaries: FarmSummary[]
+  handleRemoveFarm?: (farmAddress: string) => void
+}
+
+const PoolCards = ({ poolLabel, farmSummaries, handleRemoveFarm }: PoolCardProps) => {
+  const { t } = useTranslation()
+  return farmSummaries.length > 0 ? (
+    <>
+      <Header>{t(poolLabel)}</Header>
+      {farmSummaries.map((farmSummary) => (
+        <PoolWrapper key={farmSummary.stakingAddress}>
+          <ErrorBoundary>
+            <PoolCardComponent farmSummary={farmSummary} onRemoveImportedFarm={handleRemoveFarm} />
+          </ErrorBoundary>
+        </PoolWrapper>
+      ))}
+    </>
+  ) : null
+}
+
+const PoolCardsComponent = React.memo(PoolCards)
+
+function useTokenFilter(): [Token | null, (t: Token | null) => void] {
+  const [token, setToken] = useState<Token | null>(null)
+  return [token, setToken]
+}
+
 export default function Earn() {
   const { t } = useTranslation()
-  const isSupportedNetwork = useIsSupportedNetwork()
-  // staking info for connected account
-  const stakingInfos = useStakingInfo()
+  const { address: account } = useCelo()
 
-  // toggle copy if rewards are inactive
-  const stakingRewardsExist = true
+  const importedFarmsAddress = localStorage.getItem(IMPORTED_FARMS)
+  const [prevImportedFarmAddress, setPrevImportedFarmAddress] = useState<string | null>(null)
+  const [customFarms, setCustomFarms] = useState<string[]>([])
+  const [filteringToken, setFilteringToken] = useTokenFilter()
+  const [showImportFarmModal, setShowImportFarmModal] = useState<boolean>(false)
+  const farmSummaries = useFarmRegistry()
+  const [sortType, setSortType] = useState<FarmSort>(FarmSort.UNKNOWN)
+  const { importedFarmSummaries } = useImportedFarmState()
+  const { onAddImportedFarm, onRemoveImportedFarm } = useImportedFarmActionHandlers()
+  useEffect(() => {
+    if (!isEqual(importedFarmsAddress, prevImportedFarmAddress)) {
+      setPrevImportedFarmAddress(importedFarmsAddress)
+      setCustomFarms(importedFarmsAddress ? JSON.parse(importedFarmsAddress) : [])
+    }
+  }, [importedFarmsAddress, prevImportedFarmAddress])
 
-  const allPools = useMemo(
-    () =>
-      // Sort staking info by highest rewards
-      stakingInfos?.slice().sort((a: StakingInfo, b: StakingInfo) => {
-        return JSBI.toNumber(JSBI.subtract(b.totalRewardRates[0].raw, a.totalRewardRates[0].raw)) // TODO: Hardcode only checking the first totalRewardRate
-      }),
-    [stakingInfos]
-  )
+  const filteredFarms = useMemo(() => {
+    const importedSummaries: FarmSummary[] = importedFarmSummaries.filter(
+      (summary) => summary !== undefined
+    ) as unknown as FarmSummary[]
 
-  const [stakedPools, unstakedPools] = useMemo(() => {
-    return partition(allPools, (pool) => pool.stakedAmount && JSBI.greaterThan(pool.stakedAmount.raw, BIG_INT_ZERO))
-  }, [allPools])
+    const allSummaries = [...farmSummaries, ...importedSummaries]
+    const sortedSummaries =
+      sortType === FarmSort.YIELD
+        ? allSummaries.sort((a, b) => Number(b.apy) - Number(a.apy))
+        : allSummaries.sort((a, b) => {
+            return Number(a.tvlUSD && b.tvlUSD ? formatEther(b.tvlUSD.sub(a.tvlUSD)) : 0)
+          })
+    if (filteringToken === null) {
+      return sortedSummaries
+    } else {
+      return sortedSummaries.filter(
+        (farm) => farm?.token0Address === filteringToken?.address || farm?.token1Address === filteringToken?.address
+      )
+    }
+  }, [importedFarmSummaries, farmSummaries, sortType, filteringToken])
 
-  const [activePools, inactivePools] = partition(unstakedPools, (pool) => pool.active)
+  const { stakedFarms, featuredFarms, unstakedFarms, importedFarms } = useOwnerStakedPools(filteredFarms)
 
-  const isGenesisOver = COUNTDOWN_END < new Date().getTime()
+  const handleRemoveFarm = (farmAddress: string) => {
+    if (customFarms) {
+      localStorage.setItem(IMPORTED_FARMS, JSON.stringify(customFarms.filter((farm: string) => farm !== farmAddress)))
+      onRemoveImportedFarm(farmAddress)
+    }
+  }
 
-  const multiRewards = multiRewardPools.map((multiPool) => {
-    return [multiPool, allPools.find((pool) => pool.poolInfo.poolAddress === multiPool.basePool)]
-  }) as [MultiRewardPool, StakingInfo][]
-
-  const [dualRewards, inactiveDualRewards] = partition(
-    multiRewards.filter(([pool]) => pool.numRewards === 2),
-    ([pool]) => pool.active
-  )
-  const [tripleRewards, inactiveTripleRewards] = partition(
-    multiRewards.filter(([pool]) => pool.numRewards === 3),
-    ([pool]) => pool.active
-  )
-
-  if (!isSupportedNetwork) {
-    return <ChangeNetworkModal />
+  const handleUpdateFarm = (farmSummary: FarmSummary) => {
+    onAddImportedFarm(farmSummary)
   }
 
   return (
-    <PageWrapper gap="lg" justify="center">
-      {isGenesisOver && (
+    <PageWrapper>
+      <ClaimAllRewardPanelComponent stakedFarms={stakedFarms} />
+      <LiquidityWarning />
+      {stakedFarms.length === 0 && (
         <TopSection gap="md">
           <DataCard>
             <CardNoise />
@@ -115,144 +237,94 @@ export default function Earn() {
           </DataCard>
         </TopSection>
       )}
-
-      {!isGenesisOver && <LaunchCountdown />}
-
-      <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
-        <DataRow style={{ alignItems: 'baseline' }}>
-          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>
-            {t('triple')} {t('rewardPools')}
-          </TYPE.mediumHeader>
-        </DataRow>
-        {tripleRewards.map((x) => x[1]).some((x) => !x) && <Loader />}
-        {tripleRewards.map((x, i) => {
-          return (
-            x[1] && (
-              <PoolSection key={i}>
-                <ErrorBoundary>
-                  <TriplePoolCard
-                    poolAddress={x[0].address}
-                    dualPoolAddress={x[0].underlyingPool}
-                    underlyingPool={x[1]}
-                    active={x[0].active}
-                  />
-                </ErrorBoundary>
-              </PoolSection>
-            )
-          )
-        })}
-      </AutoColumn>
-
-      {dualRewards.length > 0 && (
-        <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
-          <DataRow style={{ alignItems: 'baseline' }}>
-            <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>
-              {t('double')} {t('rewardPools')}
-            </TYPE.mediumHeader>
-          </DataRow>
-          {dualRewards.map((x) => x[1]).some((x) => !x) && <Loader />}
-          {dualRewards.map((x, i) => {
-            return (
-              x[1] && (
-                <PoolSection key={i}>
-                  <ErrorBoundary>
-                    <DualPoolCard poolAddress={x[0].address} underlyingPool={x[1]} active={x[0].active} />
-                  </ErrorBoundary>
-                </PoolSection>
-              )
-            )
-          })}
-        </AutoColumn>
-      )}
-
-      {stakedPools.length > 0 && (
-        <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
-          <DataRow style={{ alignItems: 'baseline' }}>
-            <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{t('yourPools')}</TYPE.mediumHeader>
-            <div>{/* TODO(igm): show TVL here */}</div>
-          </DataRow>
-
-          <PoolSection>
-            {stakedPools.map((pool) => (
-              <ErrorBoundary key={pool.stakingRewardAddress}>
-                <PoolCard stakingInfo={pool} />
-              </ErrorBoundary>
-            ))}
-          </PoolSection>
-        </AutoColumn>
-      )}
-
-      <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
-        <DataRow style={{ alignItems: 'baseline' }}>
-          <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{t('availablePools')}</TYPE.mediumHeader>
-          <div>
-            {!isGenesisOver && (
-              <span>
-                Rewards begin on{' '}
-                {new Date(COUNTDOWN_END).toLocaleString('en-us', {
-                  timeZoneName: 'short',
-                })}
-              </span>
-            )}
-          </div>
-          {/* TODO(igm): show TVL here */}
-        </DataRow>
-        <PoolSection>
-          {stakingRewardsExist && stakingInfos?.length === 0 ? (
-            <Loader style={{ margin: 'auto' }} />
-          ) : (
-            activePools?.map((pool) => (
-              <ErrorBoundary key={pool.stakingRewardAddress}>
-                <PoolCard stakingInfo={pool} />
-              </ErrorBoundary>
-            ))
+      <TopSection gap="md">
+        <MobileContainer>
+          {farmSummaries.length !== 0 && (
+            <AutoColumn justify={'start'} gap="md">
+              <Text
+                textAlign="center"
+                fontSize={16}
+                style={{ padding: '.5rem 0 .5rem 0' }}
+                onClick={() => {
+                  setShowImportFarmModal(true)
+                }}
+              >
+                <ButtonPrimary padding="8px 16px" borderRadius="8px" disabled={!account}>
+                  {t('ImportFarm')}
+                </ButtonPrimary>
+              </Text>
+            </AutoColumn>
           )}
-        </PoolSection>
-      </AutoColumn>
-
-      {inactivePools.length > 0 && (
-        <AutoColumn gap="lg" style={{ width: '100%', maxWidth: '720px' }}>
-          <DataRow style={{ alignItems: 'baseline' }}>
-            <TYPE.mediumHeader style={{ marginTop: '0.5rem' }}>{t('inactivePools')}</TYPE.mediumHeader>
-            <div>{/* TODO(igm): show TVL here */}</div>
-          </DataRow>
-
-          <PoolSection>
-            {inactivePools.map((pool) => (
-              <ErrorBoundary key={pool.stakingRewardAddress}>
-                <PoolCard stakingInfo={pool} />
-              </ErrorBoundary>
-            ))}
-            {inactiveTripleRewards.map((x, i) => {
-              return (
-                x[1] && (
-                  <PoolSection key={i}>
-                    <ErrorBoundary>
-                      <TriplePoolCard
-                        poolAddress={x[0].address}
-                        dualPoolAddress={x[0].underlyingPool}
-                        underlyingPool={x[1]}
-                        active={x[0].active}
-                      />
-                    </ErrorBoundary>
-                  </PoolSection>
-                )
-              )
-            })}
-            {inactiveDualRewards.map((x, i) => {
-              return (
-                x[1] && (
-                  <PoolSection key={i}>
-                    <ErrorBoundary>
-                      <DualPoolCard poolAddress={x[0].address} underlyingPool={x[1]} active={x[0].active} />
-                    </ErrorBoundary>
-                  </PoolSection>
-                )
-              )
-            })}
-          </PoolSection>
-        </AutoColumn>
-      )}
+        </MobileContainer>
+        <RowBetween>
+          <AutoColumn>
+            <RowStart>
+              <TokenSelect onTokenSelect={setFilteringToken} token={filteringToken} />
+              <Option
+                style={{ marginLeft: '8px', marginBottom: '10px' }}
+                onClick={() => {
+                  setSortType(sortType === FarmSort.DEPOSIT ? FarmSort.UNKNOWN : FarmSort.DEPOSIT)
+                }}
+                active={sortType === FarmSort.DEPOSIT}
+              >
+                <FontAwesomeIcon icon={faArrowDownWideShort} />
+                &nbsp;{t('deposit')}
+              </Option>
+              <Option
+                onClick={() => {
+                  setSortType(sortType === FarmSort.YIELD ? FarmSort.UNKNOWN : FarmSort.YIELD)
+                }}
+                active={sortType === FarmSort.YIELD}
+              >
+                <FontAwesomeIcon icon={faArrowDownWideShort} />
+                &nbsp;{t('yield')}
+              </Option>
+            </RowStart>
+          </AutoColumn>
+          <DesktopContainer>
+            {farmSummaries.length !== 0 && (
+              <AutoColumn justify={'end'} gap="md">
+                <Text
+                  textAlign="center"
+                  fontSize={16}
+                  style={{ padding: '.5rem 0 .5rem 0' }}
+                  onClick={() => {
+                    setShowImportFarmModal(true)
+                  }}
+                >
+                  <ButtonPrimary padding="8px 16px" borderRadius="8px">
+                    {t('ImportFarm')}
+                  </ButtonPrimary>
+                </Text>
+              </AutoColumn>
+            )}
+          </DesktopContainer>
+        </RowBetween>
+      </TopSection>
+      <ColumnCenter>
+        {farmSummaries.length > 0 && filteredFarms.length == 0 && `No Farms for ${filteringToken?.symbol}`}
+        {farmSummaries.length === 0 && <Loader size="48px" />}
+      </ColumnCenter>
+      <PoolCardsComponent farmSummaries={stakedFarms} poolLabel={'yourPools'} />
+      <PoolCardsComponent
+        farmSummaries={importedFarms}
+        poolLabel={'importedPools'}
+        handleRemoveFarm={handleRemoveFarm}
+      />
+      <PoolCardsComponent farmSummaries={featuredFarms} poolLabel={'featuredPools'} />
+      <PoolCardsComponent farmSummaries={unstakedFarms} poolLabel={'availablePools'} />
+      <ImportFarmModalComponent
+        farmSummaries={farmSummaries}
+        isOpen={showImportFarmModal}
+        onDismiss={() => setShowImportFarmModal(false)}
+      />
+      {customFarms.map((farmAddress, index) => (
+        <ImportedPoolCardComponent
+          key={index}
+          farmAddress={farmAddress}
+          onUpdateFarm={(farm) => handleUpdateFarm(farm)}
+        />
+      ))}
     </PageWrapper>
   )
 }

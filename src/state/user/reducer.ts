@@ -14,6 +14,7 @@ import {
   toggleURLWarning,
   updateMatchesDarkMode,
   updateUserAllowMoolaWithdrawal,
+  updateUserAprMode,
   updateUserDarkMode,
   updateUserDeadline,
   updateUserDisableSmartRouting,
@@ -66,12 +67,15 @@ export interface UserState {
     address: string
     phoneNumber: string
   } | null
+
+  userAprMode: boolean
 }
 
 function pairKey(token0Address: string, token1Address: string) {
   return `${token0Address};${token1Address}`
 }
 
+document.querySelector('html')?.classList.add('tw-dark')
 export const initialState: UserState = {
   userDarkMode: null,
   matchesDarkMode: false,
@@ -87,6 +91,7 @@ export const initialState: UserState = {
   timestamp: currentTimestamp(),
   URLWarningVisible: true,
   valoraAccount: null,
+  userAprMode: false,
 }
 
 export default createReducer(initialState, (builder) =>
@@ -175,5 +180,8 @@ export default createReducer(initialState, (builder) =>
     })
     .addCase(clearValoraAccount, (state) => {
       state.valoraAccount = null
+    })
+    .addCase(updateUserAprMode, (state, action) => {
+      state.userAprMode = action.payload.userAprMode
     })
 )

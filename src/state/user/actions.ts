@@ -31,9 +31,12 @@ export const updateUserDeadline = createAction<{ userDeadline: number }>('user/u
 export const addSerializedToken = createAction<{ serializedToken: SerializedToken }>('user/addSerializedToken')
 export const removeSerializedToken = createAction<{ chainId: number; address: string }>('user/removeSerializedToken')
 export const addSerializedPair = createAction<{ serializedPair: SerializedPair }>('user/addSerializedPair')
-export const removeSerializedPair =
-  createAction<{ chainId: number; tokenAAddress: string; tokenBAddress: string }>('user/removeSerializedPair')
+export const removeSerializedPair = createAction<{ chainId: number; tokenAAddress: string; tokenBAddress: string }>(
+  'user/removeSerializedPair'
+)
 export const toggleURLWarning = createAction<void>('app/toggleURLWarning')
 
 export const setValoraAccount = createAction<{ address: string; phoneNumber: string }>('user/setValoraAccount')
 export const clearValoraAccount = createAction<void>('user/clearValoraAccount')
+
+export const updateUserAprMode = createAction<{ userAprMode: boolean }>('user/updateUserAprMode')

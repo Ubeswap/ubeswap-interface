@@ -1,11 +1,15 @@
-import { ChainId, useContractKit } from '@celo-tools/use-contractkit'
+import 'rc-drawer/assets/index.css'
+
+import { ChainId, useCelo } from '@celo/react-celo'
 import { CELO, ChainId as UbeswapChainId, TokenAmount } from '@ubeswap/sdk'
 import { CardNoise } from 'components/earn/styled'
 import Modal from 'components/Modal'
+import Hamburger from 'hamburger-react'
+import { useToken } from 'hooks/Tokens'
 import usePrevious from 'hooks/usePrevious'
 import { darken } from 'polished'
+import Drawer from 'rc-drawer'
 import React, { useState } from 'react'
-import { isMobile } from 'react-device-detect'
 import { Moon, Sun } from 'react-feather'
 import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router-dom'
@@ -14,7 +18,7 @@ import { useAggregateUbeBalance, useTokenBalance } from 'state/wallet/hooks'
 import styled from 'styled-components'
 import { TYPE } from 'theme'
 import { ExternalLink } from 'theme/components'
-import { CountUp } from 'use-count-up'
+import { relevantDigits } from 'utils/relevantDigits'
 
 import Icon from '../../assets/svg/icon-ube.svg'
 import Logo from '../../assets/svg/logo.svg'
@@ -24,6 +28,8 @@ import { YellowCard } from '../Card'
 import Menu from '../Menu'
 import Row, { RowFixed } from '../Row'
 import Web3Status from '../Web3Status'
+import BridgeMenuGroup from './BridgeMenuGroup'
+import ChartsMenuGroup from './ChartsMenuGroup'
 import UbeBalanceContent from './UbeBalanceContent'
 
 const HeaderFrame = styled.div`
@@ -39,12 +45,13 @@ const HeaderFrame = styled.div`
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 1rem;
   z-index: 2;
-  ${({ theme }) => theme.mediaWidth.upToMedium`
+
+  @media (max-width: 1115px) {
     grid-template-columns: 1fr;
     padding: 0 1rem;
     width: calc(100%);
     position: relative;
-  `};
+  }
 
   ${({ theme }) => theme.mediaWidth.upToExtraSmall`
         padding: 0.5rem 1rem;
@@ -57,12 +64,12 @@ const HeaderControls = styled.div`
   align-items: center;
   justify-self: flex-end;
 
-  ${({ theme }) => theme.mediaWidth.upToMedium`
+  @media (max-width: 1115px) {
     flex-direction: row;
     justify-content: space-between;
     justify-self: center;
     width: 100%;
-    max-width: 960px;
+    max-width: 1115px;
     padding: 1rem;
     position: fixed;
     bottom: 0px;
@@ -72,7 +79,7 @@ const HeaderControls = styled.div`
     height: 72px;
     border-radius: 12px 12px 0 0;
     background-color: ${({ theme }) => theme.bg1};
-  `};
+  }
 `
 
 const HeaderElement = styled.div`
@@ -96,17 +103,17 @@ const HeaderElementWrap = styled.div`
 `
 
 const HeaderRow = styled(RowFixed)`
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-   width: 100%;
-  `};
+  @media (max-width: 1115px) {
+    width: 100%;
+  }
 `
 
 const HeaderLinks = styled(Row)`
   justify-content: center;
-  ${({ theme }) => theme.mediaWidth.upToMedium`
+  @media (max-width: 1115px) {
     padding: 1rem 0 1rem 1rem;
     justify-content: flex-end;
-`};
+  }
 `
 
 const AccountElement = styled.div<{ active: boolean }>`
@@ -172,7 +179,7 @@ const UbeIcon = styled.div`
 
 const activeClassName = 'ACTIVE'
 
-const StyledNavLink = styled(NavLink).attrs({
+export const StyledNavLink = styled(NavLink).attrs({
   activeClassName,
 })`
   ${({ theme }) => theme.flexRowNoWrap}
@@ -196,6 +203,18 @@ const StyledNavLink = styled(NavLink).attrs({
   :hover,
   :focus {
     color: ${({ theme }) => darken(0.1, theme.text1)};
+  }
+
+  @media (max-width: 320px) {
+    margin: 0 8px;
+  }
+`
+
+export const StyledNavLinkExtraSmall = styled(StyledNavLink).attrs({
+  activeClassName,
+})`
+  @media (max-width: 550px) {
+    display: none;
   }
 `
 
@@ -259,25 +278,109 @@ export const StyledMenuButton = styled.button`
   }
 `
 
+export const StyledDesktopLogo = styled.img`
+  display: inline;
+  @media (max-width: 1225px) {
+    display: none;
+  }
+  @media (max-width: 1115px) {
+    display: inline;
+  }
+  @media (max-width: 655px) {
+    display: none;
+  }
+  @media (max-width: 550px) {
+    display: inline;
+  }
+  @media (max-width: 415px) {
+    display: none;
+  }
+`
+
+export const StyledMobileLogo = styled.img`
+  display: none;
+  @media (max-width: 1225px) {
+    display: inline;
+  }
+  @media (max-width: 1115px) {
+    display: none;
+  }
+  @media (max-width: 655px) {
+    display: inline;
+  }
+  @media (max-width: 550px) {
+    display: none;
+  }
+  @media (max-width: 415px) {
+    display: inline;
+  }
+`
+
+export const BurgerElement = styled(HeaderElement)`
+  display: none;
+  @media (max-width: 550px) {
+    display: flex;
+  }
+`
+
+export const StyledDrawer = styled(Drawer)`
+  & .drawer-content-wrapper {
+    background: ${({ theme }) => theme.bg3};
+    color: ${({ theme }) => theme.text1};
+  }
+`
+
+export const StyledMenu = styled.ul`
+  padding-left: 0px;
+  list-style: none;
+`
+export const StyledMenuItem = styled.li`
+  padding: 10px 0px 10px 20px;
+`
+export const StyledSubMenuItem = styled(StyledMenuItem)`
+  padding-left: 30px;
+`
+
+const StyledDrawerExternalLink = styled(StyledExternalLink).attrs({
+  activeClassName,
+})<{ isActive?: boolean }>`
+  text-decoration: none;
+  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
+      display: flex;
+`}
+`
+
 const NETWORK_LABELS: { [chainId in ChainId]?: string } = {
-  [ChainId.CeloMainnet]: 'Celo',
+  [ChainId.Mainnet]: 'Celo',
   [ChainId.Alfajores]: 'Alfajores',
   [ChainId.Baklava]: 'Baklava',
-  [ChainId.EthereumMainnet]: 'Ethereum',
-  [ChainId.Kovan]: 'Kovan',
 }
 
 export default function Header() {
-  const { address: account, network } = useContractKit()
-  const chainId = network.chainId
+  const { address: account, network } = useCelo()
+  const chainId = network.chainId as UbeswapChainId
   const { t } = useTranslation()
 
   const userCELOBalance = useTokenBalance(account ?? undefined, CELO[chainId as unknown as UbeswapChainId])
   const [darkMode, toggleDarkMode] = useDarkModeManager()
   const [showUbeBalanceModal, setShowUbeBalanceModal] = useState<boolean>(false)
   const aggregateBalance: TokenAmount | undefined = useAggregateUbeBalance()
-  const countUpValue = aggregateBalance?.toFixed(0) ?? '0'
+  const countUpValue = relevantDigits(aggregateBalance)
   const countUpValuePrevious = usePrevious(countUpValue) ?? '0'
+
+  const oldUbeToken = useToken('0x00Be915B9dCf56a3CBE739D9B9c202ca692409EC')
+  const oldUbeBalance = useTokenBalance(account ?? undefined, oldUbeToken ?? undefined)
+  const oldUbeBalanceFormatted = relevantDigits(oldUbeBalance)
+
+  const [drawerVisible, setDrawerVisible] = useState<boolean>(false)
+
+  const onDrawerClose = () => {
+    setDrawerVisible(false)
+  }
+
+  const onToggle = (toggled: boolean) => {
+    setDrawerVisible(toggled)
+  }
 
   return (
     <HeaderFrame>
@@ -287,13 +390,17 @@ export default function Header() {
       <HeaderRow>
         <Title to="/">
           <UbeIcon>
-            <img width={isMobile ? '32px' : '140px'} src={isMobile ? Icon : darkMode ? LogoDark : Logo} alt="logo" />
+            <StyledMobileLogo width={'32px'} height={'36px'} src={Icon} alt="Ubeswap" />
+            <StyledDesktopLogo width={'140px'} height={'26px'} src={darkMode ? LogoDark : Logo} alt="Ubeswap" />
           </UbeIcon>
         </Title>
         <HeaderLinks>
           <StyledNavLink id={`swap-nav-link`} to={'/swap'}>
             {t('swap')}
           </StyledNavLink>
+          <StyledNavLinkExtraSmall id={`swap-nav-link`} to={'/limit-order'}>
+            {t('limitOrder')}
+          </StyledNavLinkExtraSmall>
           <StyledNavLink
             id={`pool-nav-link`}
             to={'/pool'}
@@ -310,13 +417,89 @@ export default function Header() {
           <StyledNavLink id="farm-nav-link" to="/farm">
             {t('farm')}
           </StyledNavLink>
-          <StyledNavLink id={`bridge-nav-link`} to={'/bridge'}>
-            {t('bridge')}
+          <BridgeMenuGroup />
+          <StyledNavLinkExtraSmall id={`stake-nav-link`} to={'/stake'}>
+            {t('stake')}
+          </StyledNavLinkExtraSmall>
+          <ChartsMenuGroup />
+          <StyledNavLink id={`convert-nav-link`} to={'/claim-new-ube'}>
+            Convert UBE
           </StyledNavLink>
-          <StyledExternalLink id={`stake-nav-link`} href={'https://info.ubeswap.org'}>
-            {t('charts')} <span style={{ fontSize: '11px' }}>↗</span>
-          </StyledExternalLink>
         </HeaderLinks>
+        <BurgerElement>
+          <Hamburger size={18} hideOutline={false} label="show menu" toggled={drawerVisible} onToggle={onToggle} />
+          <StyledDrawer
+            open={drawerVisible}
+            placement={'right'}
+            width={'250px'}
+            level={null}
+            handler={false}
+            onClose={onDrawerClose}
+          >
+            <StyledMenu>
+              <StyledMenuItem>
+                <StyledNavLink id={'stake-drawer-nav-link'} to={'/stake'} onClick={onDrawerClose}>
+                  {t('stake')}
+                </StyledNavLink>
+              </StyledMenuItem>
+              <StyledMenuItem>
+                <StyledNavLink id={'limit-orders-drawer-nav-link'} to={'/limit-order'} onClick={onDrawerClose}>
+                  Limit Orders
+                </StyledNavLink>
+              </StyledMenuItem>
+              <StyledMenuItem>
+                <StyledNavLink id={'stake-drawer-nav-link'} to={'#'}>
+                  Bridge
+                </StyledNavLink>
+              </StyledMenuItem>
+              <StyledSubMenuItem>
+                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://allbridge.io/'}>
+                  Allbridge
+                </StyledDrawerExternalLink>
+              </StyledSubMenuItem>
+              <StyledSubMenuItem>
+                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://app.multichain.org/#/router'}>
+                  Multichain
+                </StyledDrawerExternalLink>
+              </StyledSubMenuItem>
+              <StyledSubMenuItem>
+                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://optics.app/'}>
+                  Optics
+                </StyledDrawerExternalLink>
+              </StyledSubMenuItem>
+              <StyledSubMenuItem>
+                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://bridge.orbitchain.io/'}>
+                  Orbit
+                </StyledDrawerExternalLink>
+              </StyledSubMenuItem>
+              <StyledSubMenuItem>
+                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://transferto.xyz/'}>
+                  LI.FI
+                </StyledDrawerExternalLink>
+              </StyledSubMenuItem>
+              <StyledSubMenuItem>
+                <StyledDrawerExternalLink id={`stake-drawer-nav-link`} href={'https://www.portalbridge.com/#/transfer'}>
+                  Portal
+                </StyledDrawerExternalLink>
+              </StyledSubMenuItem>
+              <StyledMenuItem>
+                <StyledNavLink id={'charts-drawer-nav-link'} to={'#'}>
+                  Charts
+                </StyledNavLink>
+              </StyledMenuItem>
+              <StyledSubMenuItem>
+                <StyledDrawerExternalLink id={`charts-analytics-drawer-nav-link`} href={'https://info.ubeswap.org/'}>
+                  Analytics
+                </StyledDrawerExternalLink>
+              </StyledSubMenuItem>
+              <StyledSubMenuItem>
+                <StyledDrawerExternalLink id={`charts-celo-tracker-drawer-nav-link`} href={'https://celotracker.com/'}>
+                  Celo Tracker
+                </StyledDrawerExternalLink>
+              </StyledSubMenuItem>
+            </StyledMenu>
+          </StyledDrawer>
+        </BurgerElement>
       </HeaderRow>
       <HeaderControls>
         <HeaderElement>
@@ -336,34 +519,43 @@ export default function Header() {
                         paddingRight: '.4rem',
                       }}
                     >
-                      <CountUp
-                        key={countUpValue}
-                        isCounting
-                        start={parseFloat(countUpValuePrevious)}
-                        end={parseFloat(countUpValue)}
-                        thousandsSeparator={','}
-                        duration={1}
-                      />
+                      {countUpValue}
                     </TYPE.white>
                   </HideSmall>
                 )}
                 UBE
               </UBEAmount>
               <CardNoise />
+              {oldUbeBalance?.greaterThan('0') && (
+                <HideSmall>
+                  <UBEAmount active={!!account} style={{ pointerEvents: 'auto' }}>
+                    {account && (
+                      <TYPE.white
+                        style={{
+                          paddingRight: '.4rem',
+                        }}
+                      >
+                        {oldUbeBalanceFormatted}
+                      </TYPE.white>
+                    )}
+                    old-UBE
+                  </UBEAmount>
+                </HideSmall>
+              )}
             </UBEWrapper>
           )}
 
           <AccountElement active={!!account} style={{ pointerEvents: 'auto' }}>
             {account && userCELOBalance ? (
               <BalanceText style={{ flexShrink: 0 }} pl="0.75rem" pr="0.5rem" fontWeight={500}>
-                {userCELOBalance?.toFixed(2, { groupSeparator: ',' }) ?? '0.00'} CELO
+                {relevantDigits(userCELOBalance) ?? '0.00'} CELO
               </BalanceText>
             ) : null}
             <Web3Status />
           </AccountElement>
         </HeaderElement>
         <HeaderElementWrap>
-          <StyledMenuButton onClick={() => toggleDarkMode()}>
+          <StyledMenuButton aria-label={t('toggleDarkMode')} onClick={() => toggleDarkMode()}>
             {darkMode ? <Moon size={20} /> : <Sun size={20} />}
           </StyledMenuButton>
           <Menu />
@@ -384,6 +576,8 @@ const UBEAmount = styled(AccountElement)`
 
 const UBEWrapper = styled.span`
   width: fit-content;
+  display: flex;
+  gap: 2px;
   position: relative;
   cursor: pointer;
   :hover {

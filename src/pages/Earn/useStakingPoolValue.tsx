@@ -1,10 +1,11 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId as UbeswapChainId, cUSD, JSBI, TokenAmount } from '@ubeswap/sdk'
+import { useCelo } from '@celo/react-celo'
+import { ChainId as UbeswapChainId, cUSD, JSBI, Pair, TokenAmount } from '@ubeswap/sdk'
 import { BIG_INT_ZERO } from 'constants/index'
-import { usePair } from 'data/Reserves'
 import { useTotalSupply } from 'data/TotalSupply'
 import { StakingInfo } from 'state/stake/hooks'
 import { useCUSDPrice } from 'utils/useCUSDPrice'
+
+import { CustomStakingInfo } from './useCustomStakingInfo'
 
 interface IStakingPoolValue {
   valueCUSD?: TokenAmount
@@ -15,11 +16,13 @@ interface IStakingPoolValue {
   userAmountTokenB?: TokenAmount
 }
 
-export const useStakingPoolValue = (stakingInfo?: StakingInfo | null): IStakingPoolValue => {
-  const { network } = useContractKit()
+export const useStakingPoolValue = (
+  stakingInfo?: StakingInfo | CustomStakingInfo | null,
+  stakingTokenPair?: Pair | null
+): IStakingPoolValue => {
+  const { network } = useCelo()
   const chainId = network.chainId
-  const totalSupplyOfStakingToken = useTotalSupply(stakingInfo?.stakingToken)
-  const [, stakingTokenPair] = usePair(stakingInfo?.tokens[0], stakingInfo?.tokens[1])
+  const totalSupplyOfStakingToken = useTotalSupply(stakingInfo?.stakingToken ?? undefined)
 
   const cusd = cUSD[chainId as unknown as UbeswapChainId]
   const cusdPrice0 = useCUSDPrice(stakingTokenPair?.token0)
@@ -44,7 +47,10 @@ export const useStakingPoolValue = (stakingInfo?: StakingInfo | null): IStakingP
         cusd,
         JSBI.divide(
           JSBI.multiply(
-            JSBI.multiply(stakingInfo.totalStakedAmount.raw, amount.raw),
+            JSBI.multiply(
+              stakingInfo.totalStakedAmount ? stakingInfo.totalStakedAmount.raw : JSBI.BigInt(0),
+              amount.raw
+            ),
             // this is b/c the value of LP shares are ~double the value of the cUSD they entitle owner to
             JSBI.BigInt(2)
           ),

@@ -1,6 +1,10 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useCelo } from '@celo/react-celo'
+import { TokenAmount } from '@ubeswap/sdk'
 import { useDoTransaction } from 'components/swap/routing'
+import zip from 'lodash/zip'
+import { CustomStakingInfo } from 'pages/Earn/useCustomStakingInfo'
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
 import { useStakingContract } from '../../hooks/useContract'
@@ -20,16 +24,17 @@ const ContentWrapper = styled(AutoColumn)`
 interface StakingModalProps {
   isOpen: boolean
   onDismiss: () => void
-  stakingInfo: StakingInfo
+  stakingInfo: StakingInfo | CustomStakingInfo
 }
 
 export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: StakingModalProps) {
-  const { address: account } = useContractKit()
+  const { address: account } = useCelo()
 
   // monitor call to help UI loading state
   const doTransaction = useDoTransaction()
   const [hash, setHash] = useState<string | undefined>()
   const [attempting, setAttempting] = useState(false)
+  const { t } = useTranslation()
 
   function wrappedOnDismiss() {
     setHash(undefined)
@@ -44,7 +49,9 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
       setAttempting(true)
       await doTransaction(stakingContract, 'getReward', {
         args: [],
-        summary: `Claim accumulated ${stakingInfo.rewardTokens.map((token) => token.symbol).join(', ')} rewards`,
+        summary: t('ClaimAccumulatedRewards', {
+          symbols: stakingInfo.rewardTokens.map((token) => token.symbol).join(', '),
+        }),
       })
         .catch(console.error)
         .finally(() => {
@@ -55,10 +62,10 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
 
   let error: string | undefined
   if (!account) {
-    error = 'Connect Wallet'
+    error = `${t('ConnectWallet')}`
   }
   if (!stakingInfo?.stakedAmount) {
-    error = error ?? 'Enter an amount'
+    error = error ?? `${t('EnterAnAmount')}`
   }
 
   return (
@@ -70,20 +77,24 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
             <CloseIcon onClick={wrappedOnDismiss} />
           </RowBetween>
           <AutoColumn justify="center" gap="md">
-            {stakingInfo?.earnedAmounts?.map((earnedAmount, idx) => {
-              return (
-                <TYPE.body fontWeight={600} fontSize={36} key={idx}>
-                  {earnedAmount.toSignificant(4)} {earnedAmount.token.symbol}
-                </TYPE.body>
-              )
-            })}
+            {stakingInfo.earnedAmounts &&
+              stakingInfo.rewardRates &&
+              zip<TokenAmount, TokenAmount>(stakingInfo?.earnedAmounts, stakingInfo?.rewardRates).map(
+                ([earn, reward], idx) => {
+                  return (
+                    <TYPE.body fontWeight={600} fontSize={36} key={idx}>
+                      {earn?.toSignificant(4)} {reward?.token.symbol}
+                    </TYPE.body>
+                  )
+                }
+              )}
             <TYPE.body>Unclaimed rewards</TYPE.body>
           </AutoColumn>
           <TYPE.subHeader style={{ textAlign: 'center' }}>
-            When you claim without withdrawing your liquidity remains in the mining pool.
+            {t('WhenYouClaimWithoutWithdrawingYourLiquidityRemainsInTheMiningPool')}
           </TYPE.subHeader>
           <ButtonError disabled={!!error} error={!!error && !!stakingInfo?.stakedAmount} onClick={onClaimReward}>
-            {error ?? 'Claim'}
+            {error ?? `${t('claim')}`}
           </ButtonError>
         </ContentWrapper>
       )}
@@ -91,7 +102,7 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
         <LoadingView onDismiss={wrappedOnDismiss}>
           <AutoColumn gap="12px" justify={'center'}>
             <TYPE.body fontSize={20}>
-              Claiming{' '}
+              {t('Claiming')}{' '}
               {stakingInfo?.earnedAmounts
                 ?.map((earnedAmount) => `${earnedAmount.toSignificant(4)} ${earnedAmount?.token.symbol}`)
                 .join(' + ')}
@@ -102,9 +113,9 @@ export default function ClaimRewardModal({ isOpen, onDismiss, stakingInfo }: Sta
       {hash && (
         <SubmittedView onDismiss={wrappedOnDismiss} hash={hash}>
           <AutoColumn gap="12px" justify={'center'}>
-            <TYPE.largeHeader>Transaction Submitted</TYPE.largeHeader>
+            <TYPE.largeHeader>{t('TransactionSubmitted')}</TYPE.largeHeader>
             <TYPE.body fontSize={20}>
-              Claimed {stakingInfo?.rewardTokens.map((rewardToken) => rewardToken.symbol).join(' + ')}!
+              {t('Claimed')} {stakingInfo?.rewardTokens.map((rewardToken) => rewardToken.symbol).join(' + ')}!
             </TYPE.body>
           </AutoColumn>
         </SubmittedView>

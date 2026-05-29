@@ -1,20 +1,21 @@
-import { ChainId, useContractKit } from '@celo-tools/use-contractkit'
+import { ChainId, useCelo, useProvider } from '@celo/react-celo'
 import { BigNumber } from '@ethersproject/bignumber'
 import { ChainId as UbeswapChainId, JSBI, Pair, Token, TokenAmount } from '@ubeswap/sdk'
 import { POOL_MANAGER } from 'constants/poolManager'
 import { UBE } from 'constants/tokens'
-import { PoolManager } from 'generated/'
+import { MoolaStakingRewards__factory, PoolManager } from 'generated/'
 import { useAllTokens } from 'hooks/Tokens'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
-import { zip } from 'lodash'
+import zip from 'lodash/zip'
 // Hooks
-import { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 
 import ERC_20_INTERFACE from '../../constants/abis/erc20'
 import { STAKING_REWARDS_INTERFACE } from '../../constants/abis/staking-rewards'
 // Interfaces
 import { UNISWAP_V2_PAIR_INTERFACE } from '../../constants/abis/uniswap-v2-pair'
 import { usePoolManagerContract, useTokenContract } from '../../hooks/useContract'
+import { useFarmRegistry } from '../../pages/Earn/useFarmRegistry'
 import {
   NEVER_RELOAD,
   useMultipleContractSingleData,
@@ -25,94 +26,13 @@ import { tryParseAmount } from '../swap/hooks'
 import { useMultiStakeRewards } from './useDualStakeRewards'
 import useStakingInfo from './useStakingInfo'
 
-export type MultiRewardPool = {
-  address: string
-  underlyingPool: string
-  basePool: string
-  numRewards: number
-  active: boolean
-}
-
-export const multiRewardPools: MultiRewardPool[] = [
-  // CELO-MOBI
-  {
-    address: '0xd930501A0848DC0AA3E301c7B9b8AFE8134D7f5F',
-    underlyingPool: '0x19F1A692C77B481C23e9916E3E83Af919eD49765',
-    basePool: '0x19F1A692C77B481C23e9916E3E83Af919eD49765',
-    numRewards: 2,
-    active: true,
-  },
-  // CELO-mcUSD
-  {
-    address: '0xbbC8C824c638fd238178a71F5b1E5Ce7e4Ce586B',
-    underlyingPool: '0x66bD2eF224318cA5e3A93E165e77fAb6DD986E89',
-    basePool: '0x66bD2eF224318cA5e3A93E165e77fAb6DD986E89',
-    numRewards: 2,
-    active: true,
-  },
-  // CELO-mcEUR
-  {
-    address: '0x0F3d01aea89dA0b6AD81712Edb96FA7AF1c17E9B',
-    underlyingPool: '0x08252f2E68826950d31D268DfAE5E691EE8a2426',
-    basePool: '0x08252f2E68826950d31D268DfAE5E691EE8a2426',
-    numRewards: 2,
-    active: true,
-  },
-  // UBE-CELO
-  {
-    address: '0x9D87c01672A7D02b2Dc0D0eB7A145C7e13793c3B',
-    underlyingPool: '0x295D6f96081fEB1569d9Ce005F7f2710042ec6a1',
-    basePool: '0x295D6f96081fEB1569d9Ce005F7f2710042ec6a1',
-    numRewards: 2,
-    active: true,
-  },
-  // rCELO-CELO
-  {
-    address: '0x194478Aa91e4D7762c3E51EeE57376ea9ac72761',
-    underlyingPool: '0xD7D6b5213b9B9DFffbb7ef008b3cF3c677eb2468',
-    basePool: '0xD7D6b5213b9B9DFffbb7ef008b3cF3c677eb2468',
-    numRewards: 2,
-    active: true,
-  },
-  // mCUSD-mcEUR
-  {
-    address: '0x2f0ddEAa9DD2A0FB78d41e58AD35373d6A81EbB0',
-    underlyingPool: '0xaf13437122cd537C5D8942f17787cbDBd787fE94',
-    basePool: '0xaf13437122cd537C5D8942f17787cbDBd787fE94',
-    numRewards: 2,
-    active: false,
-  },
-  // MOO-mCELO
-  {
-    address: '0x84Bb1795b699Bf7a798C0d63e9Aad4c96B0830f4',
-    underlyingPool: '0xC087aEcAC0a4991f9b0e931Ce2aC77a826DDdaf3',
-    basePool: '0xC087aEcAC0a4991f9b0e931Ce2aC77a826DDdaf3',
-    numRewards: 2,
-    active: false,
-  },
-  // mCUSD-mcEUR
-  {
-    address: '0x3d823f7979bB3af846D8F1a7d98922514eA203fC',
-    underlyingPool: '0xb030882bfc44e223fd5e20d8645c961be9b30bb3',
-    basePool: '0xaf13437122cd537C5D8942f17787cbDBd787fE94',
-    numRewards: 3,
-    active: true,
-  },
-  // MOO-mCELO
-  {
-    address: '0x3c7beeA32A49D96d72ce45C7DeFb5b287479C2ba',
-    underlyingPool: '0x8f309df7527f16dff49065d3338ea3f3c12b5d09',
-    basePool: '0xC087aEcAC0a4991f9b0e931Ce2aC77a826DDdaf3',
-    numRewards: 3,
-    active: true,
-  },
-]
-
 export const STAKING_GENESIS = 1619100000
+const ACTIVE_CONTRACT_UPDATED_THRESHOLD = 5259492
+const UNPREDICTABLE_GAS_LIMIT_ERROR_CODE = 'UNPREDICTABLE_GAS_LIMIT'
 
 export interface StakingInfo {
   // the address of the reward contract
-  readonly stakingRewardAddress: string
+  readonly stakingRewardAddress: string | undefined
   // the token of the liquidity pool
   readonly stakingToken: Token
   // the tokens involved in this pair
@@ -143,29 +63,111 @@ export interface StakingInfo {
   readonly rewardTokens: Token[]
 }
 
-export const usePairDualStakingInfo = (
-  stakingInfo: StakingInfo | undefined,
-  stakingAddress: string
-): StakingInfo | null => {
-  const multiRewardPool = multiRewardPools
-    .filter((x) => x.address.toLowerCase() === stakingAddress.toLowerCase())
-    .find((x) => x.basePool === stakingInfo?.poolInfo.poolAddress)
-  return useMultiStakeRewards(multiRewardPool?.address ?? '', stakingInfo, 2, multiRewardPool?.active || false)
+type MultiRewardPool = {
+  address: string
+  underlyingPool: string
+  basePool: string
+  numRewards: number
+  active: boolean
 }
 
-export const usePairTripleStakingInfo = (
+export const useMultiRewardPools = (): MultiRewardPool[] => {
+  const library = useProvider()
+  const farmSummaries = useFarmRegistry()
+
+  const [multiRewardPools, setMultiRewardPools] = React.useState<MultiRewardPool[]>([])
+
+  const call = React.useCallback(async () => {
+    const multiRwdPools: MultiRewardPool[] = []
+
+    await Promise.all(
+      farmSummaries.map(async (fs) => {
+        let poolContract = MoolaStakingRewards__factory.connect(fs.stakingAddress, library)
+        const rewardsTokens = []
+        const externalStakingRwdAddresses = []
+
+        // the first reward token at the top level
+        rewardsTokens.push(await poolContract.rewardsToken())
+
+        // last time the contract was updated - set isActive to false if it has been longer than 2 months
+        let periodFinish = await poolContract.periodFinish()
+        let isActive = Math.floor(Date.now() / 1000) - periodFinish.toNumber() < ACTIVE_CONTRACT_UPDATED_THRESHOLD
+
+        let baseContractFound = false
+        // recursivley find underlying and base pool contracts
+        while (!baseContractFound) {
+          try {
+            // find the underlying contract if one exists
+            const externalStakingRewardAddr = await poolContract.externalStakingRewards()
+            externalStakingRwdAddresses.push(externalStakingRewardAddr)
+
+            // capture the contract's reward token
+            poolContract = MoolaStakingRewards__factory.connect(externalStakingRewardAddr, library)
+            rewardsTokens.push(await poolContract.rewardsToken())
+
+            // determine if the underlying contract is active or not
+            periodFinish = await poolContract.periodFinish()
+            isActive =
+              Math.floor(Date.now() / 1000) - periodFinish.toNumber() < ACTIVE_CONTRACT_UPDATED_THRESHOLD || isActive
+          } catch (e: any) {
+            //if the error is not what is expected - log it
+            if (e.code !== UNPREDICTABLE_GAS_LIMIT_ERROR_CODE) {
+              console.log(e)
+            }
+
+            //set true when externalStakingRewards() throws an error
+            baseContractFound = true
+          }
+        }
+
+        if (externalStakingRwdAddresses.length) {
+          multiRwdPools.push({
+            address: fs.stakingAddress,
+            underlyingPool: externalStakingRwdAddresses[0],
+            basePool: externalStakingRwdAddresses[externalStakingRwdAddresses.length - 1],
+            numRewards: rewardsTokens.length,
+            active: isActive,
+          })
+        }
+      })
+    )
+    setMultiRewardPools(multiRwdPools)
+  }, [farmSummaries, library])
+
+  useEffect(() => {
+    call()
+  }, [call])
+
+  return multiRewardPools
+}
+
+export const usePairMultiStakingInfo = (
   stakingInfo: StakingInfo | undefined,
   stakingAddress: string
 ): StakingInfo | null => {
-  const multiRewardPool = multiRewardPools
-    .filter((x) => x.address.toLowerCase() === stakingAddress.toLowerCase())
-    .find((x) => x.basePool === stakingInfo?.poolInfo.poolAddress)
-  const dualPool = useMultiStakeRewards(multiRewardPool?.underlyingPool ?? '', stakingInfo, 2, true)
-  const triplePool = useMultiStakeRewards(multiRewardPool?.address ?? '', dualPool, 3, multiRewardPool?.active || false)
-  if (multiRewardPool?.numRewards === 2) {
-    return null
-  }
-  return triplePool
+  const multiRewardPools = useMultiRewardPools()
+
+  const multiRewardPool = useMemo(() => {
+    return multiRewardPools
+      .filter((x) => x.address.toLowerCase() === stakingAddress.toLowerCase())
+      .find((x) => x.basePool.toLowerCase() === stakingInfo?.poolInfo.poolAddress.toLowerCase())
+  }, [multiRewardPools, stakingAddress, stakingInfo?.poolInfo.poolAddress])
+
+  const isTriple = multiRewardPool?.numRewards === 3
+
+  const dualPool = useMultiStakeRewards(
+    isTriple ? multiRewardPool?.underlyingPool : multiRewardPool?.address,
+    stakingInfo,
+    2,
+    isTriple ? true : multiRewardPool?.active ?? false
+  )
+  const triplePool = useMultiStakeRewards(
+    isTriple ? multiRewardPool?.address : undefined,
+    dualPool,
+    3,
+    multiRewardPool?.active ?? false
+  )
+  return triplePool || dualPool
 }
 
 interface UnclaimedInfo {
@@ -184,12 +186,12 @@ interface UnclaimedInfo {
 }
 
 export const useUnclaimedStakingRewards = (): UnclaimedInfo => {
-  const { network } = useContractKit()
+  const { network } = useCelo()
   const { chainId } = network
   const ube = chainId ? UBE[chainId as unknown as UbeswapChainId] : undefined
   const ubeContract = useTokenContract(ube?.address)
   const poolManagerContract = usePoolManagerContract(
-    [ChainId.CeloMainnet, ChainId.Alfajores].includes(chainId) ? POOL_MANAGER[chainId] : undefined
+    [ChainId.Mainnet, ChainId.Alfajores].includes(chainId) ? POOL_MANAGER[chainId] : undefined
   )
   const poolsCountBigNumber = useSingleCallResult(poolManagerContract, 'poolsCount').result?.[0] as
     | BigNumber
@@ -253,7 +255,7 @@ interface IStakingPool {
 }
 
 export function useStakingPools(pairToFilterBy?: Pair | null, stakingAddress?: string): readonly IStakingPool[] {
-  const { network } = useContractKit()
+  const { network } = useCelo()
   const chainId = network.chainId as unknown as UbeswapChainId
   const ube = chainId ? UBE[chainId] : undefined
 
@@ -287,14 +289,14 @@ export function useStakingPools(pairToFilterBy?: Pair | null, stakingAddress?: s
           ]
         }, [])
         .filter((stakingRewardInfo) => {
+          if (stakingAddress) {
+            return stakingAddress.toLowerCase() === stakingRewardInfo.stakingRewardAddress.toLowerCase()
+          }
           if (pairToFilterBy === undefined) {
             return true
           }
           if (pairToFilterBy === null) {
             return false
-          }
-          if (stakingAddress) {
-            return stakingAddress.toLowerCase() === stakingRewardInfo.stakingRewardAddress.toLowerCase()
           }
           return (
             stakingRewardInfo.tokens &&
@@ -349,6 +351,14 @@ const EXTERNAL_POOLS: IRawPool[] = [
     rewardTokenSymbol: 'LAPIS',
     weight: 0,
   },
+  {
+    index: -1,
+    poolAddress: '0x478b8D37eE976228d17704d95B5430Cd93a31b87',
+    stakingToken: '0x12E42ccf14B283Ef0a36A791892D18BF75Da5c80',
+    rewardToken: '0x94140c2eA9D208D8476cA4E3045254169791C59e',
+    rewardTokenSymbol: 'PREMIO',
+    weight: 0,
+  },
 ]
 
 export function useStakingPoolsInfo(
@@ -382,7 +392,7 @@ export function useStakingPoolsInfo(
 export function usePairDataFromAddresses(
   pairAddresses: readonly string[]
 ): readonly (readonly [Token, Token] | undefined)[] {
-  const { network } = useContractKit()
+  const { network } = useCelo()
   const chainId = network.chainId as unknown as UbeswapChainId
 
   const token0Data = useMultipleContractSingleData(
@@ -447,8 +457,12 @@ export function usePairDataFromAddresses(
       const name = names[index].result?.[0] === 'Celo Gold' ? 'Celo' : names[index].result?.[0]
       const symbol = symbols[index].result?.[0] === 'cGLD' ? 'CELO' : symbols[index].result?.[0] // todo - remove hardcoded symbol swap for CELO
 
-      const token = new Token(chainId, address, decimals, symbol, name)
-      return [...memo, token]
+      // Sometimes, decimals/name/symbol can be undefined, causing an error. TODO: Look into a root cause
+      if (chainId && address && decimals && symbol && name) {
+        const token = new Token(chainId, address, decimals, symbol, name)
+        return [...memo, token]
+      }
+      return memo
     }, [])
   }, [chainId, tokenAddressesNeededToFetch, names, symbols, tokenDecimals])
 
@@ -475,7 +489,7 @@ export function usePairDataFromAddresses(
 }
 
 export function useTotalUbeEarned(): TokenAmount | undefined {
-  const { network } = useContractKit()
+  const { network } = useCelo()
   const { chainId } = network
   const ube = chainId ? UBE[chainId as unknown as UbeswapChainId] : undefined
   const stakingInfos = useStakingInfo()
@@ -496,18 +510,44 @@ export function useTotalUbeEarned(): TokenAmount | undefined {
   }, [stakingInfos, ube])
 }
 
+export function useFilteredStakingInfo(stakingAddresses: string[]): readonly StakingInfo[] | undefined {
+  const { network } = useCelo()
+  const { chainId } = network
+  const ube = chainId ? UBE[chainId as unknown as UbeswapChainId] : undefined
+  const stakingInfos = useStakingInfo()
+  return useMemo(() => {
+    if (!ube) return
+    return stakingInfos.filter(
+      (stakingInfo) => stakingInfo.stakingToken.address && stakingAddresses.includes(stakingInfo.stakingToken.address)
+    )
+  }, [stakingInfos, ube, stakingAddresses])
+}
+
+export function useFarmRewardsInfo(stakingAddresses: string[]): readonly StakingInfo[] | undefined {
+  const { network } = useCelo()
+  const { chainId } = network
+  const ube = chainId ? UBE[chainId as unknown as UbeswapChainId] : undefined
+  const stakingInfos = useStakingInfo()
+  return useMemo(() => {
+    if (!ube) return
+    return stakingInfos.filter(
+      (stakingInfo) => stakingInfo.stakingToken.address && stakingAddresses.includes(stakingInfo.stakingToken.address)
+    )
+  }, [stakingInfos, ube, stakingAddresses])
+}
+
 // based on typed value
 export function useDerivedStakeInfo(
   typedValue: string,
-  stakingToken: Token,
+  stakingToken: Token | null | undefined,
   userLiquidityUnstaked: TokenAmount | undefined
 ): {
   parsedAmount?: TokenAmount
   error?: string
 } {
-  const { address } = useContractKit()
+  const { address } = useCelo()
 
-  const parsedInput: TokenAmount | undefined = tryParseAmount(typedValue, stakingToken)
+  const parsedInput: TokenAmount | undefined = tryParseAmount(typedValue, stakingToken ?? undefined)
 
   const parsedAmount =
     parsedInput && userLiquidityUnstaked && JSBI.lessThanOrEqual(parsedInput.raw, userLiquidityUnstaked.raw)
@@ -536,7 +576,7 @@ export function useDerivedUnstakeInfo(
   parsedAmount?: TokenAmount
   error?: string
 } {
-  const { address } = useContractKit()
+  const { address } = useCelo()
 
   const parsedInput: TokenAmount | undefined = tryParseAmount(typedValue, stakingAmount.token)
 

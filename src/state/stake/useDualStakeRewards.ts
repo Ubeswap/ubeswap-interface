@@ -1,85 +1,58 @@
 import { Address } from '@celo/contractkit'
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useCelo } from '@celo/react-celo'
 import { BigNumber } from '@ethersproject/bignumber'
 import { JSBI, Token, TokenAmount } from '@ubeswap/sdk'
 import { useToken } from 'hooks/Tokens'
 import { useMultiStakingContract } from 'hooks/useContract'
-import { zip } from 'lodash'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useBlockNumber } from 'state/application/hooks'
+import zip from 'lodash/zip'
+import { useMemo } from 'react'
+import { useSingleCallResult, useSingleContractMultipleData } from 'state/multicall/hooks'
 
+import { INT_SECONDS_IN_WEEK } from './../../constants/index'
 import { StakingInfo } from './hooks'
 
-interface RawPoolData {
-  totalSupply: BigNumber
-  rewardRate: BigNumber
-  rewardsToken: string
-  myBalance?: BigNumber
-  earned?: BigNumber[]
-}
-
 export const useMultiStakeRewards = (
-  address: Address,
+  address: Address | undefined,
   underlyingPool: StakingInfo | undefined | null,
   numRewards: number,
   active: boolean
 ): StakingInfo | null => {
-  const { address: owner } = useContractKit()
+  const { address: owner } = useCelo()
+  const accountArg = useMemo(() => [owner ?? undefined], [owner])
   const stakeRewards = useMultiStakingContract(address)
 
-  const [data, setData] = useState<RawPoolData | null>(null)
+  const totalSupply = useSingleCallResult(stakeRewards, 'totalSupply', [])?.result?.[0]
+  const rewardRate = useSingleCallResult(stakeRewards, 'rewardRate', [])?.result?.[0]
+  const rewardsToken = useToken(useSingleCallResult(stakeRewards, 'rewardsToken', [])?.result?.[0])
+  const externalRewardsTokens: Record<string, number> = useSingleContractMultipleData(
+    stakeRewards,
+    'externalRewardsTokens',
+    [...[...Array(numRewards - 2).keys()].map((i) => [i])]
+  )
+    ?.map((cr) => cr?.result as unknown as string)
+    .reduce((acc, curr, idx) => ({ ...acc, [curr]: idx }), {})
 
-  const blockNumber = useBlockNumber()
-
-  const load = useCallback(async (): Promise<RawPoolData | null> => {
-    if (!stakeRewards) {
-      return null
-    }
-
-    try {
-      const totalSupply = await stakeRewards.callStatic.totalSupply()
-      const rewardRate = await stakeRewards.callStatic.rewardRate()
-      const rewardsToken = await stakeRewards.callStatic.rewardsToken()
-
-      const amts = { totalSupply, rewardRate, rewardsToken } as const
-
-      if (!owner) {
-        return amts
-      }
-
-      const result = await Promise.all([
-        stakeRewards.callStatic.balanceOf(owner),
-        stakeRewards.callStatic.earned(owner),
-        Promise.all(
-          new Array(numRewards - 1)
-            .fill(0)
-            .map((_, idx) => stakeRewards.callStatic.earnedExternal(owner).then((v) => v[idx]))
-        ),
-      ])
-      return {
-        ...amts,
-        myBalance: result[0],
-        earned: [result[1], ...result[2]],
-      }
-    } catch (e) {
-      console.error(e, blockNumber) // Force usage of blockNumber so that we are refreshing
-      return null
-    }
-  }, [owner, stakeRewards, numRewards, blockNumber])
-
-  useEffect(() => {
-    void (async () => {
-      setData(await load())
-    })()
-  }, [load])
-
-  const rewardsToken = useToken(data?.rewardsToken)
+  const stakeBalance = useSingleCallResult(stakeRewards, 'balanceOf', accountArg)?.result?.[0]
+  const earned = useSingleCallResult(stakeRewards, 'earned', accountArg)?.result?.[0]
+  const earnedExternal = useSingleCallResult(stakeRewards, 'earnedExternal', accountArg)?.result?.[0]
+  const periodFinish = useSingleCallResult(stakeRewards, 'periodFinish', [])?.result?.[0]
+  const data = useMemo(
+    () => ({
+      totalSupply,
+      rewardRate,
+      rewardsToken,
+      periodFinish,
+      myBalance: stakeBalance,
+      earned: [earned, ...(earnedExternal ? earnedExternal : [])],
+    }),
+    [earned, earnedExternal, rewardRate, rewardsToken, stakeBalance, totalSupply, periodFinish]
+  )
 
   return useMemo((): StakingInfo | null => {
     if (!data || !rewardsToken || !underlyingPool) {
       return null
     }
-    const { totalSupply: totalSupplyRaw, rewardRate: totalRewardRateRaw, myBalance, earned } = data
+    const { totalSupply: totalSupplyRaw, rewardRate: totalRewardRateRaw, myBalance, earned, periodFinish } = data
     const { stakingToken } = underlyingPool
 
     const getHypotheticalRewardRate = (
@@ -97,10 +70,11 @@ export const useMultiStakeRewards = (
       })
     }
 
-    const stakedAmount = myBalance ? new TokenAmount(stakingToken, myBalance.toString()) : undefined
-    const totalStakedAmount = new TokenAmount(stakingToken, totalSupplyRaw.toString())
+    const rewardsFinished = Math.floor(Date.now() / 1000) - periodFinish.toNumber() > INT_SECONDS_IN_WEEK
+    const stakedAmount = myBalance ? new TokenAmount(stakingToken, myBalance?.toString() ?? '0') : undefined
+    const totalStakedAmount = new TokenAmount(stakingToken, totalSupplyRaw?.toString() ?? '0')
     const totalRewardRates = [
-      new TokenAmount(rewardsToken, totalRewardRateRaw.toString()),
+      new TokenAmount(rewardsToken, rewardsFinished ? JSBI.BigInt(0) : totalRewardRateRaw?.toString() ?? '0'),
       ...underlyingPool.totalRewardRates,
     ].sort((a, b) => (a.token?.symbol && b?.token?.symbol ? a.token.symbol.localeCompare(b.token.symbol) : 0))
 
@@ -108,12 +82,16 @@ export const useMultiStakeRewards = (
       ? getHypotheticalRewardRate(stakedAmount, totalStakedAmount, totalRewardRates)
       : totalRewardRates.map((totalRewardRate) => new TokenAmount(totalRewardRate.token, '0'))
 
-    const rewardTokens = [rewardsToken, ...underlyingPool.rewardTokens.reverse()]
-    const earnedAmounts = earned
-      ? zip<BigNumber, Token>(earned, rewardTokens)
-          .map(([amount, token]) => new TokenAmount(token as Token, amount?.toString() ?? '0'))
-          .sort((a, b) => (a?.token?.symbol && b?.token?.symbol ? a.token.symbol.localeCompare(b.token.symbol) : 0))
-      : undefined
+    const underlyingRewardTokens = underlyingPool.rewardTokens.sort(
+      (a, b) => externalRewardsTokens[a?.address] - externalRewardsTokens[b?.address]
+    )
+    const rewardTokens = rewardsToken ? [rewardsToken, ...underlyingRewardTokens] : [...underlyingRewardTokens]
+    const earnedAmounts =
+      earned && earned.length === rewardTokens.length
+        ? zip<BigNumber, Token>(earned, rewardTokens)
+            .map(([amount, token]) => new TokenAmount(token as Token, amount?.toString() ?? '0'))
+            .sort((a, b) => (a?.token?.symbol && b?.token?.symbol ? a.token.symbol.localeCompare(b.token.symbol) : 0))
+        : undefined
 
     return {
       stakingRewardAddress: address,
@@ -131,5 +109,5 @@ export const useMultiStakeRewards = (
       poolInfo: underlyingPool.poolInfo,
       rewardTokens,
     }
-  }, [address, data, rewardsToken, underlyingPool, active])
+  }, [data, rewardsToken, underlyingPool, address, active, externalRewardsTokens])
 }

@@ -1,11 +1,9 @@
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { useCelo, useProvider } from '@celo/react-celo'
 import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { CELO, ChainId as UbeswapChainId, Token, TokenAmount } from '@ubeswap/sdk'
-import ChangeNetworkModal from 'components/ChangeNetworkModal'
 import { useDoTransaction } from 'components/swap/routing'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
-import { useIsSupportedNetwork } from 'hooks/useIsSupportedNetwork'
 import React, { useCallback, useContext, useState } from 'react'
 import { Plus } from 'react-feather'
 import ReactGA from 'react-ga'
@@ -46,10 +44,9 @@ export default function AddLiquidity({
   },
   history,
 }: RouteComponentProps<{ currencyIdA?: string; currencyIdB?: string }>) {
-  const { address: account, network } = useContractKit()
+  const { address: account, network } = useCelo()
   const library = useProvider()
   const chainId = network.chainId
-  const isSupportedNetwork = useIsSupportedNetwork()
   const theme = useContext(ThemeContext)
 
   const currencyA = useCurrency(currencyIdA)
@@ -169,7 +166,7 @@ export default function AddLiquidity({
         action: 'Add',
         label: [currencies[Field.CURRENCY_A]?.symbol, currencies[Field.CURRENCY_B]?.symbol].join('/'),
       })
-    } catch (error) {
+    } catch (error: any) {
       setAttemptingTxn(false)
       // we only care if the error is something _other_ than the user rejected the tx
       if (error?.code !== 4001) {
@@ -276,10 +273,6 @@ export default function AddLiquidity({
   const isCreate = history.location.pathname.includes('/create')
 
   const addIsUnsupported = useIsTransactionUnsupported(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
-
-  if (!isSupportedNetwork) {
-    return <ChangeNetworkModal />
-  }
 
   return (
     <>
@@ -410,7 +403,7 @@ export default function AddLiquidity({
                               hostAppName: 'Ubeswap',
                               hostLogoUrl: 'https://info.ubeswap.org/favicon.png',
                               userAddress: account,
-                              swapAsset: currencies.CURRENCY_A?.symbol,
+                              swapAsset: `CELO_${currencies.CURRENCY_A?.symbol}`,
                               hostApiKey: process.env.REACT_APP_RAMP_KEY,
                             }).show()
                           }}
@@ -440,7 +433,7 @@ export default function AddLiquidity({
                               hostAppName: 'Ubeswap',
                               hostLogoUrl: 'https://info.ubeswap.org/favicon.png',
                               userAddress: account,
-                              swapAsset: currencies.CURRENCY_B?.symbol,
+                              swapAsset: `CELO_${currencies.CURRENCY_B?.symbol}`,
                               hostApiKey: process.env.REACT_APP_RAMP_KEY,
                             }).show()
                           }}

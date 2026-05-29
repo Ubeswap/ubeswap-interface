@@ -1,14 +1,16 @@
-import { useContractKit, useGetConnectedSigner } from '@celo-tools/use-contractkit'
+import { useCelo, useConnectedSigner } from '@celo/react-celo'
 import { MaxUint256 } from '@ethersproject/constants'
+import { JsonRpcSigner } from '@ethersproject/providers'
 import { TokenAmount, Trade } from '@ubeswap/sdk'
 import { useDoTransaction } from 'components/swap/routing'
 import { MoolaRouterTrade } from 'components/swap/routing/hooks/useTrade'
 import { MoolaDirectTrade } from 'components/swap/routing/moola/MoolaDirectTrade'
 import { useMoolaConfig } from 'components/swap/routing/moola/useMoola'
+import { MinimaRouterTrade } from 'components/swap/routing/trade'
 import { useCallback, useMemo } from 'react'
 import { useUserMinApprove } from 'state/user/hooks'
 
-import { ROUTER_ADDRESS, UBESWAP_MOOLA_ROUTER_ADDRESS } from '../constants'
+import { MINIMA_ROUTER_ADDRESS, ROUTER_ADDRESS, UBESWAP_MOOLA_ROUTER_ADDRESS } from '../constants'
 import { useTokenAllowance } from '../data/Allowances'
 import { Field } from '../state/swap/actions'
 import { useHasPendingApproval } from '../state/transactions/hooks'
@@ -27,12 +29,12 @@ export function useApproveCallback(
   amountToApprove?: TokenAmount,
   spender?: string
 ): [ApprovalState, () => Promise<void>] {
-  const { address: account } = useContractKit()
-  const getConnectedSigner = useGetConnectedSigner()
+  const { address: account } = useCelo()
+  const signer = useConnectedSigner() as JsonRpcSigner
 
   const token = amountToApprove instanceof TokenAmount ? amountToApprove.token : undefined
   const [minApprove] = useUserMinApprove()
-  const [currentAllowance, refetchAllowance] = useTokenAllowance(token, account ?? undefined, spender)
+  const currentAllowance = useTokenAllowance(token, account ?? undefined, spender)
   const pendingApproval = useHasPendingApproval(token?.address, spender)
 
   // check the current approval status
@@ -78,7 +80,7 @@ export function useApproveCallback(
     }
 
     // connect
-    const tokenContract = tokenContractDisconnected.connect(await getConnectedSigner())
+    const tokenContract = tokenContractDisconnected.connect(signer)
 
     if (minApprove) {
       await doTransaction(tokenContract, 'approve', {
@@ -93,19 +95,7 @@ export function useApproveCallback(
         approval: { tokenAddress: token.address, spender: spender },
       })
     }
-    // TODO(bl) Approve is still stuck despite this refetch
-    refetchAllowance()
-  }, [
-    approvalState,
-    token,
-    tokenContractDisconnected,
-    amountToApprove,
-    spender,
-    getConnectedSigner,
-    minApprove,
-    doTransaction,
-    refetchAllowance,
-  ])
+  }, [approvalState, token, tokenContractDisconnected, amountToApprove, spender, signer, minApprove, doTransaction])
 
   return [approvalState, approve]
 }
@@ -119,8 +109,10 @@ export function useApproveCallbackFromTrade(trade?: Trade, allowedSlippage = 0) 
   const moola = useMoolaConfig()
   return useApproveCallback(
     amountToApprove,
-    trade instanceof MoolaDirectTrade
-      ? moola?.lendingPoolCore
+    trade instanceof MinimaRouterTrade
+      ? MINIMA_ROUTER_ADDRESS
+      : trade instanceof MoolaDirectTrade
+      ? moola?.lendingPool
       : trade instanceof MoolaRouterTrade
       ? UBESWAP_MOOLA_ROUTER_ADDRESS
       : ROUTER_ADDRESS

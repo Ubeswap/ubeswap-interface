@@ -1,8 +1,9 @@
-import { useProvider } from '@celo-tools/use-contractkit'
 import { Pair, TokenAmount } from '@ubeswap/sdk'
 import Loader from 'components/Loader'
 import { useDoTransaction } from 'components/swap/routing'
+import { CustomStakingInfo } from 'pages/Earn/useCustomStakingInfo'
 import React, { useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
@@ -36,22 +37,28 @@ const ContentWrapper = styled(AutoColumn)`
 interface StakingModalProps {
   isOpen: boolean
   onDismiss: () => void
-  stakingInfo: StakingInfo
+  stakingInfo: StakingInfo | CustomStakingInfo
   userLiquidityUnstaked: TokenAmount | undefined
+  dummyPair?: Pair | null
 }
 
-export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiquidityUnstaked }: StakingModalProps) {
-  const library = useProvider()
-
+export default function StakingModal({
+  isOpen,
+  onDismiss,
+  stakingInfo,
+  userLiquidityUnstaked,
+  dummyPair,
+}: StakingModalProps) {
   // track and parse user input
   const [typedValue, setTypedValue] = useState('')
   const { parsedAmount, error } = useDerivedStakeInfo(typedValue, stakingInfo.stakingToken, userLiquidityUnstaked)
   const parsedAmountWrapped = parsedAmount
+  const { t } = useTranslation()
 
   let hypotheticalRewardRates: TokenAmount[] | undefined = stakingInfo?.totalRewardRates?.map(
     (rewardRate) => new TokenAmount(rewardRate.token, '0')
   )
-  if (parsedAmountWrapped?.greaterThan('0')) {
+  if (parsedAmountWrapped?.greaterThan('0') && stakingInfo?.totalStakedAmount) {
     hypotheticalRewardRates = stakingInfo.getHypotheticalRewardRate(
       stakingInfo.stakedAmount ? parsedAmountWrapped.add(stakingInfo.stakedAmount) : parsedAmountWrapped,
       stakingInfo.totalStakedAmount.add(parsedAmountWrapped),
@@ -68,9 +75,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
     onDismiss()
   }, [onDismiss])
 
-  // pair contract for this token to be staked
-  const dummyPair = new Pair(new TokenAmount(stakingInfo.tokens[0], '0'), new TokenAmount(stakingInfo.tokens[1], '0'))
-  const pairContract = usePairContract(dummyPair.liquidityToken.address)
+  const pairContract = usePairContract(dummyPair ? dummyPair.liquidityToken.address : undefined)
 
   // approval data for stake
   const deadline = useTransactionDeadline()
@@ -85,7 +90,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
       if (approval === ApprovalState.APPROVED) {
         const response = await doTransaction(stakingContract, 'stake', {
           args: [`0x${parsedAmount.raw.toString(16)}`],
-          summary: `Stake deposited liquidity`,
+          summary: `${t('StakeDepositedLiquidity')}`,
         })
         setHash(response.hash)
       } else {
@@ -108,7 +113,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
   }, [maxAmountInput, onUserInput])
 
   async function onAttemptToApprove() {
-    if (!pairContract || !library || !deadline) throw new Error('missing dependencies')
+    if ((dummyPair && !pairContract) || !deadline) throw new Error('missing dependencies')
     const liquidityAmount = parsedAmount
     if (!liquidityAmount) throw new Error('missing liquidity amount')
 
@@ -128,11 +133,11 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
             onUserInput={onUserInput}
             onMax={handleMax}
             showMaxButton={!atMaxAmount}
-            currency={stakingInfo.totalStakedAmount.token}
+            currency={stakingInfo.totalStakedAmount?.token}
             pair={dummyPair}
             label={''}
             disableCurrencySelect={true}
-            customBalanceText={'Available to deposit: '}
+            customBalanceText={`${t('AvailableToDeposit')}: `}
             id="stake-liquidity-token"
           />
 
@@ -167,7 +172,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
                   Approving <Loader stroke="white" />
                 </AutoRow>
               ) : (
-                'Approve'
+                `${t('approve')}`
               )}
             </ButtonConfirmed>
             <ButtonError
@@ -175,7 +180,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
               error={!!error && !!parsedAmount}
               onClick={onStake}
             >
-              {error ?? 'Deposit'}
+              {error ?? `${t('deposit')}`}
             </ButtonError>
           </RowBetween>
           <ProgressCircles steps={[approval === ApprovalState.APPROVED]} disabled={true} />
@@ -184,16 +189,22 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
       {attempting && !hash && (
         <LoadingView onDismiss={wrappedOnDismiss}>
           <AutoColumn gap="12px" justify={'center'}>
-            <TYPE.largeHeader>Depositing Liquidity</TYPE.largeHeader>
-            <TYPE.body fontSize={20}>{parsedAmount?.toSignificant(4)} UBE LP</TYPE.body>
+            <TYPE.largeHeader>{t('DepositingLiquidity')}</TYPE.largeHeader>
+            <TYPE.body fontSize={20}>
+              {parsedAmount?.toSignificant(4)}{' '}
+              {stakingInfo.stakingToken?.symbol === 'ULP' ? 'UBE LP' : stakingInfo.stakingToken?.symbol}
+            </TYPE.body>
           </AutoColumn>
         </LoadingView>
       )}
       {attempting && hash && (
         <SubmittedView onDismiss={wrappedOnDismiss} hash={hash}>
           <AutoColumn gap="12px" justify={'center'}>
-            <TYPE.largeHeader>Transaction Submitted</TYPE.largeHeader>
-            <TYPE.body fontSize={20}>Deposited {parsedAmount?.toSignificant(4)} UBE LP</TYPE.body>
+            <TYPE.largeHeader>{t('TransactionSubmitted')}</TYPE.largeHeader>
+            <TYPE.body fontSize={20}>
+              Deposited {parsedAmount?.toSignificant(4)}{' '}
+              {stakingInfo.stakingToken?.symbol === 'ULP' ? 'UBE LP' : stakingInfo.stakingToken?.symbol}
+            </TYPE.body>
           </AutoColumn>
         </SubmittedView>
       )}

@@ -1,5 +1,11 @@
-import moolaRouterAddresses from '@ubeswap/moola/deployments/router.mainnet.addresses.json'
 import { CELO, ChainId, cUSD, JSBI, Percent, Token } from '@ubeswap/sdk'
+import ERC20Abi from 'constants/abis/erc20.json'
+import TimelockAbi from 'constants/abis/ITimelock.json'
+import MultiSig from 'constants/abis/MultiSig.json'
+import PoolManager from 'constants/abis/pool-manager.json'
+import UbeswapFactory from 'constants/abis/UbeswapFactory.json'
+import { BigNumber } from 'ethers'
+import { Fragment } from 'ethers/lib/utils'
 
 import { UBE } from './tokens'
 
@@ -7,10 +13,13 @@ export { UBE } from './tokens'
 
 export const ROUTER_ADDRESS = '0xE3D8bd6Aed4F159bc8000a9cD47CffDb95F96121'
 
-export const UBESWAP_MOOLA_ROUTER_ADDRESS = moolaRouterAddresses.UbeswapMoolaRouter
+export const UBESWAP_MOOLA_ROUTER_ADDRESS = '0x7d28570135a2b1930f331c507f65039d4937f66c'
+
+export const MINIMA_ROUTER_ADDRESS = '0xa730B463395f5ca07EcE5cefeccF7f45e1E2C9Bf'
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
+export const BIG_ZERO = BigNumber.from(0)
 // a list of tokens by chain
 type ChainTokenList = {
   // readonly [chainId in ChainId]: Token[]
@@ -22,10 +31,56 @@ export const AVERAGE_BLOCK_TIME_IN_SECS = 13
 export const PROPOSAL_LENGTH_IN_BLOCKS = 40_320
 export const PROPOSAL_LENGTH_IN_SECS = AVERAGE_BLOCK_TIME_IN_SECS * PROPOSAL_LENGTH_IN_BLOCKS
 
+export const LIMIT_ORDER_ADDRESS = {
+  [ChainId.MAINNET]: '0x83013dCE53676F523dB8175832f2f3AD5B1fBb1f',
+  [ChainId.ALFAJORES]: '0xb5911e904EEf100803D5d4bDb22ff1177324e7F3',
+  [ChainId.BAKLAVA]: '',
+}
+
+export const ORDER_BOOK_ADDRESS = {
+  [ChainId.MAINNET]: '0x55e0E091a5a6f178B1b225E7369E8C91d4F64992',
+  [ChainId.ALFAJORES]: '0x12553790998fa8d3CCCC2906192267576130DD3f',
+  [ChainId.BAKLAVA]: '',
+}
+
+export const ORDER_BOOK_REWARD_DISTRIBUTOR_ADDRESS = {
+  [ChainId.MAINNET]: '0x3c57D786BdC33D30de25fE3f8b3fD3Fd3ff503e3',
+  [ChainId.ALFAJORES]: '0x39F2854fC1786Bb0d0883FAf0F2a1c2fb458bCA8',
+  [ChainId.BAKLAVA]: '',
+}
+
+export const MULTICALL_ADDRESS = {
+  [ChainId.MAINNET]: '0x75f59534dd892c1f8a7b172d639fa854d529ada3',
+  [ChainId.ALFAJORES]: '0x387ce7960b5DA5381De08Ea4967b13a7c8cAB3f6',
+  [ChainId.BAKLAVA]: '',
+}
+
+export const POOF = {
+  [ChainId.MAINNET]: new Token(ChainId.MAINNET, '0x00400FcbF0816bebB94654259de7273f4A05c762', 18, 'POOF', 'POOF'),
+  [ChainId.ALFAJORES]: new Token(ChainId.ALFAJORES, '0x00400FcbF0816bebB94654259de7273f4A05c762', 18, 'POOF', 'POOF'),
+}
+
+export const MCREAL = {
+  [ChainId.MAINNET]: new Token(
+    ChainId.MAINNET,
+    '0x9802d866fdE4563d088a6619F7CeF82C0B991A55',
+    18,
+    'mCREAL',
+    'Moola cREAL'
+  ),
+  [ChainId.ALFAJORES]: new Token(
+    ChainId.ALFAJORES,
+    '0x3D0EDA535ca4b15c739D46761d24E42e37664Ad7',
+    18,
+    'mCREAL',
+    'Moola cREAL'
+  ),
+}
+
 export const MCUSD = {
   [ChainId.MAINNET]: new Token(
     ChainId.MAINNET,
-    '0x64dEFa3544c695db8c535D289d843a189aa26b98',
+    '0x918146359264C492BD6934071c6Bd31C854EDBc3',
     18,
     'mCUSD',
     'Moola cUSD'
@@ -37,12 +92,13 @@ export const MCUSD = {
     'mCUSD',
     'Moola cUSD'
   ),
+  [ChainId.BAKLAVA]: null,
 }
 
 export const MCELO = {
   [ChainId.MAINNET]: new Token(
     ChainId.MAINNET,
-    '0x7037F7296B2fc7908de7b57a89efaa8319f0C500',
+    '0x7D00cd74FF385c955EA3d79e47BF06bD7386387D',
     18,
     'mCELO',
     'Moola CELO'
@@ -59,7 +115,7 @@ export const MCELO = {
 export const MCEUR = {
   [ChainId.MAINNET]: new Token(
     ChainId.MAINNET,
-    '0xa8d0E6799FF3Fd19c6459bf02689aE09c4d78Ba7',
+    '0xE273Ad7ee11dCfAA87383aD5977EE1504aC07568',
     18,
     'mCEUR',
     'Moola Celo Euro'
@@ -86,7 +142,7 @@ export const CEUR = {
 
 // used to construct intermediary pairs for trading
 export const BASES_TO_CHECK_TRADES_AGAINST: ChainTokenList = {
-  [ChainId.MAINNET]: [cUSD, CELO, CEUR, UBE, MCUSD, MCEUR, MCELO].map((el) => el[ChainId.MAINNET]),
+  [ChainId.MAINNET]: [cUSD, CELO, CEUR, UBE, MCUSD, MCEUR, MCELO, POOF].map((el) => el[ChainId.MAINNET]),
   [ChainId.ALFAJORES]: [cUSD, CELO, CEUR].map((el) => el[ChainId.ALFAJORES]),
   [ChainId.BAKLAVA]: [cUSD, CELO].map((el) => el[ChainId.BAKLAVA]),
 }
@@ -119,12 +175,14 @@ export const PINNED_PAIRS: { [chainId: number]: [Token, Token][] } = {
 export const NetworkContextName = 'NETWORK'
 
 // default allowed slippage, in bips
-export const INITIAL_ALLOWED_SLIPPAGE = 50
+export const INITIAL_ALLOWED_SLIPPAGE = 100
 // 20 minutes, denominated in seconds
 export const DEFAULT_DEADLINE_FROM_NOW = 60 * 20
 
 // used for rewards deadlines
 export const BIG_INT_SECONDS_IN_WEEK = JSBI.BigInt(60 * 60 * 24 * 7)
+
+export const INT_SECONDS_IN_WEEK = 60 * 60 * 24 * 7
 
 export const BIG_INT_SECONDS_IN_YEAR = JSBI.BigInt(60 * 60 * 24 * 365)
 
@@ -148,3 +206,97 @@ export const BETTER_TRADE_LESS_HOPS_THRESHOLD = new Percent(JSBI.BigInt(50), JSB
 
 export const ZERO_PERCENT = new Percent('0')
 export const ONE_HUNDRED_PERCENT = new Percent('1')
+
+export const IMPORTED_FARMS = 'imported_farms'
+
+export const MINIMA_API_URL = 'https://router.nodefinance.org/routes'
+
+export const FETCH_MINIMA_ROUTER_TIMER = 5000
+
+export const ubeGovernanceAddresses = {
+  [ChainId.MAINNET]: '0xa7581d8E26007f4D2374507736327f5b46Dd6bA8',
+  [ChainId.ALFAJORES]: '0xa7581d8E26007f4D2374507736327f5b46Dd6bA8',
+  [ChainId.BAKLAVA]: '0xa7581d8E26007f4D2374507736327f5b46Dd6bA8',
+}
+
+export const farmRegistryAddresses = {
+  [ChainId.MAINNET]: '0xa2bf67e12EeEDA23C7cA1e5a34ae2441a17789Ec',
+  [ChainId.ALFAJORES]: '0xa2bf67e12EeEDA23C7cA1e5a34ae2441a17789Ec',
+  [ChainId.BAKLAVA]: '0xa2bf67e12EeEDA23C7cA1e5a34ae2441a17789Ec',
+}
+
+export const KNOWN_ADDRESSES: Record<
+  string,
+  {
+    name: string
+    abi?: Fragment[]
+  }
+> = {
+  // Ubeswap
+  // https://docs.ubeswap.org/code-and-contracts/contract-addresses
+  '0x71e26d0E519D14591b9dE9a0fE9513A398101490': {
+    name: 'UBE Token',
+    abi: ERC20Abi as unknown as Fragment[],
+  },
+  '0x00Be915B9dCf56a3CBE739D9B9c202ca692409EC': {
+    name: 'UBE Token (Old)',
+    abi: ERC20Abi as unknown as Fragment[],
+  },
+  '0x471EcE3750Da237f93B8E339c536989b8978a438': {
+    name: 'CELO',
+    abi: ERC20Abi as unknown as Fragment[],
+  },
+  '0x918146359264C492BD6934071c6Bd31C854EDBc3': {
+    name: 'mcUSD',
+    abi: ERC20Abi as unknown as Fragment[],
+  },
+  '0x5Ed248077bD07eE9B530f7C40BE0c1dAE4c131C0': {
+    name: 'Release UBE',
+  },
+  '0x62d5b84bE28a183aBB507E125B384122D2C25fAE': {
+    name: 'Ubeswap Factory',
+    abi: UbeswapFactory as unknown as Fragment[],
+  },
+  '0x9Ee3600543eCcc85020D6bc77EB553d1747a65D2': {
+    name: 'Ubeswap Pool Manager',
+    abi: PoolManager as unknown as Fragment[],
+  },
+  '0x1BDB37DAA42E37bFCa4C5536AcF93b1173588981': {
+    name: 'Ubeswap Executive Timelock',
+    abi: TimelockAbi as unknown as Fragment[],
+  },
+  '0x177B042b284dD9B830d4eb179695bCC14044fD1A': {
+    name: 'Ubeswap Community Timelock',
+    abi: TimelockAbi as unknown as Fragment[],
+  },
+  '0xC45Cc58205132Fe29e0F96BAA3f4FA2BD88cD6D9': {
+    name: 'Ubeswap Celo Reserve Timelock',
+    abi: TimelockAbi as unknown as Fragment[],
+  },
+  '0x489AAc7Cb9A3B233e4a289Ec92284C8d83d49c6f': {
+    name: 'Ubeswap Founding Operator',
+  },
+  '0x97A9681612482A22b7877afbF8430EDC76159Cae': {
+    name: 'Ubeswap Governance Fees Timelock',
+    abi: TimelockAbi as unknown as Fragment[],
+  },
+  '0xB58DA472Fd4ba76696DbF8Ba3cC23580C26093dA': {
+    name: 'Ubeswap Multisig 1',
+    abi: MultiSig as unknown as Fragment[],
+  },
+}
+
+export const DEXES_TO_EXCLUDE = [
+  'sushiswap',
+  'uniswap-v3',
+  ...(process.env.REACT_APP_DEX_EXCLUSION_LIST?.split(',') ?? []),
+]
+
+export const EVENT_FETCH_RPC_URLS = {
+  [ChainId.MAINNET]: [
+    'https://celo-mainnet.infura.io/v3/801f4c55ea6b48b4b629c9645964eaa9',
+    'https://rpc.ankr.com/celo',
+  ],
+  [ChainId.ALFAJORES]: [''],
+  [ChainId.BAKLAVA]: [''],
+}

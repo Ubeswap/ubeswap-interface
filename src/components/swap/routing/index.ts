@@ -1,5 +1,5 @@
-import { useContractKit, useGetConnectedSigner } from '@celo-tools/use-contractkit'
-import { Signer } from '@ethersproject/abstract-signer'
+import { useCelo, useConnectedSigner } from '@celo/react-celo'
+import { JsonRpcSigner, TransactionRequest } from '@ethersproject/providers'
 import { ChainId, Trade } from '@ubeswap/sdk'
 import { BigNumber, BigNumberish, CallOverrides, Contract, ContractTransaction, PayableOverrides } from 'ethers'
 import { useCallback } from 'react'
@@ -10,7 +10,7 @@ type Head<T extends any[]> = Required<T> extends [...infer H, any] ? H : never
 type Last<T extends Array<unknown>> = Required<T> extends [...unknown[], infer L] ? L : never
 type MethodArgs<C extends Contract, M extends keyof C['estimateGas']> = Head<Parameters<C['estimateGas'][M]>>
 
-type DoTransactionFn = <
+export type DoTransactionFn = <
   C extends Contract,
   M extends string & keyof C['estimateGas'],
   O extends Last<Parameters<C['estimateGas'][M]>> & (PayableOverrides | CallOverrides)
@@ -19,6 +19,7 @@ type DoTransactionFn = <
   methodName: M,
   args: {
     args: MethodArgs<C, M>
+    raw?: TransactionRequest
     overrides?: O
     summary?: string
     approval?: { tokenAddress: string; spender: string }
@@ -29,7 +30,20 @@ type DoTransactionFn = <
 export interface TradeExecutor<T extends Trade> {
   (args: {
     trade: T
-    signer: Signer
+    signer: JsonRpcSigner
+    chainId: ChainId.MAINNET | ChainId.ALFAJORES
+    doTransaction: DoTransactionFn
+    recipient?: string | null
+    withRecipient?: string
+  }): Promise<{
+    hash: string
+  }>
+}
+
+export interface CancelLimitOrderExecutor {
+  (args: {
+    orderHash: string
+    signer: JsonRpcSigner
     chainId: ChainId.MAINNET | ChainId.ALFAJORES
     doTransaction: DoTransactionFn
   }): Promise<{
@@ -78,23 +92,31 @@ const estimateGas = async (call: ContractCall): Promise<BigNumber> => {
  */
 export const useDoTransaction = (): DoTransactionFn => {
   const addTransaction = useTransactionAdder()
-  const { network } = useContractKit()
-  const getConnectedSigner = useGetConnectedSigner()
+  const { network } = useCelo()
+  const connectedSigner = useConnectedSigner()
   const chainId = network.chainId as unknown as ChainId
   return useCallback(
     async (contractDisconnected, methodName, args): Promise<ContractTransaction> => {
       if (chainId === ChainId.BAKLAVA) {
         throw new Error('baklava not supported')
       }
-      const contract = contractDisconnected.connect(await getConnectedSigner())
+      if (!connectedSigner) {
+        throw new Error('no signer')
+      }
+      const contract = contractDisconnected.connect(connectedSigner)
       const call = { contract, methodName, args: args.args, value: args.overrides?.value }
       const gasEstimate = await estimateGas(call)
 
       try {
-        const response: ContractTransaction = await contract[methodName](...args.args, {
-          gasLimit: calculateGasMargin(gasEstimate),
-          ...args.overrides,
-        })
+        let response: ContractTransaction
+        if (args.raw) {
+          response = await connectedSigner.sendTransaction(args.raw)
+        } else {
+          response = await contract[methodName](...args.args, {
+            gasLimit: calculateGasMargin(gasEstimate),
+            ...args.overrides,
+          })
+        }
         addTransaction(response, {
           summary: args.summary,
           approval: args.approval,
@@ -112,6 +134,6 @@ export const useDoTransaction = (): DoTransactionFn => {
         }
       }
     },
-    [addTransaction, chainId, getConnectedSigner]
+    [addTransaction, chainId, connectedSigner]
   )
 }

@@ -1,4 +1,4 @@
-import { useContractKit, useProvider } from '@celo-tools/use-contractkit'
+import { useCelo, useProvider } from '@celo/react-celo'
 import { TokenAmount } from '@ubeswap/sdk'
 import SendHeader from 'components/send/SendHeader'
 import { useDoTransaction } from 'components/swap/routing'
@@ -8,6 +8,7 @@ import useENS from 'hooks/useENS'
 import React, { useCallback } from 'react'
 import { Text } from 'rebass'
 import { getContract } from 'utils'
+import { isBanned } from 'utils/isBannedUser'
 
 import AddressInputPanel from '../../components/AddressInputPanel'
 import { ButtonLight, ButtonPrimary } from '../../components/Button'
@@ -23,7 +24,7 @@ import AppBody from '../AppBody'
 
 export default function Send() {
   // dismiss warning if all imported tokens are in active lists
-  const { address: account } = useContractKit()
+  const { address: account } = useCelo()
   const library = useProvider()
 
   // toggle wallet when disconnected
@@ -36,7 +37,8 @@ export default function Send() {
 
   const maxAmountInput: TokenAmount | undefined = maxAmountSpend(currencyBalances[Field.INPUT])
 
-  const notEnoughFunds = parsedAmount && maxAmountInput && !parsedAmount.lessThan(maxAmountInput)
+  const notEnoughFunds = parsedAmount && maxAmountInput && parsedAmount.greaterThan(maxAmountInput)
+
   const isValid = recipientAddress && parsedAmount && account && !notEnoughFunds
   const doTransaction = useDoTransaction()
   const handleSend = useCallback(async () => {
@@ -100,7 +102,7 @@ export default function Send() {
                   handleSend()
                 }}
                 id="send-button"
-                disabled={!isValid}
+                disabled={!isValid || isBanned(recipientAddress)}
               >
                 <Text fontSize={20} fontWeight={500}>
                   {notEnoughFunds ? 'Not enough funds' : 'Send'}

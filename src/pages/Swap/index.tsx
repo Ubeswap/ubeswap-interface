@@ -1,14 +1,13 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
+import { useCelo } from '@celo/react-celo'
 import { RampInstantSDK } from '@ramp-network/ramp-instant-sdk'
 import { CELO, ChainId as UbeswapChainId, JSBI, Token, TokenAmount, Trade } from '@ubeswap/sdk'
-import ChangeNetworkModal from 'components/ChangeNetworkModal'
+import OpticsV1Warning from 'components/Header/OpticsV1Warning'
 import { describeTrade } from 'components/swap/routing/describeTrade'
 import { MoolaDirectTrade } from 'components/swap/routing/moola/MoolaDirectTrade'
 import { useTradeCallback } from 'components/swap/routing/useTradeCallback'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { useIsTransactionUnsupported } from 'hooks/Trades'
 import useENS from 'hooks/useENS'
-import { useIsSupportedNetwork } from 'hooks/useIsSupportedNetwork'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ArrowDown } from 'react-feather'
 import ReactGA from 'react-ga'
@@ -76,9 +75,8 @@ export default function Swap() {
       return !(token.address in defaultTokens)
     })
 
-  const { address: account, network } = useContractKit()
+  const { address: account, network } = useCelo()
   const chainId = network.chainId as unknown as UbeswapChainId
-  const isSupportedNetwork = useIsSupportedNetwork()
 
   const theme = useContext(ThemeContext)
 
@@ -171,6 +169,9 @@ export default function Swap() {
 
   const maxAmountInput: TokenAmount | undefined = maxAmountSpend(currencyBalances[Field.INPUT])
   const atMaxAmountInput = Boolean(maxAmountInput && parsedAmounts[Field.INPUT]?.equalTo(maxAmountInput))
+  const atHalfAmountInput = Boolean(
+    maxAmountInput && Number(maxAmountInput.toExact()) * 0.5 === Number(parsedAmounts[Field.INPUT]?.toExact())
+  )
 
   // the callback to execute the swap
   const { callback: swapCallback, error: swapCallbackError } = useTradeCallback(trade, allowedSlippage, recipient)
@@ -273,6 +274,12 @@ export default function Swap() {
     }
   }, [maxAmountInput, onUserInput, currencies, chainId])
 
+  const handleHalfInput = useCallback(() => {
+    if (maxAmountInput) {
+      onUserInput(Field.INPUT, Math.max(Number(maxAmountInput.toExact()) * 0.5, 0).toString())
+    }
+  }, [maxAmountInput, onUserInput])
+
   const handleOutputSelect = useCallback(
     (outputCurrency) => onCurrencySelection(Field.OUTPUT, outputCurrency),
     [onCurrencySelection]
@@ -283,10 +290,6 @@ export default function Swap() {
   const { isEstimate, makeLabel } = describeTrade(trade)
   const actionLabel = t(makeLabel(independentField !== Field.INPUT))
 
-  if (!isSupportedNetwork) {
-    return <ChangeNetworkModal />
-  }
-
   return (
     <>
       <TokenWarningModal
@@ -294,6 +297,7 @@ export default function Swap() {
         tokens={importTokensNotInDefault}
         onConfirm={handleConfirmTokenWarning}
       />
+      <OpticsV1Warning />
       <SwapPoolTabs active={'swap'} />
       <AppBody>
         <SwapHeader title={actionLabel} />
@@ -321,9 +325,11 @@ export default function Swap() {
               }
               value={formattedAmounts[Field.INPUT]}
               showMaxButton={!atMaxAmountInput}
+              showHalfButton={!atHalfAmountInput}
               currency={currencies[Field.INPUT]}
               onUserInput={handleTypeInput}
               onMax={handleMaxInput}
+              onHalf={handleHalfInput}
               onCurrencySelect={handleInputSelect}
               otherCurrency={currencies[Field.OUTPUT]}
               id="swap-currency-input"
@@ -335,6 +341,7 @@ export default function Swap() {
                     size="16"
                     onClick={() => {
                       setApprovalSubmitted(false) // reset 2 step UI for approvals
+                      handleTypeInput(formattedAmounts[Field.OUTPUT])
                       onSwitchTokens()
                     }}
                     color={currencies[Field.INPUT] && currencies[Field.OUTPUT] ? theme.primary1 : theme.text2}
@@ -358,6 +365,7 @@ export default function Swap() {
               onCurrencySelect={handleOutputSelect}
               otherCurrency={currencies[Field.INPUT]}
               id="swap-currency-output"
+              disabled
             />
 
             {recipient !== null ? (
@@ -419,7 +427,7 @@ export default function Swap() {
                     hostAppName: 'Ubeswap',
                     hostLogoUrl: 'https://info.ubeswap.org/favicon.png',
                     userAddress: account,
-                    swapAsset: currencies.INPUT?.symbol,
+                    swapAsset: `CELO_${currencies.INPUT?.symbol}`,
                     hostApiKey: process.env.REACT_APP_RAMP_KEY,
                   }).show()
                 }}

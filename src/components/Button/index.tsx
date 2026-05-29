@@ -224,7 +224,7 @@ export const ButtonEmpty = styled(Base)`
 export const ButtonWhite = styled(Base)`
   border: 1px solid #edeef2;
   background-color: ${({ theme }) => theme.bg1};
-  color: black;
+  color: ${({ theme }) => theme.primaryText1};
 
   &:focus {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -337,3 +337,20 @@ export function ButtonRadio({ active, ...rest }: { active?: boolean } & ButtonPr
     return <ButtonPrimary {...rest} />
   }
 }
+
+export const TabButton = styled(ButtonLight)<{
+  active?: boolean
+}>`
+  background-color: initial;
+  width: 35%;
+  ${({ active }) =>
+    active &&
+    `
+  box-shadow: 0 0 0 1pt #6D619A70;
+  background-color: #6D619A70;
+`}
+  font-size: 12px;
+  display: inline-block;
+  padding: 0.75rem;
+  margin: 0.5rem 0.05rem 0.5rem 0.5rem;
+`

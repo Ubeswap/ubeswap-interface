@@ -1,8 +1,9 @@
 import './i18n'
-import '@celo-tools/use-contractkit/lib/styles.css'
+import '@celo/react-celo/lib/styles.css'
 import './index.css'
 
-import { ContractKitProvider } from '@celo-tools/use-contractkit'
+import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client'
+import { CeloProvider, Mainnet } from '@celo/react-celo'
 import * as Sentry from '@sentry/react'
 import { Integrations } from '@sentry/tracing'
 import { ChainId } from '@ubeswap/sdk'
@@ -14,6 +15,7 @@ import ReactGA from 'react-ga'
 import { Provider } from 'react-redux'
 import { HashRouter } from 'react-router-dom'
 
+import { Alfajores } from './networks'
 import App from './pages/App'
 import store from './state'
 import ApplicationUpdater from './state/application/updater'
@@ -26,6 +28,11 @@ import ThemeProvider, { FixedGlobalStyle, ThemedGlobalStyle } from './theme'
 if (window.celo) {
   window.celo.autoRefreshOnNetworkChange = false
 }
+
+const client = new ApolloClient({
+  uri: 'https://gateway-arbitrum.network.thegraph.com/api/ce0f9485ff589b0b8c8320333f8081c3/subgraphs/id/JWDRLCwj4H945xEkbB6eocBSZcYnibqcJPJ8h9davFi',
+  cache: new InMemoryCache(),
+})
 
 const GOOGLE_ANALYTICS_IDS = {
   production: {
@@ -44,7 +51,7 @@ const environment = window.location.hostname.includes('app-staging')
   ? 'staging'
   : window.location.hostname.includes('ubeswap.org')
   ? 'production'
-  : process.env.REACT_APP_VERCEL_ENV ?? null
+  : process.env.REACT_APP_SENTRY_ENVIRONMENT ?? process.env.REACT_APP_VERCEL_ENV ?? null
 
 // google analytics
 const analyticsEnv: 'staging' | 'production' | null = environment
@@ -66,10 +73,12 @@ if (GOOGLE_ANALYTICS_ID) {
 
 if (process.env.REACT_APP_SENTRY_DSN) {
   const sentryCfg = {
-    environment: `${process.env.REACT_APP_VERCEL_ENV ?? 'unknown'}`,
-    release: `${process.env.REACT_APP_VERCEL_GIT_COMMIT_REF?.replace(/\//g, '--') ?? 'unknown'}-${
-      process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA ?? 'unknown'
-    }`,
+    environment: process.env.REACT_APP_SENTRY_ENVIRONMENT ?? `${process.env.REACT_APP_VERCEL_ENV ?? 'unknown'}`,
+    release:
+      process.env.REACT_APP_SENTRY_RELEASE ??
+      `${process.env.REACT_APP_VERCEL_GIT_COMMIT_REF?.replace(/\//g, '--') ?? 'unknown'}-${
+        process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA ?? 'unknown'
+      }`,
   }
   Sentry.init({
     dsn: process.env.REACT_APP_SENTRY_DSN,
@@ -105,14 +114,18 @@ function Updaters() {
 ReactDOM.render(
   <StrictMode>
     <FixedGlobalStyle />
-    <ContractKitProvider
+    <CeloProvider
       dapp={{
         name: 'Ubeswap',
         description:
           'The interface for Ubeswap, a decentralized exchange and automated market maker protocol for Celo assets.',
         url: 'https://app.ubeswap.org',
         icon: 'https://info.ubeswap.org/favicon.png',
+        // TODO: this is Nico's Test Ubeswap WalletConnect id, this needs to be changed
+        walletConnectProjectId: '2cd4dd10e7376ef90e879c969939c89f',
       }}
+      defaultNetwork={NETWORK_CHAIN_ID === Alfajores.chainId ? Alfajores.name : Mainnet.name}
+      networks={[Mainnet, Alfajores]}
       connectModal={{
         reactModalProps: {
           style: {
@@ -136,15 +149,17 @@ ReactDOM.render(
       }}
     >
       <Provider store={store}>
-        <Updaters />
-        <ThemeProvider>
-          <ThemedGlobalStyle />
-          <HashRouter>
-            <App />
-          </HashRouter>
-        </ThemeProvider>
+        <ApolloProvider client={client}>
+          <Updaters />
+          <ThemeProvider>
+            <ThemedGlobalStyle />
+            <HashRouter>
+              <App />
+            </HashRouter>
+          </ThemeProvider>
+        </ApolloProvider>
       </Provider>
-    </ContractKitProvider>
+    </CeloProvider>
   </StrictMode>,
   document.getElementById('root')
 )

@@ -1,4 +1,4 @@
-import { useContractKit, WalletTypes } from '@celo-tools/use-contractkit'
+import { useCelo, WalletTypes } from '@celo/react-celo'
 import * as Sentry from '@sentry/react'
 import useAccountSummary from 'hooks/useAccountSummary'
 import { darken, lighten } from 'polished'
@@ -108,7 +108,7 @@ function newTransactionsFirst(a: TransactionDetails, b: TransactionDetails) {
 }
 
 const StatusIcon: React.FC = () => {
-  const { walletType } = useContractKit()
+  const { walletType } = useCelo()
   if (
     walletType === WalletTypes.MetaMask ||
     walletType === WalletTypes.CeloExtensionWallet ||
@@ -121,7 +121,8 @@ const StatusIcon: React.FC = () => {
 
 function Web3StatusInner() {
   const { t } = useTranslation()
-  const { connect, address, account } = useContractKit()
+  const { connect, address, account } = useCelo()
+  const { nom } = useAccountSummary(address)
   const error = null
 
   const allTransactions = useAllTransactions()
@@ -136,9 +137,11 @@ function Web3StatusInner() {
   const hasPendingTransactions = !!pending.length
   const toggleWalletModal = useWalletModalToggle()
   let accountName
-  if (account) {
+  if (nom) {
+    accountName = nom
+  } else if (account && !isAddress(account)) {
     // Phone numbers show up under `account`, so we need to check if it is an address
-    accountName = isAddress(account) ? shortenAddress(account) : account
+    accountName = account
   } else if (address) {
     accountName = shortenAddress(address)
   }
@@ -147,7 +150,10 @@ function Web3StatusInner() {
       <Web3StatusConnected id="web3-status-connected" onClick={toggleWalletModal} pending={hasPendingTransactions}>
         {hasPendingTransactions ? (
           <RowBetween>
-            <Text>{pending?.length} Pending</Text> <Loader stroke="white" />
+            <Text>
+              {pending?.length} {t('pending')}
+            </Text>{' '}
+            <Loader stroke="white" />
           </RowBetween>
         ) : (
           <>
@@ -167,14 +173,14 @@ function Web3StatusInner() {
   } else {
     return (
       <Web3StatusConnect id="connect-wallet" onClick={() => connect().catch(console.warn)} faded={!address}>
-        <Text>{t('Connect to a wallet')}</Text>
+        <Text>{t('ConnectToAWallet')}</Text>
       </Web3StatusConnect>
     )
   }
 }
 
 export default function Web3Status() {
-  const { address: account, walletType } = useContractKit()
+  const { address: account, walletType } = useCelo()
   const allTransactions = useAllTransactions()
 
   const sortedRecentTransactions = useMemo(() => {
@@ -184,7 +190,7 @@ export default function Web3Status() {
 
   const pending = sortedRecentTransactions.filter((tx) => !tx.receipt).map((tx) => tx.hash)
   const confirmed = sortedRecentTransactions.filter((tx) => tx.receipt).map((tx) => tx.hash)
-  const { summary } = useAccountSummary(account ?? undefined)
+  const { summary, nom } = useAccountSummary(account ?? undefined)
 
   useEffect(() => {
     Sentry.setUser({ id: account ?? undefined })
@@ -196,7 +202,7 @@ export default function Web3Status() {
     <>
       <Web3StatusInner />
       <WalletModal
-        ENSName={summary?.name ?? undefined}
+        ENSName={nom ?? summary?.name ?? undefined}
         pendingTransactions={pending}
         confirmedTransactions={confirmed}
       />

@@ -1,5 +1,5 @@
-import { useContractKit } from '@celo-tools/use-contractkit'
-import { ChainId, cUSD, Token } from '@ubeswap/sdk'
+import { ChainId } from '@celo/react-celo'
+import { ChainId as UbeswapChainId, cUSD, Token } from '@ubeswap/sdk'
 import { ButtonLight } from 'components/Button'
 import { useOnClickOutside } from 'hooks/useOnClickOutside'
 import useTheme from 'hooks/useTheme'
@@ -51,6 +51,7 @@ interface CurrencySearchProps {
   showManageView: () => void
   showImportView: () => void
   setImportToken: (token: Token) => void
+  chainId?: ChainId
 }
 
 export function CurrencySearch({
@@ -63,10 +64,9 @@ export function CurrencySearch({
   showManageView,
   showImportView,
   setImportToken,
+  chainId = ChainId.Mainnet,
 }: CurrencySearchProps) {
   const { t } = useTranslation()
-  const { network } = useContractKit()
-  const chainId = network.chainId as unknown as ChainId
   const theme = useTheme()
 
   // refs for fixed size lists
@@ -75,7 +75,7 @@ export function CurrencySearch({
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [invertSearchOrder] = useState<boolean>(false)
 
-  const allTokens = useAllTokens()
+  const allTokens = useAllTokens(chainId)
   // const inactiveTokens: Token[] | undefined = useFoundOnInactiveList(searchQuery)
 
   // if they input an address, use it
@@ -86,12 +86,12 @@ export function CurrencySearch({
   useEffect(() => {
     if (isAddressSearch) {
       ReactGA.event({
-        category: 'Currency Select',
-        action: 'Search by address',
+        category: `${t('CurrencySelect')}`,
+        action: `${t('SearchByAddress')}`,
         label: isAddressSearch,
       })
     }
-  }, [isAddressSearch])
+  }, [t, isAddressSearch])
 
   const showETH: boolean = useMemo(() => {
     const s = searchQuery.toLowerCase().trim()
@@ -162,7 +162,7 @@ export function CurrencySearch({
       if (e.key === 'Enter') {
         const s = searchQuery.toLowerCase().trim()
         if (s === 'cusd') {
-          handleCurrencySelect(cUSD[chainId])
+          handleCurrencySelect(cUSD[chainId as unknown as UbeswapChainId])
         } else if (filteredSortedTokens.length > 0) {
           if (
             filteredSortedTokens[0].symbol?.toLowerCase() === searchQuery.trim().toLowerCase() ||
@@ -197,7 +197,7 @@ export function CurrencySearch({
       <PaddedColumn gap="16px">
         <RowBetween>
           <Text fontWeight={500} fontSize={16}>
-            Select a token
+            {t('selectToken')}
           </Text>
           <CloseIcon onClick={onDismiss} />
         </RowBetween>
@@ -214,7 +214,11 @@ export function CurrencySearch({
           />
         </Row>
         {showCommonBases && (
-          <CommonBases chainId={chainId} onSelect={handleCurrencySelect} selectedCurrency={selectedCurrency} />
+          <CommonBases
+            chainId={chainId as unknown as UbeswapChainId}
+            onSelect={handleCurrencySelect}
+            selectedCurrency={selectedCurrency}
+          />
         )}
       </PaddedColumn>
       <Separator />
@@ -245,7 +249,7 @@ export function CurrencySearch({
       ) : (
         <Column style={{ padding: '20px', height: '100%' }}>
           <TYPE.main color={theme.text3} textAlign="center" mb="20px">
-            No results found in active lists.
+            {t('NoResultsFoundInActiveLists')}.
           </TYPE.main>
           {inactiveTokens &&
             inactiveTokens.length > 0 &&
@@ -261,8 +265,10 @@ export function CurrencySearch({
                   onClick={() => setShowExpanded(!showExpanded)}
                 >
                   {!showExpanded
-                    ? `Show ${inactiveTokens.length} more inactive ${inactiveTokens.length === 1 ? 'token' : 'tokens'}`
-                    : 'Hide expanded search'}
+                    ? `${t('Show')} ${inactiveTokens.length} ${t('MoreInactive')} ${
+                        inactiveTokens.length === 1 ? t('Token') : t('Tokens')
+                      }`
+                    : `${t('HideExpandedSearch')}`}
                 </ButtonLight>
               </Row>
             )}
@@ -283,8 +289,10 @@ export function CurrencySearch({
               onClick={() => setShowExpanded(!showExpanded)}
             >
               {!showExpanded
-                ? `Show ${inactiveTokens.length} more inactive ${inactiveTokens.length === 1 ? 'token' : 'tokens'}`
-                : 'Hide expanded search'}
+                ? `${t('Show')} ${inactiveTokens.length} ${t('MoreInactive')} ${
+                    inactiveTokens.length === 1 ? t('Token') : t('Tokens')
+                  }`
+                : `${t('HideExpandedSearch')}`}
             </ButtonLight>
           </Row>
         )}
@@ -295,7 +303,7 @@ export function CurrencySearch({
               <IconWrapper size="16px" marginRight="6px">
                 <Edit />
               </IconWrapper>
-              <TYPE.main color={theme.blue1}>Manage</TYPE.main>
+              <TYPE.main color={theme.blue1}>{t('manage')}</TYPE.main>
             </RowFixed>
           </ButtonText>
         </Row>

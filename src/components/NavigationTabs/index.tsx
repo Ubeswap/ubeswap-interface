@@ -8,7 +8,7 @@ import { AppDispatch } from 'state'
 import { resetMintState } from 'state/mint/actions'
 import styled from 'styled-components'
 
-import { RowBetween } from '../Row'
+import Row, { RowBetween } from '../Row'
 // import QuestionHelper from '../QuestionHelper'
 import Settings from '../Settings'
 
@@ -56,6 +56,11 @@ const StyledArrowLeft = styled(ArrowLeft)`
   color: ${({ theme }) => theme.text1};
 `
 
+const AbsoluteHistoryLink = styled(HistoryLink)`
+  position: absolute;
+  left: 1rem;
+`
+
 export function SwapPoolTabs({ active }: { active: 'swap' | 'pool' | 'send' }) {
   const { t } = useTranslation()
   return (
@@ -71,13 +76,14 @@ export function SwapPoolTabs({ active }: { active: 'swap' | 'pool' | 'send' }) {
 }
 
 export function FindPoolTabs() {
+  const { t } = useTranslation()
   return (
     <Tabs>
       <RowBetween style={{ padding: '1rem 1rem 0 1rem' }}>
         <HistoryLink to="/pool">
           <StyledArrowLeft />
         </HistoryLink>
-        <ActiveText>Import Pool</ActiveText>
+        <ActiveText>{t('ImportPool')}</ActiveText>
         <Settings />
       </RowBetween>
     </Tabs>
@@ -87,6 +93,7 @@ export function FindPoolTabs() {
 export function AddRemoveTabs({ adding, creating }: { adding: boolean; creating: boolean }) {
   // reset states on back
   const dispatch = useDispatch<AppDispatch>()
+  const { t } = useTranslation()
 
   return (
     <Tabs>
@@ -99,9 +106,26 @@ export function AddRemoveTabs({ adding, creating }: { adding: boolean; creating:
         >
           <StyledArrowLeft />
         </HistoryLink>
-        <ActiveText>{creating ? 'Create a pair' : adding ? 'Add Liquidity' : 'Remove Liquidity'}</ActiveText>
+        <ActiveText>
+          {creating ? `${t('createPair')}` : adding ? `${t('addLiquidity')}` : `${t('removeLiquidity')}`}
+        </ActiveText>
         <Settings />
       </RowBetween>
+    </Tabs>
+  )
+}
+
+export function ProposalTabs() {
+  return (
+    <Tabs>
+      <Row padding={'1rem 1rem 0 1rem'}>
+        <Row justify={'center'}>
+          <AbsoluteHistoryLink to="/stake">
+            <StyledArrowLeft />
+          </AbsoluteHistoryLink>
+          <ActiveText>Create Proposal</ActiveText>{' '}
+        </Row>
+      </Row>
     </Tabs>
   )
 }
