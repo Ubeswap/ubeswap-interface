@@ -6,7 +6,6 @@ import { CardNoise } from 'components/earn/styled'
 import Modal from 'components/Modal'
 import Hamburger from 'hamburger-react'
 import { useToken } from 'hooks/Tokens'
-import usePrevious from 'hooks/usePrevious'
 import { darken } from 'polished'
 import Drawer from 'rc-drawer'
 import React, { useState } from 'react'
@@ -366,7 +365,6 @@ export default function Header() {
   const [showUbeBalanceModal, setShowUbeBalanceModal] = useState<boolean>(false)
   const aggregateBalance: TokenAmount | undefined = useAggregateUbeBalance()
   const countUpValue = relevantDigits(aggregateBalance)
-  const countUpValuePrevious = usePrevious(countUpValue) ?? '0'
 
   const oldUbeToken = useToken('0x00Be915B9dCf56a3CBE739D9B9c202ca692409EC')
   const oldUbeBalance = useTokenBalance(account ?? undefined, oldUbeToken ?? undefined)

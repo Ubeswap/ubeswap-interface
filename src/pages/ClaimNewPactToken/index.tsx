@@ -221,7 +221,7 @@ export default function ClaimNewPactToken() {
   const handleTypeInput = useCallback((value: string) => {
     setTypedValue(value)
   }, [])
-  const handleTypeOutput = useCallback((value: string) => {
+  const handleTypeOutput = useCallback(() => {
     console.error('handleTypeOutput can not change')
   }, [])
 

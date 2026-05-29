@@ -1,6 +1,6 @@
-import { useCelo, useConnectedSigner, useProvider } from '@celo/react-celo'
+import { useCelo, useConnectedSigner } from '@celo/react-celo'
 import { JsonRpcSigner } from '@ethersproject/providers'
-import { ChainId, TokenAmount } from '@ubeswap/sdk'
+import { TokenAmount } from '@ubeswap/sdk'
 import { ButtonEmpty, ButtonLight, ButtonPrimary, ButtonRadio } from 'components/Button'
 import { AutoColumn } from 'components/Column'
 import CurrencyLogo from 'components/CurrencyLogo'
@@ -10,17 +10,12 @@ import { InformationWrapper } from 'components/Stake/Proposals/ProposalCard'
 import StakeCollapseCard from 'components/Stake/StakeCollapseCard'
 import StakeInputField from 'components/Stake/StakeInputField'
 import { useDoTransaction } from 'components/swap/routing'
-import { RomulusDelegate__factory, Voter__factory } from 'generated'
 import { VotableStakingRewards__factory } from 'generated/factories/VotableStakingRewards__factory'
-import { useRomulus } from 'hooks/romulus/useRomulus'
-import { useVotingTokens } from 'hooks/romulus/useVotingTokens'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import { useVotableStakingContract } from 'hooks/useContract'
-import { useLatestBlockNumber } from 'hooks/useLatestBlockNumber'
 import { BodyWrapper } from 'pages/AppBody'
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useHistory } from 'react-router'
 import { Text } from 'rebass'
 import { WrappedTokenInfo } from 'state/lists/hooks'
 import { useSingleCallResult } from 'state/multicall/hooks'
@@ -29,13 +24,7 @@ import { useCurrencyBalance } from 'state/wallet/hooks'
 import styled from 'styled-components'
 import { ExternalLink } from 'theme'
 
-import { BIG_INT_SECONDS_IN_WEEK, BIG_INT_SECONDS_IN_YEAR, BIG_INT_ZERO, ubeGovernanceAddresses } from '../../constants'
-
-enum DelegateIdx {
-  ABSTAIN,
-  FOR,
-  AGAINST,
-}
+import { BIG_INT_SECONDS_IN_WEEK, BIG_INT_SECONDS_IN_YEAR } from '../../constants'
 
 const StyledButtonRadio = styled(ButtonRadio)({
   padding: '8px',
@@ -68,14 +57,9 @@ const ube = new WrappedTokenInfo(
 export const OldStake: React.FC = () => {
   const { t } = useTranslation()
 
-  const history = useHistory()
-  const { address, connect, network } = useCelo()
-  const provider = useProvider()
+  const { address, connect } = useCelo()
   const signer = useConnectedSigner() as JsonRpcSigner
   const [amount, setAmount] = useState('')
-  const [showChangeDelegateModal, setShowChangeDelegateModal] = useState(false)
-  const [showViewProposalModal, setShowViewProposalModal] = useState(false)
-  const [selectedProposal, setSelectedProposal] = useState('')
   const tokenAmount = tryParseAmount(amount === '' ? '0' : amount, ube)
   const [approvalState, approve] = useApproveCallback(tokenAmount, VOTABLE_STAKING_REWARDS_ADDRESS)
   const [staking, setStaking] = useState(true)
@@ -83,47 +67,17 @@ export const OldStake: React.FC = () => {
   const contract = useVotableStakingContract(VOTABLE_STAKING_REWARDS_ADDRESS)
   const doTransaction = useDoTransaction()
 
-  const crank = useCallback(
-    async (delegateIdx: DelegateIdx) => {
-      const staking = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, provider)
-      const voterAddr = await staking.delegates(delegateIdx)
-      const supportName =
-        delegateIdx === DelegateIdx.ABSTAIN ? 'ABSTAIN' : delegateIdx === DelegateIdx.FOR ? 'FOR' : 'AGAINST'
-      const voter = Voter__factory.connect(voterAddr, provider)
-      const romulus = RomulusDelegate__factory.connect(await voter.romulusDelegate(), provider)
-      const proposalCount = await romulus.proposalCount()
-      await doTransaction(voter, 'castVote', {
-        args: [proposalCount.sub(1)],
-        summary: `Cranking the ${supportName} vote`,
-      })
-    },
-    [provider, doTransaction]
-  )
   const stakeBalance = new TokenAmount(
     ube,
     useSingleCallResult(contract, 'balanceOf', [address ?? undefined]).result?.[0] ?? 0
   )
 
-  // 0 - Abstain
-  // 1 - For
-  // 2 - Against
-  const userDelegateIdx = useSingleCallResult(contract, 'userDelegateIdx', [address ?? undefined]).result?.[0]
   const earned = new TokenAmount(ube, useSingleCallResult(contract, 'earned', [address ?? undefined]).result?.[0] ?? 0)
   const totalSupply = new TokenAmount(ube, useSingleCallResult(contract, 'totalSupply', []).result?.[0] ?? 0)
   const rewardRate = new TokenAmount(ube, useSingleCallResult(contract, 'rewardRate', []).result?.[0] ?? 0)
 
   const apy = totalSupply.greaterThan('0') ? rewardRate.multiply(BIG_INT_SECONDS_IN_YEAR).divide(totalSupply) : null
   const userRewardRate = totalSupply.greaterThan('0') ? stakeBalance.multiply(rewardRate).divide(totalSupply) : null
-
-  const romulusAddress = ubeGovernanceAddresses[network.chainId as ChainId]
-
-  const { tokenDelegate, quorumVotes, proposalThreshold } = useRomulus((romulusAddress as string) || '')
-  const [latestBlockNumber] = useLatestBlockNumber()
-  const { votingPower, releaseVotingPower } = useVotingTokens(latestBlockNumber)
-  const totalVotingPower = votingPower?.add(releaseVotingPower ?? new TokenAmount(ube, BIG_INT_ZERO))
-
-  // const disablePropose = !totalVotingPower || !proposalThreshold || totalVotingPower?.lessThan(proposalThreshold?.raw)
-  const disablePropose = false
 
   const onStakeClick = useCallback(async () => {
     const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer)
@@ -152,19 +106,6 @@ export const OldStake: React.FC = () => {
       summary: `Claim UBE rewards`,
     })
   }, [doTransaction, signer])
-  const changeDelegateIdx = useCallback(
-    async (delegateIdx: number) => {
-      if (delegateIdx === userDelegateIdx) {
-        return
-      }
-      const c = VotableStakingRewards__factory.connect(VOTABLE_STAKING_REWARDS_ADDRESS, signer)
-      return await doTransaction(c, 'changeDelegateIdx', {
-        args: [delegateIdx],
-        summary: `Change auto-governance selection to ${DelegateIdx[delegateIdx]}`,
-      })
-    },
-    [doTransaction, signer, userDelegateIdx]
-  )
 
   let button = <ButtonLight onClick={() => connect().catch(console.warn)}>{t('connectWallet')}</ButtonLight>
   if (address) {
